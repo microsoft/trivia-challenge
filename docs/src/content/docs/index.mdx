@@ -1,0 +1,36 @@
+---
+title: Welcome to IQ Challenge Documentation
+description: Product documentation and developer diary for the IQ Challenge project.
+template: splash
+hero:
+  tagline: Product documentation and development insights for the IQ Challenge project
+  image:
+    file: ../../assets/houston.webp
+  actions:
+    - text: Product Documentation
+      link: /product/overview/
+      icon: right-arrow
+    - text: Developer Diary
+      link: /diary/introduction/
+      icon: document
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Explore the Documentation
+
+<CardGrid stagger>
+	<Card title="Product Documentation" icon="open-book">
+		Comprehensive guides, features, and usage documentation for the IQ Challenge project.
+	</Card>
+	<Card title="Developer Diary" icon="pencil">
+		Development logs, decisions, challenges, and learnings throughout the project lifecycle.
+	</Card>
+	<Card title="Reference" icon="information">
+		Technical references, API documentation, and configuration details.
+	</Card>
+	<Card title="Getting Started" icon="rocket">
+		Quick start guides to get up and running with the IQ Challenge project.
+	</Card>
+</CardGrid>
