@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "idea": "An 'IQ Challenge' quiz web app that serves three purposes: 1) Help people assess their knowledge about Microsoft Fabric, 2) Demonstrate Azure and Microsoft Fabric technologies, 3) Serve as a booth animation during Microsoft Ignite event. Based on Fabric Flashcards, with Kahoot-inspired UX and 'orange spooky wizards' visual theme. Game includes waiting screen, registration, timed quiz gameplay with difficulty levels, and results/leaderboard. Features real-time telemetry capture sent to Microsoft Fabric for analysis.",
+  "project": {
+    "name": "Microsoft Fabric IQ Challenge",
+    "audience": "Microsoft Ignite attendees and Microsoft Fabric learners",
+    "summary": "A time-bombed quiz game with multiple difficulty levels where players answer Microsoft Fabric questions to build streaks, gain time bonuses, and compete on leaderboards. Features real-time telemetry and spooky wizard theming.",
+    "constraints": [
+      "Game must be playable with touch, mouse and keyboard only (ZCBM for answer choices)",
+      "Analytics required: Game started, Game ended, question answered, sessionId, userId",
+      "Maximum 2 minutes total game time",
+      "Real-time telemetry capture to Microsoft Fabric"
+    ],
+    "stack": [
+      {
+        "name": "Frontend",
+        "details": "React + TypeScript + Tailwind CSS",
+        "root": "frontend"
+      },
+      {
+        "name": "Backend",
+        "details": ".NET 10 Minimal API",
+        "root": "backend"
+      },
+      {
+        "name": "Database",
+        "details": "Azure Cosmos DB"
+      },
+      {
+        "name": "Hosting",
+        "details": "Azure Static Web Apps (frontend) + Azure App Service Container (backend)"
+      },
+      {
+        "name": "CI/CD",
+        "details": "GitHub Actions"
+      }
+    ]
+  },
+  "nextStep": "refine"
+}
