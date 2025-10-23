@@ -1,15 +1,26 @@
 {
   "version": 1,
-  "idea": "An 'IQ Challenge' quiz web app that serves three purposes: 1) Help people assess their knowledge about Microsoft Fabric, 2) Demonstrate Azure and Microsoft Fabric technologies, 3) Serve as a booth animation during Microsoft Ignite event. Based on Fabric Flashcards, with Kahoot-inspired UX and 'orange spooky wizards' visual theme. Game includes waiting screen, registration, timed quiz gameplay with difficulty levels, and results/leaderboard. Features real-time telemetry capture sent to Microsoft Fabric for analysis.",
+  "idea": "An 'IQ Challenge' quiz web app that serves three purposes: 1) Help people assess their knowledge about Microsoft Fabric, 2) Demonstrate Azure and Microsoft Fabric technologies, 3) Serve as a booth animation during Microsoft Ignite event. Based on Fabric Flashcards, with Kahoot/Duolingo-inspired UX. Game includes waiting screen, registration, timed quiz gameplay with dynamic difficulty, and results/leaderboard. Features comprehensive telemetry capture sent to Microsoft Fabric for analysis.",
   "project": {
     "name": "Microsoft Fabric IQ Challenge",
+    "mission": "Create an engaging quiz game that helps people assess their Microsoft Fabric knowledge while demonstrating Azure and Fabric technologies at Microsoft Ignite",
     "audience": "Microsoft Ignite attendees and Microsoft Fabric learners",
-    "summary": "A time-bombed quiz game with multiple difficulty levels where players answer Microsoft Fabric questions to build streaks, gain time bonuses, and compete on leaderboards. Features real-time telemetry and spooky wizard theming.",
+    "summary": "A Kahoot/Duolingo-inspired quiz web app where players have a base 1 minute to answer randomized Microsoft Fabric questions, with the ability to earn up to 1 additional minute through completed streaks (maximum 2 minutes total). Difficulty is controlled by time pressure and number of answer choices. Features forgiving streak system and comprehensive telemetry including all user interactions.",
     "constraints": [
       "Game must be playable with touch, mouse and keyboard only (ZCBM for answer choices)",
-      "Analytics required: Game started, Game ended, question answered, sessionId, userId",
-      "Maximum 2 minutes total game time",
-      "Real-time telemetry capture to Microsoft Fabric"
+      "Base 1 minute timer with streak bonuses up to 2 minutes total",
+      "Comprehensive telemetry: all clicks, mouse movements (max 10 points/sec), game events",
+      "Real-time telemetry capture to Microsoft Fabric",
+      "Support for 10 concurrent players initially, scalable to 80K",
+      "Both daily and cumulative leaderboards"
+    ],
+    "challenges": [
+      "Real-time telemetry performance: Use batching and asynchronous processing to avoid impacting game performance",
+      "High concurrent users at Ignite: Implement proper scaling with Azure App Service and connection pooling for Cosmos DB", 
+      "Touch vs mouse interaction differences: Thorough testing across devices and input methods with responsive design",
+      "Network latency affecting game experience: Implement offline-capable question caching and optimistic UI updates",
+      "Dynamic timer complexity: Careful testing of streak-based time bonus calculations and UI updates",
+      "Telemetry data volume: Use efficient data schemas and consider sampling strategies for mouse movement data"
     ],
     "stack": [
       {
@@ -31,10 +42,134 @@
         "details": "Azure Static Web Apps (frontend) + Azure App Service Container (backend)"
       },
       {
+        "name": "Analytics",
+        "details": "Microsoft Fabric for real-time telemetry processing"
+      },
+      {
         "name": "CI/CD",
         "details": "GitHub Actions"
       }
     ]
   },
-  "nextStep": "refine"
+  "clarifications": [
+    {
+      "question": "For the question content, you mentioned it's \"based on Fabric Flashcards\" - do you already have a collection of Microsoft Fabric questions prepared, or do you need help creating the question bank?",
+      "answer": "Yes I have them as a JSON file"
+    },
+    {
+      "question": "For the difficulty levels, how many levels are you planning and how should the difficulty progression work during gameplay?",
+      "answer": "Three levels, always start with easy, as you progress with streaks, you progress levels. There is a caveat to the streak: a wrong answer let you go back one step in the streak, not restart it."
+    },
+    {
+      "question": "For the leaderboard and competition aspect, what should be the primary scoring mechanism?",
+      "answer": "Points weighted by difficulty level + time bonuses. The time bonuses must be proportional to the points weighted (we must not have more points from finishing early with 0 good answers rather than finishing last with 100% correct answers)."
+    },
+    {
+      "question": "For the \"orange spooky wizards\" visual theme, do you have specific design assets or visual references in mind?",
+      "answer": "Actually, I want that design (referring to Kahoot/Duolingo-style interface). We switched the theme to just mimic Kahoot/Duolingo"
+    },
+    {
+      "question": "For the Microsoft Fabric telemetry integration, do you need help setting up the Fabric workspace and what specific telemetry events would be valuable?",
+      "answer": "Yes I'm good on the Fabric part. Every touch or mouse move must be logged in (we can create heatmaps of clicks, replays of mouse movements, etc)"
+    }
+  ],
+  "tasks": [
+    {
+      "description": "Create .NET 10 Minimal API with user session management and question serving endpoints",
+      "completed": false,
+      "mvp": true
+    },
+    {
+      "description": "Set up React + TypeScript + Tailwind with Kahoot/Duolingo-inspired design",
+      "completed": false,
+      "mvp": true
+    },
+    {
+      "description": "Implement randomized question loading from JSON file (no difficulty filtering)",
+      "completed": false,
+      "mvp": true
+    },
+    {
+      "description": "Design Cosmos DB collections for users, sessions, questions, and scores",
+      "completed": false,
+      "mvp": true
+    },
+    {
+      "description": "Implement 1-minute base timer with 20-second streak bonuses (up to 2 minutes total)",
+      "completed": false,
+      "mvp": true
+    },
+    {
+      "description": "Build forgiving streak system (wrong answer steps back one level)",
+      "completed": false,
+      "mvp": true
+    },
+    {
+      "description": "Implement difficulty-weighted scoring with proportional time bonuses",
+      "completed": false,
+      "mvp": true
+    },
+    {
+      "description": "Create time pressure and varying answer choice counts for difficulty",
+      "completed": false,
+      "mvp": true
+    },
+    {
+      "description": "Build waiting screen, registration, gameplay, and results screens",
+      "completed": false,
+      "mvp": true
+    },
+    {
+      "description": "Implement touch, mouse, and keyboard controls (Z/C/B/M)",
+      "completed": false,
+      "mvp": true
+    },
+    {
+      "description": "Design and implement real-time leaderboard updates (daily and cumulative)",
+      "completed": false,
+      "mvp": true
+    },
+    {
+      "description": "Implement comprehensive event tracking (clicks, mouse movements at 10 points/sec, game events)",
+      "completed": false,
+      "mvp": true
+    },
+    {
+      "description": "Set up real-time telemetry streaming to Microsoft Fabric",
+      "completed": false,
+      "mvp": true
+    },
+    {
+      "description": "Configure Azure Static Web Apps and App Service Container deployment",
+      "completed": false,
+      "mvp": false
+    },
+    {
+      "description": "Set up GitHub Actions for automated testing and deployment",
+      "completed": false,
+      "mvp": false
+    },
+    {
+      "description": "Implement proper scaling for 10-80K concurrent users",
+      "completed": false,
+      "mvp": false
+    },
+    {
+      "description": "Add application performance and error tracking",
+      "completed": false,
+      "mvp": false
+    },
+    {
+      "description": "Test the application under Microsoft Ignite booth conditions",
+      "completed": false,
+      "mvp": false
+    },
+    {
+      "description": "UI/UX refinements and performance optimizations",
+      "completed": false,
+      "mvp": false
+    }
+  ],
+  "openDecisions": [],
+  "nextStep": "plan"
 }
