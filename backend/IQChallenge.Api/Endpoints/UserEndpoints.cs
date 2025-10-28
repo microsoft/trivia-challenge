@@ -1,0 +1,94 @@
+using Asp.Versioning;
+using Asp.Versioning.Builder;
+using IQChallenge.Api.Models;
+using IQChallenge.Api.Models.Dtos.Users;
+using IQChallenge.Api.Repositories;
+
+namespace IQChallenge.Api.Endpoints;
+
+/// <summary>
+/// User-related endpoints
+/// </summary>
+public static class UserEndpoints
+{
+    public static IVersionedEndpointRouteBuilder MapUserEndpoints(this IVersionedEndpointRouteBuilder builder)
+    {
+        var group = builder.MapGroup("/api/v{version:apiVersion}/users")
+            .WithTags("Users")
+            .WithOpenApi();
+
+        group.MapPost("/register", RegisterUser)
+            .WithName("RegisterUser")
+            .WithSummary("Register a new user or return existing user")
+            .Produces<ApiResponse<UserResponse>>(201)
+            .Produces(400)
+            .Produces(500);
+
+        return builder;
+    }
+
+    private static async Task<IResult> RegisterUser(
+        RegisterUserRequest request,
+        IUserRepository userRepository,
+        ILogger<Program> logger)
+    {
+        try
+        {
+            var user = new User
+            {
+                Id = request.Email.ToLowerInvariant(),
+                Email = request.Email.ToLowerInvariant(),
+                Name = request.Name,
+                PhoneNumber = request.PhoneNumber
+            };
+
+            var createdUser = await userRepository.CreateOrGetAsync(user);
+
+            var response = new UserResponse
+            {
+                Email = createdUser.Id,
+                Name = createdUser.Name,
+                PhoneNumber = createdUser.PhoneNumber,
+                CreatedAt = createdUser.CreatedAt
+            };
+
+            return Results.Created($"/api/v1.0/users/{createdUser.Id}", ApiResponse<UserResponse>.Created(response));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error registering user");
+            return Results.StatusCode(500);
+        }
+    }
+
+    private static async Task<IResult> GetUser(
+        string email,
+        IUserRepository userRepository,
+        ILogger<Program> logger)
+    {
+        try
+        {
+            var user = await userRepository.GetByEmailAsync(email.ToLowerInvariant());
+
+            if (user == null)
+            {
+                return Results.NotFound(ApiResponse<UserResponse>.NotFound("User not found"));
+            }
+
+            var response = new UserResponse
+            {
+                Email = user.Id,
+                Name = user.Name,
+                PhoneNumber = user.PhoneNumber,
+                CreatedAt = user.CreatedAt
+            };
+
+            return Results.Ok(ApiResponse<UserResponse>.Ok(response));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error retrieving user {Email}", email);
+            return Results.StatusCode(500);
+        }
+    }
+}

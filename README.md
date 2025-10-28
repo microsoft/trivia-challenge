@@ -1,14 +1,131 @@
-# Project
+# Microsoft Fabric IQ Challenge
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+A quiz web application where players assess their Microsoft Fabric knowledge through an engaging, time-pressured quiz game.
 
-As the maintainer of this project, please make a few updates:
+## 🎯 Overview
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+- **Purpose**: Help Microsoft Ignite attendees assess their knowledge about Microsoft Fabric
+- **Format**: Interactive quiz game with time pressure and streak bonuses
+- **Tech Stack**: React + TypeScript + .NET 10 + Azure Cosmos DB + Microsoft Fabric
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- [Docker](https://www.docker.com/products/docker-desktop)
+- [Visual Studio Code](https://code.visualstudio.com/)
+- [Dev Containers Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+### Quick Start with Dev Container
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/microsoft/iq-challenge.git
+   cd iq-challenge
+   ```
+
+2. Open in VS Code:
+   ```bash
+   code .
+   ```
+
+3. When prompted, click "Reopen in Container" (or press `F1` → "Dev Containers: Reopen in Container")
+
+4. Wait for the container to build and start (~5-10 minutes first time)
+
+5. Once ready, start the services:
+   ```bash
+   # Terminal 1: Start the .NET API
+   cd backend/IQChallenge.Api
+   dotnet run
+
+   # Terminal 2: Start the frontend
+   npm run dev
+   ```
+
+6. Access the application:
+   - **Frontend**: http://localhost:5173
+   - **API**: http://localhost:5000
+   - **API Docs**: http://localhost:5000/swagger
+   - **Cosmos DB Explorer**: https://localhost:8081/_explorer/index.html
+
+### What's Included in Dev Container
+
+- ✅ Node.js 22 with TypeScript
+- ✅ .NET 10 SDK
+- ✅ Azure Cosmos DB Emulator (with auto-configuration)
+- ✅ Azure Static Web Apps CLI
+- ✅ All required VS Code extensions
+
+See [.devcontainer/README.md](.devcontainer/README.md) for detailed devcontainer documentation.
+
+## 📁 Project Structure
+
+```
+iq-challenge/
+├── .devcontainer/          # Dev container configuration
+│   ├── devcontainer.json   # VS Code dev container config
+│   ├── docker-compose.yml  # Docker Compose setup
+│   ├── Dockerfile          # Custom dev container image
+│   └── post-create.sh      # Setup script
+├── backend/                # .NET 10 API
+│   └── IQChallenge.Api/    # Main API project
+├── docs/                   # Documentation (Astro)
+├── frontend/               # React + TypeScript (TODO)
+└── infrastructure/         # Azure deployment (TODO)
+```
+
+## 🏗️ Architecture
+
+- **Frontend**: React + TypeScript + Tailwind CSS + Vite
+- **Backend**: .NET 10 Minimal API with versioning
+- **Database**: Azure Cosmos DB (local emulator for development)
+- **Analytics**: Microsoft Fabric for real-time telemetry
+- **Hosting**: Azure Static Web Apps + Azure App Service Container
+
+## 🎮 Game Features
+
+- **Time Pressure**: Base 1 minute timer with streak bonuses (up to 2 minutes total)
+- **Difficulty Levels**: Easy/Medium/Hard with forgiving progression
+- **Leaderboards**: Daily and cumulative rankings
+- **Telemetry**: Comprehensive tracking of all interactions
+- **Input Methods**: Touch, mouse, and keyboard support (Z/C/B/M keys)
+
+## 🔧 Development
+
+### API Endpoints
+
+The API uses versioned endpoints with the pattern: `api/v{version}/{resource}`
+
+- **Users**: `POST /api/v1.0/users/register`, `GET /api/v1.0/users/{email}`
+- **Sessions**: `POST /api/v1.0/sessions`, `POST /api/v1.0/sessions/{id}/complete`
+- **Questions**: `POST /api/v1.0/questions/upload`, `GET /api/v1.0/questions/draw/{seed}`
+
+See API documentation at http://localhost:5000/swagger when running.
+
+### Database Schema
+
+- **Users**: Email (PK), Name, Phone
+- **Questions**: Question text + Answer
+- **QuestionDraws**: Randomized question sets with seed-based reproducibility
+- **GameSessions**: Links users to draws with scores
+
+### Running Tests
+
+```bash
+# Backend tests
+cd backend/IQChallenge.Api.Tests
+dotnet test
+
+# Frontend tests
+npm test
+```
+
+## 📚 Documentation
+
+- [Dev Container Setup](.devcontainer/README.md)
+- [API Specifications](docs/specs/)
+- [Architecture Overview](docs/src/content/docs/product/overview.md)
 
 ## Contributing
 
