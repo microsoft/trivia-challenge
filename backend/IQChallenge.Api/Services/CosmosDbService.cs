@@ -57,6 +57,16 @@ public class CosmosDbService
     public Container GameSessionsContainer => _gameSessionsContainer;
 
     /// <summary>
+    /// Gets the database for health check purposes
+    /// </summary>
+    public async Task<Database> GetDatabaseAsync(CancellationToken cancellationToken = default)
+    {
+        // Perform a simple read to verify connectivity
+        await _database.ReadAsync(cancellationToken: cancellationToken);
+        return _database;
+    }
+
+    /// <summary>
     /// Initializes the database and containers if they don't exist
     /// </summary>
     public async Task InitializeDatabaseAsync()

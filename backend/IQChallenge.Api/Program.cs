@@ -6,8 +6,18 @@ using IQChallenge.Api.Services;
 using IQChallenge.Api.Repositories;
 using IQChallenge.Api.Middleware;
 using IQChallenge.Api.Endpoints;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+using System.ComponentModel.DataAnnotations;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Kestrel limits
+builder.WebHost.ConfigureKestrel(options =>
+{
+    var maxRequestBodySize = builder.Configuration.GetValue<long?>("Kestrel:Limits:MaxRequestBodySize") ?? 10485760; // 10MB default
+    options.Limits.MaxRequestBodySize = maxRequestBodySize;
+});
 
 // Add API versioning
 builder.Services.AddApiVersioning(options =>
@@ -24,7 +34,7 @@ builder.Services.AddApiVersioning(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1.0", new()
+    options.SwaggerDoc("v1", new()
     {
         Title = "IQ Challenge API",
         Version = "v1.0",
@@ -48,9 +58,33 @@ builder.Services.AddSwaggerGen(options =>
     options.DocumentFilter<ReplaceVersionWithExactValueInPathFilter>();
 });
 
-// Configure Cosmos DB
+// Add response compression
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.MimeTypes = new[]
+    {
+        "application/json",
+        "application/xml",
+        "text/plain",
+        "text/json",
+        "text/xml"
+    };
+});
+
+// Configure Cosmos DB with validation
 var cosmosDbSettings = builder.Configuration.GetSection("CosmosDb").Get<CosmosDbSettings>()
     ?? throw new InvalidOperationException("CosmosDb configuration is missing");
+
+// Validate configuration
+try
+{
+    cosmosDbSettings.Validate();
+}
+catch (ValidationException ex)
+{
+    throw new InvalidOperationException($"Invalid CosmosDb configuration: {ex.Message}", ex);
+}
 
 builder.Services.AddSingleton(cosmosDbSettings);
 
@@ -66,12 +100,13 @@ builder.Services.AddSingleton<CosmosClient>(serviceProvider =>
         {
             PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
         },
-        MaxRetryAttemptsOnRateLimitedRequests = 3,
-        MaxRetryWaitTimeOnRateLimitedRequests = TimeSpan.FromSeconds(10)
+        MaxRetryAttemptsOnRateLimitedRequests = settings.MaxRetryAttempts,
+        MaxRetryWaitTimeOnRateLimitedRequests = TimeSpan.FromSeconds(settings.MaxRetryWaitTimeSeconds)
     };
 
     // Disable SSL validation for local Cosmos DB Emulator in development
-    if (env.IsDevelopment() && settings.EndpointUri.Contains("localhost"))
+    var uri = new Uri(settings.EndpointUri);
+    if (env.IsDevelopment() && (uri.IsLoopback || uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)))
     {
         var httpClientHandler = new HttpClientHandler
         {
@@ -111,6 +146,47 @@ builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
 builder.Services.AddScoped<IQuestionDrawRepository, QuestionDrawRepository>();
 builder.Services.AddScoped<IGameSessionRepository, GameSessionRepository>();
 
+// Add background service for database initialization
+builder.Services.AddHostedService<DatabaseInitializationService>();
+
+// Add health checks
+builder.Services.AddHealthChecks()
+    .AddCheck<CosmosDbHealthCheck>("cosmosdb", tags: new[] { "ready", "db" });
+
+// Configure rate limiting
+var rateLimitConfig = builder.Configuration.GetSection("RateLimit");
+var permitLimit = rateLimitConfig.GetValue<int>("PermitLimit", 100);
+var windowSeconds = rateLimitConfig.GetValue<int>("WindowSeconds", 60);
+var queueLimit = rateLimitConfig.GetValue<int>("QueueLimit", 10);
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    
+    options.AddFixedWindowLimiter("fixed", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = permitLimit;
+        limiterOptions.Window = TimeSpan.FromSeconds(windowSeconds);
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = queueLimit;
+    });
+
+    // Global rate limiter
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        // Rate limit by IP address
+        var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        
+        return RateLimitPartition.GetFixedWindowLimiter(ipAddress, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = permitLimit,
+            Window = TimeSpan.FromSeconds(windowSeconds),
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = queueLimit
+        });
+    });
+});
+
 // Configure CORS - Allow all origins in development
 builder.Services.AddCors(options =>
 {
@@ -144,16 +220,42 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/swagger/v1.0/swagger.json", "IQ Challenge API v1.0");
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "IQ Challenge API v1.0");
     });
 }
 
 app.UseRequestLogging();
+app.UseResponseCompression();
 app.UseCors();
+app.UseRateLimiter();
 
-// Initialize Cosmos DB
-var cosmosDbService = app.Services.GetRequiredService<CosmosDbService>();
-await cosmosDbService.InitializeDatabaseAsync();
+// Health check endpoints
+app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = _ => true,
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        var response = new
+        {
+            status = report.Status.ToString(),
+            checks = report.Entries.Select(e => new
+            {
+                name = e.Key,
+                status = e.Value.Status.ToString(),
+                description = e.Value.Description,
+                duration = e.Value.Duration.TotalMilliseconds
+            }),
+            totalDuration = report.TotalDuration.TotalMilliseconds
+        };
+        await context.Response.WriteAsJsonAsync(response);
+    }
+}).RequireRateLimiting("fixed");
+
+app.MapHealthChecks("/healthz", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+}).RequireRateLimiting("fixed");
 
 // Map API endpoints with versioning
 var versionedApi = app.NewVersionedApi();
