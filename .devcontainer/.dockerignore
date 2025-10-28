@@ -1,0 +1,43 @@
+# Node
+node_modules/
+npm-debug.log
+.npm
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+
+# IDEs
+.vscode/
+.idea/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Test coverage
+coverage/
+
+# Docs build
+docs/node_modules/
+docs/.astro/
+docs/dist/

@@ -1,25 +1,52 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
 {
-	"name": "Node.js & TypeScript",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
-
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	"features": {
-		  "ghcr.io/devcontainers/features/dotnet:2": {
-			"version": "10.0"
-		  }
-	},
+	"name": "IQ Challenge - Full Stack with Cosmos DB",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "app",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
+	"forwardPorts": [
+		5173,  // Vite dev server
+		5000,  // .NET API
+		8081,  // Cosmos DB Emulator
+		10251, // Cosmos DB Emulator
+		10252, // Cosmos DB Emulator
+		10253, // Cosmos DB Emulator
+		10254  // Cosmos DB Emulator
+	],
+
+	"portsAttributes": {
+		"8081": {
+			"label": "Cosmos DB Emulator",
+			"onAutoForward": "notify"
+		},
+		"5000": {
+			"label": ".NET API",
+			"onAutoForward": "notify"
+		},
+		"5173": {
+			"label": "Frontend (Vite)",
+			"onAutoForward": "notify"
+		}
+	},
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "npm install -g @azure/static-web-apps-cli"
+	"postCreateCommand": "bash .devcontainer/post-create.sh",
 
 	// Configure tool-specific properties.
-	// "customizations": {},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-dotnettools.csharp",
+				"ms-dotnettools.csdevkit",
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"bradlc.vscode-tailwindcss"
+			]
+		}
+	}
 
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
