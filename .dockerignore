@@ -1,0 +1,70 @@
+# .NET
+**/bin/
+**/obj/
+**/out/
+**/*.user
+**/*.userosscache
+**/*.suo
+**/.vs/
+
+# Node.js
+**/node_modules/
+**/dist/
+**/build/
+**/.vite/
+**/.cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# CI/CD
+.github/
+.azure/
+
+# Environment files
+**/.env
+**/.env.*
+!**/.env.example
+
+# Test files
+**/*.Test/
+**/*.Tests/
+**/IQChallenge.Api.Tests/
+**/__tests__/
+**/__mocks__/
+**/coverage/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Misc
+TODO.md
+LICENSE
+CODE_OF_CONDUCT.md
+SECURITY.md
+SUPPORT.md
+AGENTS.md

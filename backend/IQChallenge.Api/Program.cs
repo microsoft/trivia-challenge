@@ -223,6 +223,12 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "IQ Challenge API v1.0");
     });
 }
+else
+{
+    // In production, serve static files from wwwroot
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+}
 
 app.UseRequestLogging();
 app.UseResponseCompression();
@@ -263,7 +269,16 @@ versionedApi.MapUserEndpoints();
 versionedApi.MapSessionEndpoints();
 versionedApi.MapQuestionEndpoints();
 
-app.MapGet("/", () => "IQ Challenge API is running. Visit /swagger for API documentation.")
-    .ExcludeFromDescription();
+// Root endpoint - API info in development, SPA fallback in production
+if (app.Environment.IsDevelopment())
+{
+    app.MapGet("/", () => "IQ Challenge API is running. Visit /swagger for API documentation.")
+        .ExcludeFromDescription();
+}
+else
+{
+    // SPA fallback - serve index.html for all non-API routes
+    app.MapFallbackToFile("index.html");
+}
 
 app.Run();

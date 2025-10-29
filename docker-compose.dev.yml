@@ -1,0 +1,44 @@
+services:
+  # Cosmos DB Emulator for local development
+  cosmosdb:
+    image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+    container_name: iq-challenge-cosmosdb-dev
+    ports:
+      - "8081:8081"
+      - "10250-10255:10250-10255"
+    environment:
+      - AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10
+      - AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=true
+      - AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1
+    volumes:
+      - cosmosdb-dev-data:/data
+    networks:
+      - iq-challenge-dev-network
+
+  # Backend API only (frontend runs separately with npm run dev)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: iq-challenge-api-dev
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - CosmosDb__EndpointUri=https://cosmosdb:8081
+      - CosmosDb__PrimaryKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==
+      - CosmosDb__DatabaseName=IQChallengeDb
+    volumes:
+      - ./backend:/src/backend:ro
+    depends_on:
+      - cosmosdb
+    networks:
+      - iq-challenge-dev-network
+
+volumes:
+  cosmosdb-dev-data:
+
+networks:
+  iq-challenge-dev-network:
+    driver: bridge

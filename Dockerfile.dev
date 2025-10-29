@@ -1,0 +1,28 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine
+
+WORKDIR /src
+
+# Install curl for healthchecks
+RUN apk add --no-cache curl
+
+# Copy project file (exclude tests)
+COPY backend/IQChallenge.Api/IQChallenge.Api.csproj ./backend/IQChallenge.Api/
+
+# Restore dependencies
+RUN dotnet restore backend/IQChallenge.Api/IQChallenge.Api.csproj
+
+# Copy only the API project source (exclude tests)
+COPY backend/IQChallenge.Api/ ./backend/IQChallenge.Api/
+
+# Set working directory to the API project
+WORKDIR /src/backend/IQChallenge.Api
+
+# Expose port
+EXPOSE 5000
+
+# Set environment variables
+ENV ASPNETCORE_URLS=http://+:5000
+ENV ASPNETCORE_ENVIRONMENT=Development
+
+# Run the API in watch mode for development
+ENTRYPOINT ["dotnet", "watch", "run", "--no-restore"]

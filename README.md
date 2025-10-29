@@ -16,6 +16,27 @@ A quiz web application where players assess their Microsoft Fabric knowledge thr
 - [Visual Studio Code](https://code.visualstudio.com/)
 - [Dev Containers Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
 
+### Option 1: Docker Local Testing (Quickest)
+
+Run the complete application with Cosmos DB Emulator:
+
+```bash
+# Clone and start
+git clone https://github.com/microsoft/iq-challenge.git
+cd iq-challenge
+./docker.sh local:up
+
+# Access at http://localhost:8080
+```
+
+This builds and runs both frontend and backend with a local Cosmos DB Emulator.
+
+For production with Azure Cosmos DB, see [DOCKER.md](DOCKER.md).
+
+See [DOCKER-QUICKSTART.md](DOCKER-QUICKSTART.md) for quick start guide.
+
+### Option 2: Dev Container (Recommended for Development)
+
 ### Quick Start with Dev Container
 
 1. Clone the repository:
@@ -93,6 +114,28 @@ iq-challenge/
 
 ## 🔧 Development
 
+### Development Modes
+
+#### Docker Development Mode
+```bash
+# Start backend + Cosmos DB in Docker
+./docker.sh dev:up
+
+# Start frontend dev server (in another terminal)
+./docker.sh dev:frontend
+```
+
+#### Manual Development Mode
+```bash
+# Terminal 1: Backend
+cd backend/IQChallenge.Api
+dotnet run
+
+# Terminal 2: Frontend
+cd frontend
+npm run dev
+```
+
 ### API Endpoints
 
 The API uses versioned endpoints with the pattern: `api/v{version}/{resource}`
@@ -121,8 +164,27 @@ dotnet test
 npm test
 ```
 
-## 📚 Documentation
+## � Docker Deployment
 
+See [DOCKER.md](DOCKER.md) for comprehensive Docker documentation including:
+- Multi-stage production builds
+- Development vs Production modes
+- Docker Compose setup
+- Azure deployment guides
+- Troubleshooting tips
+
+Quick commands:
+```bash
+./docker.sh help           # Show all commands
+./docker.sh local:up       # Start local test environment (with Cosmos Emulator)
+./docker.sh prod:up        # Start production environment (needs .env with Azure Cosmos DB)
+./docker.sh dev:up         # Start development environment
+./docker.sh clean          # Clean up Docker resources
+```
+
+## �📚 Documentation
+
+- [Docker Deployment Guide](DOCKER.md)
 - [Dev Container Setup](.devcontainer/README.md)
 - [API Specifications](docs/specs/)
 - [Architecture Overview](docs/src/content/docs/product/overview.md)
