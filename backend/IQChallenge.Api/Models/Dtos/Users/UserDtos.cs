@@ -24,9 +24,8 @@ public class RegisterUserRequest
     /// <summary>
     /// User's phone number
     /// </summary>
-    [Required(ErrorMessage = "Phone number is required")]
     [Phone(ErrorMessage = "Invalid phone number format")]
-    public required string PhoneNumber { get; set; }
+    public string PhoneNumber { get; set; }
 }
 
 /// <summary>
