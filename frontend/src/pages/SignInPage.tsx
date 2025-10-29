@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGame } from '../context/GameContext'
 import Header from '../components/Header'
+import { userService } from '../services/userService'
 
 export default function SignInPage() {
   const navigate = useNavigate()
@@ -11,21 +12,43 @@ export default function SignInPage() {
     email: '',
     phone: '',
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    // Create user object
-    const user = {
-      id: crypto.randomUUID(),
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      createdAt: new Date().toISOString(),
+    if (isSubmitting) {
+      return
     }
-    
-    setPlayer(user)
-    navigate('/instructions')
+
+    setError(null)
+
+    const name = formData.name.trim()
+    const email = formData.email.trim()
+    const phone = formData.phone.trim()
+
+    if (!name || !email) {
+      setError('Please provide both your name and email to continue.')
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const user = await userService.register({
+        name,
+        email,
+        ...(phone ? { phoneNumber: phone } : {}),
+      })
+
+      setPlayer(user)
+      navigate('/instructions')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Registration failed. Please try again.'
+      setError(message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,6 +66,12 @@ export default function SignInPage() {
         <div className="w-full max-w-md">
           <h2 className="text-3xl font-bold text-center mb-8">Welcome!</h2>
           
+          {error && (
+            <div className="mb-6 rounded-lg border border-destructive bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-2">
@@ -93,9 +122,10 @@ export default function SignInPage() {
 
             <button
               type="submit"
-              className="w-full py-4 rounded-lg bg-primary text-primary-foreground font-bold text-lg hover:opacity-90 transition-opacity focus:outline-none focus:ring-4 focus:ring-primary/50"
+              disabled={isSubmitting}
+              className="w-full py-4 rounded-lg bg-primary text-primary-foreground font-bold text-lg transition-opacity focus:outline-none focus:ring-4 focus:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Continue
+              {isSubmitting ? 'Registering...' : 'Continue'}
             </button>
           </form>
         </div>

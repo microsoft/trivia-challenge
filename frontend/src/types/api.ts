@@ -5,11 +5,16 @@
  */
 
 export interface User {
-  id: string
-  name: string
   email: string
-  phone?: string
+  name: string
+  phoneNumber?: string
   createdAt: string
+}
+
+export interface RegisterUserRequest {
+  email: string
+  name: string
+  phoneNumber?: string
 }
 
 export interface Question {
@@ -43,14 +48,13 @@ export interface AnswerSubmission {
 export interface ApiResponse<T> {
   success: boolean
   data?: T
-  error?: string
-  message?: string
+  errorMessage?: string
+  statusCode?: number
 }
 
 export interface SessionCreateRequest {
-  name: string
-  email: string
-  phone?: string
+  userEmail: string
+  drawSeed?: number
 }
 
 export interface SessionStartResponse {
