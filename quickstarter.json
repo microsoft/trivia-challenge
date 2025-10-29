@@ -71,6 +71,18 @@
     {
       "question": "For the Microsoft Fabric telemetry integration, do you need help setting up the Fabric workspace and what specific telemetry events would be valuable?",
       "answer": "Yes I'm good on the Fabric part. Every touch or mouse move must be logged in (we can create heatmaps of clicks, replays of mouse movements, etc)"
+    },
+    {
+      "question": "For the React frontend setup, do you want to use any additional UI libraries beyond Tailwind CSS?",
+      "answer": "Yes, include shadcn/ui for component library"
+    },
+    {
+      "question": "What color scheme should be used for the frontend design?",
+      "answer": "Custom colors based on mockup: dark background, orange timer bar (#FFA500), vibrant answer buttons (green #10b981, blue #3b82f6, purple #a855f7, orange #f97316), white text, golden streak flasks (#fbbf24)"
+    },
+    {
+      "question": "Should keyboard mappings be A/K/S/L (as shown in mockup) or Z/C/B/M (as mentioned in constraints)?",
+      "answer": "Keep keyboard mappings configurable in a config file for easy modification later"
     }
   ],
   "tasks": [
@@ -171,5 +183,5 @@
     }
   ],
   "openDecisions": [],
-  "nextStep": "review"
+  "nextStep": "execute"
 }

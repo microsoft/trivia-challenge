@@ -17,7 +17,7 @@ A Kahoot/Duolingo-inspired quiz web app where players have a base 1 minute to an
 
 ## Key Technologies and Frameworks
 
-- **Frontend**: React + TypeScript + Tailwind CSS
+- **Frontend**: React 18+ + TypeScript + Vite + Tailwind CSS + shadcn/ui
 - **Backend**: .NET 10 Minimal API
 - **Database**: Azure Cosmos DB
 - **Hosting**: Azure Static Web Apps (frontend) + Azure App Service Container (backend)
@@ -26,8 +26,19 @@ A Kahoot/Duolingo-inspired quiz web app where players have a base 1 minute to an
 
 ## Constraints and Requirements
 
-- **Input Methods**: Touch, mouse and keyboard only (Z/C/B/M for answer choices)
-- **Timing**: Base 1 minute timer with streak bonuses up to 2 minutes total (20-second bonuses)
+- **Input Methods**: Touch, mouse and keyboard only (keyboard mappings configurable)
+- **Game Timer**: 
+  - Base: 60 seconds
+  - Streak bonus: +5 seconds for every 5 correct answers
+  - 3-second countdown before game starts
+  - Timer pauses during wrong answer modal (5 seconds)
+- **Game Flow**: signin → instructions → playing → results
+- **Streak System**:
+  - Threshold: 5 correct answers = +5 seconds bonus
+  - Wrong answer: Decrease streak by 1 (not reset to 0)
+  - Visual: 5 flask indicators (golden when filled, gray when empty)
+- **Answer Format**: 4 multiple-choice answers per question
+- **Visual Theme**: Dark background (#000000) with vibrant answer buttons (green #10b981, blue #3b82f6, purple #a855f7, orange #f97316)
 - **Telemetry**: Comprehensive tracking of all clicks, mouse movements (max 10 points/sec), game events
 - **Real-time Data**: Telemetry capture to Microsoft Fabric in real-time
 - **Concurrency**: Support for 10 concurrent players initially, scalable to 80K
@@ -46,9 +57,9 @@ A Kahoot/Duolingo-inspired quiz web app where players have a base 1 minute to an
 
 ## Development Workflow
 
-- **Frontend Dev Server**: `npm run dev` (React with Vite)
-- **Backend Dev Server**: `dotnet run` (.NET 10 Minimal API)
-- **Database**: Azure Cosmos DB (local emulator for development)
+- **Frontend Dev Server**: `npm run dev` (from frontend/ directory - React with Vite on port 5173)
+- **Backend Dev Server**: `dotnet run` (from backend/IQChallenge.Api/ directory - .NET API on port 5000)
+- **Database**: Azure Cosmos DB (local emulator at https://localhost:8081 for development)
 - **Testing**: Jest for frontend, xUnit for backend
 - **Build**: `npm run build` for frontend, `dotnet publish` for backend
 - **Deployment**: GitHub Actions to Azure Static Web Apps + App Service Container
