@@ -76,7 +76,7 @@
   "tasks": [
     {
       "description": "Create .NET 10 Minimal API with user session management and question serving endpoints",
-      "completed": false,
+      "completed": true,
       "mvp": true
     },
     {
