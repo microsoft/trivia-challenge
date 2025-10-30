@@ -3,8 +3,8 @@
 ## MVP Features
 
 ### Core Game Infrastructure
-- [ ] Create .NET 10 Minimal API with user session management and question serving endpoints
-- [ ] Set up React + TypeScript + Tailwind with Kahoot/Duolingo-inspired design
+- [x] Create .NET 10 Minimal API with user session management and question serving endpoints
+- [x] Set up React + TypeScript + Tailwind with Kahoot/Duolingo-inspired design
 - [ ] Implement randomized question loading from JSON file (no difficulty filtering)
 - [ ] Design Cosmos DB collections for users, sessions, questions, and scores
 

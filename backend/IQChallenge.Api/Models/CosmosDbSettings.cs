@@ -15,11 +15,9 @@ public class CosmosDbSettings
     public required string EndpointUri { get; set; }
 
     /// <summary>
-    /// Cosmos DB primary key for authentication
+    /// Cosmos DB primary key for authentication (optional - uses Managed Identity if not provided)
     /// </summary>
-    [Required]
-    [MinLength(1)]
-    public required string PrimaryKey { get; set; }
+    public string? PrimaryKey { get; set; }
 
     /// <summary>
     /// Name of the Cosmos DB database
@@ -81,5 +79,7 @@ public class CosmosDbSettings
         {
             throw new ValidationException($"EndpointUri '{EndpointUri}' is not a valid URI");
         }
+
+        // Note: PrimaryKey is optional - when not provided, Managed Identity will be used
     }
 }

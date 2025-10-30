@@ -3,15 +3,15 @@
 # Uses higher-tier resources for production workloads
 
 namePrefix: iqchallenge
-environment: prod
+environment: staging
 deployCosmosDb: false
 
 # Container Registry Configuration
 acrSku: Basic
 
 # App Service Plan Configuration
-appServicePlanSkuName: P2v1
-appServicePlanSkuTier: PremiumV2
+appServicePlanSkuName: B1
+appServicePlanSkuTier: Basic
 
 # Container Configuration
 containerImage: mcr.microsoft.com/dotnet/samples:aspnetapp

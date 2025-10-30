@@ -410,6 +410,9 @@ FodyWeavers.xsd
 # Built Visual Studio Code Extensions
 *.vsix
 
+# Deployment configuration (contains environment-specific settings)
+.deploy-config
+
 # Windows Installer files from build outputs
 *.cab
 *.msi

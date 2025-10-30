@@ -164,7 +164,9 @@ dotnet test
 npm test
 ```
 
-## � Docker Deployment
+## 📦 Docker & Deployment
+
+### Docker Development & Testing
 
 See [DOCKER.md](DOCKER.md) for comprehensive Docker documentation including:
 - Multi-stage production builds
@@ -181,6 +183,30 @@ Quick commands:
 ./docker.sh dev:up         # Start development environment
 ./docker.sh clean          # Clean up Docker resources
 ```
+
+### Azure Deployment
+
+Deploy the application to Azure Container Registry and Azure Web Apps:
+
+```bash
+# Quick deployment (saves configuration for reuse)
+./quick-deploy.sh dev              # Deploy to development
+./quick-deploy.sh staging          # Deploy to staging
+./quick-deploy.sh prod --tag v1.0.0  # Deploy to production with version
+
+# Manual deployment with full control
+./deploy-image.sh <acr-name> \
+  --resource-group <resource-group> \
+  --app-name <app-service-name> \
+  --image-tag latest
+```
+
+The deployment scripts will:
+1. Build the Docker image from the Dockerfile
+2. Push the image to your Azure Container Registry
+3. Update and restart the Azure Web App to pull the latest image
+
+See [DEPLOY-IMAGE.md](DEPLOY-IMAGE.md) for detailed deployment documentation.
 
 ## �📚 Documentation
 

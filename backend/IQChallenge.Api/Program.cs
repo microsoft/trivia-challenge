@@ -1,4 +1,5 @@
 using Microsoft.Azure.Cosmos;
+using Azure.Identity;
 using Asp.Versioning;
 using IQChallenge.Api;
 using IQChallenge.Api.Models;
@@ -93,6 +94,7 @@ builder.Services.AddSingleton<CosmosClient>(serviceProvider =>
 {
     var settings = serviceProvider.GetRequiredService<CosmosDbSettings>();
     var env = serviceProvider.GetRequiredService<IWebHostEnvironment>();
+    var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
     
     var clientOptions = new CosmosClientOptions
     {
@@ -120,7 +122,18 @@ builder.Services.AddSingleton<CosmosClient>(serviceProvider =>
         clientOptions.ConnectionMode = ConnectionMode.Direct;
     }
 
-    return new CosmosClient(settings.EndpointUri, settings.PrimaryKey, clientOptions);
+    // Use PrimaryKey if provided, otherwise use Managed Identity
+    if (!string.IsNullOrWhiteSpace(settings.PrimaryKey))
+    {
+        logger.LogInformation("Initializing Cosmos DB client with PrimaryKey authentication");
+        return new CosmosClient(settings.EndpointUri, settings.PrimaryKey, clientOptions);
+    }
+    else
+    {
+        logger.LogInformation("Initializing Cosmos DB client with Managed Identity authentication");
+        var credential = new DefaultAzureCredential();
+        return new CosmosClient(settings.EndpointUri, credential, clientOptions);
+    }
 });
 
 // Register CosmosDbService

@@ -93,7 +93,7 @@
     },
     {
       "description": "Set up React + TypeScript + Tailwind with Kahoot/Duolingo-inspired design",
-      "completed": false,
+      "completed": true,
       "mvp": true
     },
     {
@@ -183,5 +183,5 @@
     }
   ],
   "openDecisions": [],
-  "nextStep": "review"
+  "nextStep": "plan"
 }
