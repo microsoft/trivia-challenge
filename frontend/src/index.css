@@ -23,6 +23,10 @@
   --radius: 0.5rem;
 }
 
+@view-transition {
+  navigation: auto;
+}
+
 * {
   border-color: var(--color-border);
 }

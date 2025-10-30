@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGame } from '../context/GameContext'
-import Header from '../components/Header'
 import { userService } from '../services/userService'
 
 export default function SignInPage() {
@@ -59,75 +58,111 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      
-      <div className="flex-1 flex items-center justify-center px-4">
-        <div className="w-full max-w-md">
-          <h2 className="text-3xl font-bold text-center mb-8">Welcome!</h2>
-          
-          {error && (
-            <div className="mb-6 rounded-lg border border-destructive bg-destructive/10 px-4 py-3 text-sm text-destructive">
-              {error}
-            </div>
-          )}
+    <div className="relative min-h-screen overflow-hidden bg-[#040406]">
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#1f2937_0%,#040406_70%)]" aria-hidden="true" />
+        <div className="absolute -top-48 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-amber-400/25 blur-3xl" aria-hidden="true" />
+        <div className="absolute -bottom-32 -left-24 h-72 w-72 rounded-full bg-sky-400/15 blur-3xl" aria-hidden="true" />
+        <div className="absolute -bottom-40 -right-28 h-80 w-80 rounded-full bg-purple-500/15 blur-3xl" aria-hidden="true" />
+      </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium mb-2">
-                Name *
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                required
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg bg-secondary text-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Enter your name"
-              />
-            </div>
+      <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col items-center justify-center px-4 py-16">
+        <div className="w-full max-w-lg">
+          <div className="relative overflow-hidden rounded-[34px] border border-amber-200/20 bg-white/5 p-[1.5px] shadow-[0_32px_64px_rgba(0,0,0,0.65)] backdrop-blur-sm">
+            <div className="relative rounded-4xl bg-neutral-950/80 px-9 pb-10 pt-12">
+              <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top,rgba(255,215,128,0.35)_0%,rgba(17,17,17,0)_70%)]" aria-hidden="true" />
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
-                Email *
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg bg-secondary text-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Enter your email"
-              />
-            </div>
+              <div className="relative flex flex-col items-center text-center">
+                <img
+                  src="/fabriclogo.png"
+                  alt="Microsoft Fabric"
+                  className="mb-6 h-16 w-16 drop-shadow-[0_20px_45px_rgba(255,184,0,0.4)]"
+                />
+                <h1 className="text-2xl font-semibold text-white md:text-3xl">
+                  The Microsoft Fabric IQ Challenge
+                </h1>
+                <p className="mt-2 text-base text-white/70 md:text-lg">
+                  Begin your quest of knowledge
+                </p>
+              </div>
 
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium mb-2">
-                Phone (Optional)
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg bg-secondary text-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Enter your phone number"
-              />
-            </div>
+              {error && (
+                <div className="relative mt-8 rounded-xl border border-red-500/50 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                  {error}
+                </div>
+              )}
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-4 rounded-lg bg-primary text-primary-foreground font-bold text-lg transition-opacity focus:outline-none focus:ring-4 focus:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isSubmitting ? 'Registering...' : 'Continue'}
-            </button>
-          </form>
+              <form onSubmit={handleSubmit} className="relative mt-8 space-y-6">
+                <div className="space-y-2">
+                  <label htmlFor="name" className="block text-sm font-semibold uppercase tracking-[0.2em] text-white/60">
+                    Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition focus:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/40 placeholder:text-white/40"
+                    placeholder="Enter your name"
+                    autoComplete="name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="email" className="block text-sm font-semibold uppercase tracking-[0.2em] text-white/60">
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition focus:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/40 placeholder:text-white/40"
+                    placeholder="Enter your email"
+                    autoComplete="email"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="phone" className="block text-sm font-semibold uppercase tracking-[0.2em] text-white/60">
+                    Phone (optional)
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition focus:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/40 placeholder:text-white/40"
+                    placeholder="Enter your phone number"
+                    autoComplete="tel"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full rounded-2xl py-3.5 text-lg font-semibold text-[#2b1800] shadow-[0_18px_40px_rgba(245,158,11,0.45)] transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 disabled:cursor-not-allowed disabled:opacity-70 hover:brightness-[1.08] hover:shadow-[0_22px_48px_rgba(245,158,11,0.55)] active:brightness-[0.96]"
+                  style={{ background: 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 55%, #b45309 100%)' }}
+                >
+                  {isSubmitting ? 'Registering...' : 'Begin Challenge'}
+                </button>
+              </form>
+
+              <div className="relative mt-6 space-y-4 text-center text-xs leading-relaxed text-white/45">
+                <p>
+                  Your privacy matters to us. The contact details you share for the Microsoft Fabric IQ Challenge will only be used during Microsoft Ignite to keep you updated on the game—think leaderboard highlights, daily prizes, and tips to boost your score. If you opt into SMS updates, standard carrier data or messaging rates may apply.
+                </p>
+                <p>
+                  When you start the Challenge, your gameplay and telemetry data feed the Microsoft Fabric Real-Time Intelligence demo so attendees can see live analytics. That telemetry may inform post-event learnings or future Microsoft marketing.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -70,7 +70,7 @@ export const gameConfig = {
    * API Configuration
    */
   api: {
-    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+    baseUrl: import.meta.env.VITE_API_URL || './',
     endpoints: {
       sessions: '/api/v1/sessions',
       questions: '/api/v1/questions',
