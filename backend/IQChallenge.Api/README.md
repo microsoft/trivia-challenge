@@ -17,8 +17,13 @@ Backend API for the Microsoft Fabric IQ Challenge quiz game.
 
 ## Configuration
 
-The API uses Azure Cosmos DB for data persistence. Configuration is in `appsettings.json`:
+The API uses Azure Cosmos DB for data persistence. Configuration is in `appsettings.json`.
 
+### Cosmos DB Authentication
+
+The API supports two authentication methods:
+
+#### 1. PrimaryKey Authentication (Development/Testing)
 ```json
 {
   "CosmosDb": {
@@ -31,6 +36,22 @@ The API uses Azure Cosmos DB for data persistence. Configuration is in `appsetti
   }
 }
 ```
+
+#### 2. Managed Identity Authentication (Production - Recommended)
+```json
+{
+  "CosmosDb": {
+    "EndpointUri": "https://your-cosmosdb-account.documents.azure.com:443/",
+    "DatabaseName": "IQChallengeDb",
+    "QuestionsContainerName": "Questions",
+    "SessionsContainerName": "Sessions",
+    "ScoresContainerName": "Scores"
+  }
+}
+```
+*Note: When `PrimaryKey` is omitted, the API automatically uses Azure Managed Identity.*
+
+See [COSMOS-AUTH-UPDATE.md](./COSMOS-AUTH-UPDATE.md) for detailed authentication setup instructions.
 
 For production, update these values in environment variables or Azure App Service configuration.
 
