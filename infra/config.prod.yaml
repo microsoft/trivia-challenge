@@ -1,0 +1,17 @@
+# Production Configuration (without Cosmos DB)
+# This configuration does NOT deploy Cosmos DB
+# Uses higher-tier resources for production workloads
+
+namePrefix: iqchallenge
+environment: prod
+deployCosmosDb: false
+
+# Container Registry Configuration
+acrSku: Basic
+
+# App Service Plan Configuration
+appServicePlanSkuName: P2v1
+appServicePlanSkuTier: PremiumV2
+
+# Container Configuration
+containerImage: mcr.microsoft.com/dotnet/samples:aspnetapp

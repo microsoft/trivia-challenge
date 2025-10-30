@@ -1,0 +1,16 @@
+# Development Configuration (without Cosmos DB)
+# This configuration does NOT deploy Cosmos DB
+
+namePrefix: iqchallenge
+environment: dev
+deployCosmosDb: false
+
+# Container Registry Configuration
+acrSku: Basic
+
+# App Service Plan Configuration
+appServicePlanSkuName: B1
+appServicePlanSkuTier: Basic
+
+# Container Configuration
+containerImage: mcr.microsoft.com/dotnet/samples:aspnetapp

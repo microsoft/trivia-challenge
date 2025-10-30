@@ -1,0 +1,32 @@
+# Development with Database Configuration
+# This configuration deploys Cosmos DB along with other resources
+
+namePrefix: iqchallenge
+environment: dev
+deployCosmosDb: true
+
+# Container Registry Configuration
+acrSku: Basic
+
+# App Service Plan Configuration
+appServicePlanSkuName: B1
+appServicePlanSkuTier: Basic
+
+# Container Configuration
+containerImage: mcr.microsoft.com/dotnet/samples:aspnetapp
+
+# Cosmos DB Configuration
+cosmosDbDatabaseName: iqchallenge
+cosmosDbContainers:
+  - name: users
+    paths:
+      - /id
+  - name: sessions
+    paths:
+      - /userId
+  - name: questions
+    paths:
+      - /id
+  - name: telemetry
+    paths:
+      - /sessionId
