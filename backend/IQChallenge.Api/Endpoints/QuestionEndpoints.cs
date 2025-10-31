@@ -1,8 +1,9 @@
 using Asp.Versioning.Builder;
 using IQChallenge.Api.Models;
-using IQChallenge.Api.Models.Dtos.Questions;
 using IQChallenge.Api.Repositories;
-using System.Text.Json;
+using System.Globalization;
+using CsvHelper;
+using CsvHelper.Configuration;
 
 namespace IQChallenge.Api.Endpoints;
 
@@ -19,19 +20,12 @@ public static class QuestionEndpoints
 
         group.MapPost("/upload", UploadQuestions)
             .WithName("UploadQuestions")
-            .WithSummary("Upload questions via form data")
-            .Accepts<IFormCollection>("application/x-www-form-urlencoded")
+            .WithSummary("Upload questions via CSV file")
+            .Accepts<IFormFile>("multipart/form-data")
             .Produces<ApiResponse<object>>(201)
             .Produces(400)
             .Produces(500)
             .DisableAntiforgery();
-
-        group.MapGet("/draws/{seed}", GetQuestionDraw)
-            .WithName("GetQuestionDraw")
-            .WithSummary("Get question draw by seed")
-            .Produces<ApiResponse<QuestionDrawResponse>>(200)
-            .Produces(404)
-            .Produces(500);
 
         return builder;
     }
@@ -46,38 +40,58 @@ public static class QuestionEndpoints
             if (!context.Request.HasFormContentType)
             {
                 return Results.BadRequest(ApiResponse<object>.BadRequest(
-                    "Content-Type must be application/x-www-form-urlencoded or multipart/form-data"));
+                    "Content-Type must be multipart/form-data"));
             }
 
             var form = await context.Request.ReadFormAsync();
-            var questionsJson = form["questionsJson"].ToString();
+            var file = form.Files.GetFile("file");
 
-            if (string.IsNullOrWhiteSpace(questionsJson))
+            if (file == null || file.Length == 0)
             {
                 return Results.BadRequest(ApiResponse<object>.BadRequest(
-                    "questionsJson field is required"));
+                    "CSV file is required"));
             }
 
-            // Parse JSON array of questions
-            List<Question>? questions;
+            if (!file.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+            {
+                return Results.BadRequest(ApiResponse<object>.BadRequest(
+                    "File must be a CSV file"));
+            }
+
+            // Parse CSV file
+            List<Question> questions;
             try
             {
-                questions = JsonSerializer.Deserialize<List<Question>>(questionsJson, new JsonSerializerOptions
+                using var reader = new StreamReader(file.OpenReadStream());
+                using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
                 {
-                    PropertyNameCaseInsensitive = true
+                    HasHeaderRecord = true,
+                    TrimOptions = TrimOptions.Trim
                 });
+
+                var records = csv.GetRecords<QuestionCsvRecord>().ToList();
+                questions = records.Select(r => new Question
+                {
+                    Category = r.Category,
+                    QuestionText = r.Question,
+                    Answers = new List<string> { r.Answer1, r.Answer2, r.Answer3, r.Answer4 },
+                    CorrectAnswerKey = r.CorrectAnswerKey,
+                    Metadata = string.IsNullOrWhiteSpace(r.Metadata) 
+                        ? null 
+                        : new Dictionary<string, string> { { "raw", r.Metadata } }
+                }).ToList();
             }
-            catch (JsonException ex)
+            catch (Exception ex)
             {
-                logger.LogError(ex, "Invalid JSON format for questions");
+                logger.LogError(ex, "Invalid CSV format");
                 return Results.BadRequest(ApiResponse<object>.BadRequest(
-                    "Invalid JSON format. Please provide a valid JSON array of questions."));
+                    $"Invalid CSV format: {ex.Message}"));
             }
 
-            if (questions == null || !questions.Any())
+            if (!questions.Any())
             {
                 return Results.BadRequest(ApiResponse<object>.BadRequest(
-                    "No valid questions found in the provided JSON"));
+                    "No valid questions found in the CSV file"));
             }
 
             // Validate questions
@@ -85,10 +99,14 @@ public static class QuestionEndpoints
             for (int i = 0; i < questions.Count; i++)
             {
                 var q = questions[i];
+                if (string.IsNullOrWhiteSpace(q.Category))
+                    validationErrors.Add($"Row {i + 2}: Category is required");
                 if (string.IsNullOrWhiteSpace(q.QuestionText))
-                    validationErrors.Add($"Question {i + 1}: QuestionText is required");
-                if (string.IsNullOrWhiteSpace(q.Answer))
-                    validationErrors.Add($"Question {i + 1}: Answer is required");
+                    validationErrors.Add($"Row {i + 2}: Question is required");
+                if (q.Answers.Count != 4 || q.Answers.Any(string.IsNullOrWhiteSpace))
+                    validationErrors.Add($"Row {i + 2}: All 4 answers are required");
+                if (q.CorrectAnswerKey < 0 || q.CorrectAnswerKey > 3)
+                    validationErrors.Add($"Row {i + 2}: CorrectAnswerKey must be between 0 and 3");
             }
 
             if (validationErrors.Any())
@@ -100,7 +118,7 @@ public static class QuestionEndpoints
             // Create questions in Cosmos DB
             var createdQuestions = await questionRepository.CreateManyAsync(questions);
 
-            logger.LogInformation("Successfully uploaded {Count} questions", createdQuestions.Count);
+            logger.LogInformation("Successfully uploaded {Count} questions from CSV", createdQuestions.Count);
 
             return Results.Created("/api/v1.0/questions/upload", ApiResponse<object>.Created(new
             {
@@ -116,40 +134,16 @@ public static class QuestionEndpoints
         }
     }
 
-    private static async Task<IResult> GetQuestionDraw(
-        int seed,
-        IQuestionDrawRepository drawRepository,
-        ILogger<Program> logger)
+    // CSV record mapping class
+    private class QuestionCsvRecord
     {
-        try
-        {
-            var draw = await drawRepository.GetBySeedAsync(seed);
-
-            if (draw == null)
-            {
-                return Results.NotFound(ApiResponse<QuestionDrawResponse>.NotFound("Question draw not found"));
-            }
-
-            var response = new QuestionDrawResponse
-            {
-                Seed = draw.Seed,
-                Questions = draw.Questions.Select(q => new DrawQuestionResponse
-                {
-                    QuestionId = q.QuestionId,
-                    QuestionText = q.QuestionText,
-                    Choices = q.Choices,
-                    CorrectAnswerIndex = q.CorrectAnswerIndex,
-                    Category = q.Category
-                }).ToList(),
-                CreatedAt = draw.CreatedAt
-            };
-
-            return Results.Ok(ApiResponse<QuestionDrawResponse>.Ok(response));
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error retrieving question draw with seed {Seed}", seed);
-            return Results.StatusCode(500);
-        }
+        public string Category { get; set; } = string.Empty;
+        public string Question { get; set; } = string.Empty;
+        public string Answer1 { get; set; } = string.Empty;
+        public string Answer2 { get; set; } = string.Empty;
+        public string Answer3 { get; set; } = string.Empty;
+        public string Answer4 { get; set; } = string.Empty;
+        public int CorrectAnswerKey { get; set; }
+        public string? Metadata { get; set; }
     }
 }

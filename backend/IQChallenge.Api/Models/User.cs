@@ -8,10 +8,10 @@ namespace IQChallenge.Api.Models;
 public class User
 {
     /// <summary>
-    /// User email (primary key, unique identifier, partition key)
+    /// User ID (GUID, primary key, partition key)
     /// </summary>
     [JsonPropertyName("id")]
-    public required string Id { get; set; } // Email as ID
+    public string Id { get; set; } = Guid.NewGuid().ToString();
 
     /// <summary>
     /// User's display name
@@ -20,7 +20,7 @@ public class User
     public required string Name { get; set; }
 
     /// <summary>
-    /// User's email address
+    /// User's email address (lowercase, used for lookup)
     /// </summary>
     [JsonPropertyName("email")]
     public required string Email { get; set; }

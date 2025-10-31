@@ -85,10 +85,12 @@ A Kahoot/Duolingo-inspired quiz web app where players have a base 1 minute to an
 
 ### ✅ Completed
 1. **Backend API** (.NET 10 Minimal API)
-   - User session management endpoints
-   - Question serving endpoints
+   - User registration with GUID IDs and email lookup
+   - Question upload via CSV file endpoint
+   - Question draw generation with randomization
    - Cosmos DB integration ready
    - RESTful API with proper error handling
+   - Question model: category, question text, 4 answers, correct answer key, metadata
 
 2. **Frontend Foundation** (React 19 + TypeScript + Vite)
    - Complete project setup with Tailwind CSS v4
@@ -104,8 +106,7 @@ A Kahoot/Duolingo-inspired quiz web app where players have a base 1 minute to an
    - Code quality tools (ESLint, Prettier, TypeScript strict mode)
 
 ### 🚧 In Progress / Planned
-- Randomized question loading from JSON
-- Cosmos DB schema design
+- Game session management and randomized question serving
 - Timer implementation with streak bonuses
 - Full gameplay mechanics (PlayingPage)
 - Results screen with leaderboard (ResultsPage)

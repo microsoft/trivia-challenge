@@ -36,8 +36,7 @@ public static class UserEndpoints
         {
             var user = new User
             {
-                Id = request.Email.ToLowerInvariant(),
-                Email = request.Email.ToLowerInvariant(),
+                Email = request.Email,
                 Name = request.Name,
                 PhoneNumber = request.PhoneNumber
             };
@@ -46,7 +45,8 @@ public static class UserEndpoints
 
             var response = new UserResponse
             {
-                Email = createdUser.Id,
+                UserId = createdUser.Id,
+                Email = createdUser.Email,
                 Name = createdUser.Name,
                 PhoneNumber = createdUser.PhoneNumber,
                 CreatedAt = createdUser.CreatedAt
@@ -77,7 +77,8 @@ public static class UserEndpoints
 
             var response = new UserResponse
             {
-                Email = user.Id,
+                UserId = user.Id,
+                Email = user.Email,
                 Name = user.Name,
                 PhoneNumber = user.PhoneNumber,
                 CreatedAt = user.CreatedAt

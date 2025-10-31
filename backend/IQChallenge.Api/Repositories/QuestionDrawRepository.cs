@@ -70,18 +70,12 @@ public class QuestionDrawRepository : IQuestionDrawRepository
             
             foreach (var question in shuffledQuestions)
             {
-                // Generate wrong answer choices (3 random wrong answers)
-                var wrongAnswers = GenerateWrongAnswers(question.Answer, 3, random);
+                // Shuffle the answer choices
+                var shuffledChoices = question.Answers.OrderBy(_ => random.Next()).ToList();
                 
-                // Combine correct answer with wrong answers
-                var allChoices = new List<string> { question.Answer };
-                allChoices.AddRange(wrongAnswers);
-                
-                // Shuffle the choices
-                var shuffledChoices = allChoices.OrderBy(_ => random.Next()).ToList();
-                
-                // Find the index of the correct answer
-                var correctIndex = shuffledChoices.IndexOf(question.Answer);
+                // Find the new index of the correct answer after shuffling
+                var correctAnswer = question.Answers[question.CorrectAnswerKey];
+                var correctIndex = shuffledChoices.IndexOf(correctAnswer);
                 
                 drawQuestions.Add(new DrawQuestion
                 {
@@ -106,19 +100,5 @@ public class QuestionDrawRepository : IQuestionDrawRepository
             _logger.LogError(ex, "Error creating question draw from questions with seed {Seed}", seed);
             throw;
         }
-    }
-
-    private List<string> GenerateWrongAnswers(string correctAnswer, int count, Random random)
-    {
-        // This is a placeholder - you should implement logic to generate plausible wrong answers
-        // For now, we'll generate simple variations
-        var wrongAnswers = new List<string>();
-        
-        for (int i = 0; i < count; i++)
-        {
-            wrongAnswers.Add($"Option {(char)('B' + i)}");
-        }
-        
-        return wrongAnswers;
     }
 }

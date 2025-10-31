@@ -22,12 +22,17 @@ public class UserRepository : IUserRepository
     {
         try
         {
-            var response = await _container.ReadItemAsync<UserModel>(email, new PartitionKey(email));
-            return response.Resource;
-        }
-        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-        {
-            _logger.LogInformation("User with email {Email} not found", email);
+            var query = new QueryDefinition("SELECT * FROM c WHERE c.email = @email")
+                .WithParameter("@email", email.ToLowerInvariant());
+            
+            var iterator = _container.GetItemQueryIterator<UserModel>(query);
+            
+            if (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                return response.FirstOrDefault();
+            }
+            
             return null;
         }
         catch (Exception ex)
@@ -41,26 +46,30 @@ public class UserRepository : IUserRepository
     {
         try
         {
-            // Try to get existing user first
-            var existingUser = await GetByEmailAsync(user.Id);
+            // Normalize email to lowercase
+            user.Email = user.Email.ToLowerInvariant();
+            
+            // Try to get existing user first by email
+            var existingUser = await GetByEmailAsync(user.Email);
             if (existingUser != null)
             {
-                _logger.LogInformation("User with email {Email} already exists", user.Id);
+                _logger.LogInformation("User with email {Email} already exists with ID {UserId}", user.Email, existingUser.Id);
                 return existingUser;
             }
 
-            // Create new user
+            // Create new user with GUID
+            user.Id = Guid.NewGuid().ToString();
             user.CreatedAt = DateTime.UtcNow;
             user.UpdatedAt = DateTime.UtcNow;
             
             var response = await _container.CreateItemAsync(user, new PartitionKey(user.Id));
-            _logger.LogInformation("Created new user with email {Email}", user.Id);
+            _logger.LogInformation("Created new user with ID {UserId} and email {Email}", user.Id, user.Email);
             
             return response.Resource;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating or getting user with email {Email}", user.Id);
+            _logger.LogError(ex, "Error creating or getting user with email {Email}", user.Email);
             throw;
         }
     }
@@ -76,12 +85,12 @@ public class UserRepository : IUserRepository
                 user.Id,
                 new PartitionKey(user.Id));
             
-            _logger.LogInformation("Updated user with email {Email}", user.Id);
+            _logger.LogInformation("Updated user with ID {UserId}", user.Id);
             return response.Resource;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating user with email {Email}", user.Id);
+            _logger.LogError(ex, "Error updating user with ID {UserId}", user.Id);
             throw;
         }
     }

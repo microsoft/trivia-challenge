@@ -25,7 +25,7 @@ public class RegisterUserRequest
     /// User's phone number
     /// </summary>
     [Phone(ErrorMessage = "Invalid phone number format")]
-    public string PhoneNumber { get; set; }
+    public required string PhoneNumber { get; set; }
 }
 
 /// <summary>
@@ -33,6 +33,7 @@ public class RegisterUserRequest
 /// </summary>
 public class UserResponse
 {
+    public required string UserId { get; set; }
     public required string Email { get; set; }
     public required string Name { get; set; }
     public required string PhoneNumber { get; set; }
