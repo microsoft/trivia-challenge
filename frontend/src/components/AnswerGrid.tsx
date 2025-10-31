@@ -10,6 +10,7 @@ interface AnswerGridProps {
   answers: string[]
   onAnswerSelect: (index: number) => void
   disabled?: boolean
+  keyLabels?: string[]
 }
 
 const answerColors = [
@@ -19,7 +20,12 @@ const answerColors = [
   { bg: '#f97316', key: 'L' }, // Orange
 ]
 
-export default function AnswerGrid({ answers, onAnswerSelect, disabled = false }: AnswerGridProps) {
+export default function AnswerGrid({
+  answers,
+  onAnswerSelect,
+  disabled = false,
+  keyLabels,
+}: AnswerGridProps) {
   const paddedAnswers = useMemo(() => {
     // Ensure we always have 4 answers
     return [...answers, ...Array(4 - answers.length).fill('')].slice(0, 4)
@@ -36,6 +42,7 @@ export default function AnswerGrid({ answers, onAnswerSelect, disabled = false }
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {paddedAnswers.map((answer, index) => {
           const color = answerColors[index]
+          const label = keyLabels?.[index] ?? color.key
           return (
             <button
               key={index}
@@ -54,7 +61,7 @@ export default function AnswerGrid({ answers, onAnswerSelect, disabled = false }
             >
               {/* Keyboard shortcut indicator */}
               <div className="absolute top-3 left-3 w-10 h-10 rounded-lg bg-black/30 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">{color.key}</span>
+                <span className="text-white font-bold text-lg">{label}</span>
               </div>
 
               {/* Answer text */}

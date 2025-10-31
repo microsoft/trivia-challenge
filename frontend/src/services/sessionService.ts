@@ -1,72 +1,107 @@
 /**
  * Session Service
- * 
+ *
  * Handles all session-related API calls
  */
 
+import { isAxiosError } from 'axios'
 import { apiClient } from './apiClient'
 import { gameConfig } from '../config/gameConfig'
 import type {
   ApiResponse,
-  SessionCreateRequest,
   GameSession,
-  SessionStartResponse,
-  QuestionResponse,
+  SessionQuestionsResponse,
+  SessionQuestion,
+  StartSessionResponse,
   SubmitAnswerRequest,
   SubmitAnswerResponse,
+  EndSessionRequest,
+  EndSessionResponse,
 } from '../types/api'
 
 const { endpoints } = gameConfig.api
 
+function ensureSuccess<T>(response: ApiResponse<T>): T {
+  if (!response.success || response.data === undefined) {
+    throw new Error(response.errorMessage ?? 'Session service request failed.')
+  }
+  return response.data
+}
+
+function mapSession(response: StartSessionResponse): GameSession {
+  return {
+    sessionId: response.sessionId,
+    userId: response.userId,
+    seed: response.seed,
+    questionsUrl: response.questionsUrl,
+    startTime: response.startTime,
+    status: response.status,
+    totalScore: 0,
+    questionsAnswered: 0,
+    correctAnswers: 0,
+    streaksCompleted: 0,
+  }
+}
+
+async function handleRequest<T>(fn: () => Promise<ApiResponse<T>>): Promise<T> {
+  try {
+    const response = await fn()
+    return ensureSuccess(response)
+  } catch (error) {
+    if (isAxiosError<ApiResponse<T>>(error) && error.response?.data) {
+      throw new Error(error.response.data.errorMessage ?? 'Session service request failed.')
+    }
+    if (error instanceof Error) {
+      throw error
+    }
+    throw new Error('Session service request failed.')
+  }
+}
+
 export const sessionService = {
   /**
-   * Create a new game session
+   * Start a new session for the specified user
    */
-  async create(data: SessionCreateRequest): Promise<ApiResponse<GameSession>> {
-    return apiClient.post<ApiResponse<GameSession>>(endpoints.sessions, data)
+  async start(userId: string): Promise<GameSession> {
+    const data = await handleRequest(() =>
+      apiClient.post<ApiResponse<StartSessionResponse>>(`${endpoints.sessions}/start`, { userId })
+    )
+    return mapSession(data)
   },
 
   /**
-   * Start a game session
+   * Retrieve all questions for a session
    */
-  async start(sessionId: string): Promise<ApiResponse<SessionStartResponse>> {
-    return apiClient.post<ApiResponse<SessionStartResponse>>(
-      `${endpoints.sessions}/${sessionId}/start`
+  async getQuestions(sessionId: string): Promise<SessionQuestion[]> {
+    const data = await handleRequest(() =>
+      apiClient.get<ApiResponse<SessionQuestionsResponse>>(
+        `${endpoints.sessions}/${sessionId}/questions`
+      )
+    )
+    return data.questions
+  },
+
+  /**
+   * Submit an answer for the active session
+   */
+  async submitAnswer(sessionId: string, payload: SubmitAnswerRequest): Promise<SubmitAnswerResponse> {
+    return handleRequest(() =>
+      apiClient.post<ApiResponse<SubmitAnswerResponse>>(
+        `${endpoints.sessions}/${sessionId}/answers`,
+        payload
+      )
     )
   },
 
   /**
-   * Get the next question
+   * End the current session and retrieve summary results
    */
-  async getNextQuestion(sessionId: string): Promise<ApiResponse<QuestionResponse>> {
-    return apiClient.get<ApiResponse<QuestionResponse>>(
-      `${endpoints.sessions}/${sessionId}/next-question`
+  async end(sessionId: string, payload: EndSessionRequest): Promise<EndSessionResponse> {
+    return handleRequest(() =>
+      apiClient.post<ApiResponse<EndSessionResponse>>(
+        `${endpoints.sessions}/${sessionId}/end`,
+        payload
+      )
     )
-  },
-
-  /**
-   * Submit an answer
-   */
-  async submitAnswer(data: SubmitAnswerRequest): Promise<ApiResponse<SubmitAnswerResponse>> {
-    return apiClient.post<ApiResponse<SubmitAnswerResponse>>(
-      `${endpoints.sessions}/${data.sessionId}/submit-answer`,
-      data
-    )
-  },
-
-  /**
-   * Complete a game session
-   */
-  async complete(sessionId: string): Promise<ApiResponse<GameSession>> {
-    return apiClient.post<ApiResponse<GameSession>>(`${endpoints.sessions}/${sessionId}/complete`)
-  },
-
-  /**
-   * Get session details
-   */
-  async get(sessionId: string, userId: string): Promise<ApiResponse<GameSession>> {
-    return apiClient.get<ApiResponse<GameSession>>(`${endpoints.sessions}/${sessionId}`, {
-      userId,
-    })
   },
 }

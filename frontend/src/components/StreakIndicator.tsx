@@ -1,27 +1,40 @@
 /**
  * Streak Indicator Component
  * 
- * Displays 5 flask-shaped indicators for the streak system
+ * Displays the player's current streak progress using flask icons and shows
+ * the count of fully completed streaks.
  */
 
+import { gameConfig } from '../config/gameConfig'
+
 interface StreakIndicatorProps {
-  currentStreak: number
+  /**
+   * Current streak progress within the active streak tier (0 to threshold)
+   */
+  currentProgress: number
+  /**
+   * Number of fully completed streaks
+   */
   streaksCompleted: number
 }
 
 export default function StreakIndicator({
-  currentStreak,
+  currentProgress,
   streaksCompleted,
 }: StreakIndicatorProps) {
-  const flaskCount = 5
-  const filledFlasks = currentStreak % flaskCount
+  const flaskCount = gameConfig.streak.visualIndicators
+  const clampedProgress = Math.max(0, Math.min(currentProgress, flaskCount))
+  const cappedCompleted = Math.max(
+    0,
+    Math.min(streaksCompleted, gameConfig.timer.maxStreaks)
+  )
 
   return (
-    <div className="flex items-center gap-2 px-4">
+    <div className="flex items-center gap-2 px-4" aria-live="polite">
       {/* Streak flasks */}
-      <div className="flex gap-2">
+      <div className="flex gap-2" aria-label="Streak progress">
         {Array.from({ length: flaskCount }).map((_, index) => {
-          const isFilled = index < filledFlasks
+          const isFilled = index < clampedProgress
           return (
             <div
               key={index}
@@ -47,9 +60,12 @@ export default function StreakIndicator({
       </div>
 
       {/* Completed streaks counter */}
-      {streaksCompleted > 0 && (
-        <div className="ml-2 px-3 py-1 bg-[#fbbf24] rounded-full">
-          <span className="text-black font-bold text-sm">x{streaksCompleted}</span>
+      {cappedCompleted > 0 && (
+        <div
+          className="ml-2 px-3 py-1 bg-[#fbbf24] rounded-full"
+          aria-label={`Completed streaks ${cappedCompleted}`}
+        >
+          <span className="text-black font-bold text-sm">x{cappedCompleted}</span>
         </div>
       )}
     </div>

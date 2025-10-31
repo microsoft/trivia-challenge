@@ -83,6 +83,10 @@
     {
       "question": "Should keyboard mappings be A/K/S/L (as shown in mockup) or Z/C/B/M (as mentioned in constraints)?",
       "answer": "Keep keyboard mappings configurable in a config file for easy modification later"
+    },
+    {
+      "question": "Can players resume an in-progress game session after leaving the playing screen?",
+      "answer": "No, leaving the game requires returning to registration and starting a new session"
     }
   ],
   "tasks": [
@@ -173,5 +177,5 @@
     }
   ],
   "openDecisions": [],
-  "nextStep": "plan"
+  "nextStep": "execute"
 }

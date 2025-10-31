@@ -5,6 +5,7 @@
  */
 
 export interface User {
+  userId: string
   email: string
   name: string
   phoneNumber?: string
@@ -17,32 +18,28 @@ export interface RegisterUserRequest {
   phoneNumber?: string
 }
 
-export interface Question {
-  id: string
-  text: string
-  answers: string[]
-  correctAnswerIndex: number
-  difficulty: 'easy' | 'medium' | 'hard'
-  category?: string
-}
+export type SessionStatus = 'active' | 'completed' | 'abandoned'
 
 export interface GameSession {
   sessionId: string
   userId: string
+  seed: number
+  questionsUrl: string
   startTime: string
-  endTime?: string
-  score: number
-  questionsAnswered: number
-  correctAnswers: number
-  streaksCompleted: number
-  timeRemaining: number
-  status: 'waiting' | 'playing' | 'completed'
+  status: SessionStatus
+  totalScore?: number
+  questionsAnswered?: number
+  correctAnswers?: number
+  streaksCompleted?: number
 }
 
-export interface AnswerSubmission {
+export interface SessionQuestion {
   questionId: string
-  answerIndex: number
-  timeSpent: number
+  questionText: string
+  category: string
+  choices: string[]
+  correctAnswerIndex: number
+  metadata?: Record<string, string>
 }
 
 export interface ApiResponse<T> {
@@ -52,37 +49,45 @@ export interface ApiResponse<T> {
   statusCode?: number
 }
 
-export interface SessionCreateRequest {
-  userEmail: string
-  drawSeed?: number
-}
-
-export interface SessionStartResponse {
+export interface StartSessionResponse {
   sessionId: string
-  question: Question
-  timeLimit: number
+  userId: string
+  seed: number
+  questionsUrl: string
+  startTime: string
+  status: SessionStatus
 }
 
-export interface QuestionResponse {
-  question: Question
-  questionNumber: number
-  totalQuestions?: number
+export interface SessionQuestionsResponse {
+  questions: SessionQuestion[]
 }
 
 export interface SubmitAnswerRequest {
-  sessionId: string
   questionId: string
   answerIndex: number
-  timeSpent: number
+  timeElapsed: number
+  isCorrect: boolean
 }
 
 export interface SubmitAnswerResponse {
-  correct: boolean
-  correctAnswerIndex: number
-  points: number
-  streak: number
-  bonusAwarded: boolean
-  nextQuestion?: Question
+  pointsEarned: number
+  totalScore: number
+}
+
+export interface EndSessionRequest {
+  questionsAnswered: number
+  correctAnswers: number
+  streaksCompleted: number
+  finalTimeRemaining: number
+}
+
+export interface EndSessionResponse {
+  sessionId: string
+  finalScore: number
+  questionsAnswered: number
+  correctAnswers: number
+  accuracy: number
+  streaksCompleted: number
 }
 
 export interface LeaderboardEntry {

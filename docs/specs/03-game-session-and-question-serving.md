@@ -590,7 +590,7 @@ export const telemetryService = new TelemetryService()
   - [ ] End game when time runs out or questions finished
 - [ ] Add "game.instructionsDisplayed" telemetry placeholder to InstructionsPage
 - [ ] Create telemetry service structure (console.log only, no implementation)
-- [ ] Update ResultsPage to display final results (no leaderboard yet)
+- [x] Update ResultsPage to display final results (no leaderboard yet)
 - [ ] Test complete gameplay flow from session start to results
 
 ### Testing & Validation

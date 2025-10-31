@@ -1,48 +1,53 @@
-/**
- * Game Context
- * 
- * Global state management for game data, player info, and session
- */
-
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
-import type { User, GameSession, Question } from '../types/api'
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+} from 'react'
+import type { User, GameSession, SessionQuestion } from '../types/api'
+import { gameConfig } from '../config/gameConfig'
 
 interface GameState {
   // Player data
   player: User | null
-  setPlayer: (player: User | null) => void
+  setPlayer: Dispatch<SetStateAction<User | null>>
 
   // Session data
   session: GameSession | null
-  setSession: (session: GameSession | null) => void
+  setSession: Dispatch<SetStateAction<GameSession | null>>
 
-  // Current question
-  currentQuestion: Question | null
-  setCurrentQuestion: (question: Question | null) => void
+  // Question draw
+  questions: SessionQuestion[]
+  setQuestions: Dispatch<SetStateAction<SessionQuestion[]>>
+  currentQuestionIndex: number
+  setCurrentQuestionIndex: Dispatch<SetStateAction<number>>
 
   // Game state
   isPlaying: boolean
-  setIsPlaying: (isPlaying: boolean) => void
+  setIsPlaying: Dispatch<SetStateAction<boolean>>
 
   // Timer state
   timeLeft: number
-  setTimeLeft: (time: number) => void
+  setTimeLeft: Dispatch<SetStateAction<number>>
   maxTime: number
-  setMaxTime: (time: number) => void
+  setMaxTime: Dispatch<SetStateAction<number>>
 
   // Streak state
   currentStreak: number
-  setCurrentStreak: (streak: number) => void
+  setCurrentStreak: Dispatch<SetStateAction<number>>
   streaksCompleted: number
-  setStreaksCompleted: (count: number) => void
+  setStreaksCompleted: Dispatch<SetStateAction<number>>
 
   // Score tracking
   score: number
-  setScore: (score: number) => void
+  setScore: Dispatch<SetStateAction<number>>
   questionsAnswered: number
-  setQuestionsAnswered: (count: number) => void
+  setQuestionsAnswered: Dispatch<SetStateAction<number>>
   correctAnswers: number
-  setCorrectAnswers: (count: number) => void
+  setCorrectAnswers: Dispatch<SetStateAction<number>>
 
   // Reset game state
   resetGame: () => void
@@ -58,14 +63,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<GameSession | null>(null)
 
   // Question state
-  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null)
+  const [questions, setQuestions] = useState<SessionQuestion[]>([])
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
 
   // Game state
   const [isPlaying, setIsPlaying] = useState(false)
 
   // Timer state
-  const [timeLeft, setTimeLeft] = useState(60)
-  const [maxTime, setMaxTime] = useState(60)
+  const [timeLeft, setTimeLeft] = useState<number>(gameConfig.timer.initialSeconds)
+  const [maxTime, setMaxTime] = useState<number>(gameConfig.timer.initialSeconds)
 
   // Streak state
   const [currentStreak, setCurrentStreak] = useState(0)
@@ -78,10 +84,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   // Reset game state
   const resetGame = useCallback(() => {
-    setCurrentQuestion(null)
+    setQuestions([])
+    setCurrentQuestionIndex(0)
     setIsPlaying(false)
-    setTimeLeft(60)
-    setMaxTime(60)
+  setTimeLeft(gameConfig.timer.initialSeconds)
+  setMaxTime(gameConfig.timer.initialSeconds)
     setCurrentStreak(0)
     setStreaksCompleted(0)
     setScore(0)
@@ -94,8 +101,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setPlayer,
     session,
     setSession,
-    currentQuestion,
-    setCurrentQuestion,
+    questions,
+    setQuestions,
+    currentQuestionIndex,
+    setCurrentQuestionIndex,
     isPlaying,
     setIsPlaying,
     timeLeft,
@@ -118,6 +127,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useGame() {
   const context = useContext(GameContext)
   if (context === undefined) {

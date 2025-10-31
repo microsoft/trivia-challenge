@@ -73,9 +73,9 @@ export const gameConfig = {
   api: {
     baseUrl: import.meta.env.VITE_API_URL || './',
     endpoints: {
-      sessions: '/api/v1/sessions',
-      questions: '/api/v1/questions',
-      users: '/api/v1/users',
+      sessions: '/api/v1.0/sessions',
+      questions: '/api/v1.0/questions',
+      users: '/api/v1.0/users',
     },
     timeout: 10000, // Request timeout in milliseconds
   },
