@@ -29,14 +29,16 @@ A Kahoot/Duolingo-inspired quiz web app where players have a base 1 minute to an
 - **Input Methods**: Touch, mouse and keyboard only (keyboard mappings configurable)
 - **Game Timer**: 
   - Base: 60 seconds
-  - Streak bonus: +15 seconds for every 5 correct answers
+  - Streak bonus: +15 seconds per completed streak (5 correct answers)
+  - Maximum: 4 completed streaks = 60 seconds bonus (120 seconds total)
   - 3-second countdown before game starts
   - Timer pauses during wrong answer modal (5 seconds)
 - **Game Flow**: signin → instructions → playing → results
 - **Streak System**:
-  - Threshold: 5 correct answers = +5 seconds bonus
-  - Wrong answer: Decrease streak by 1 (not reset to 0)
-  - Visual: 5 flask indicators (golden when filled, gray when empty)
+  - Threshold: 5 correct answers = 1 completed streak = +15 seconds bonus
+  - Maximum: 4 completed streaks (no more bonuses after that)
+  - Wrong answer: Decrease streak progress by 1 (not reset to 0)
+  - Visual: 5 flask indicators per streak level (golden when filled, gray when empty)
 - **Answer Format**: 4 multiple-choice answers per question
 - **Visual Theme**: Dark background (#000000) with vibrant answer buttons (green #10b981, blue #3b82f6, purple #a855f7, orange #f97316)
 - **Telemetry**: Comprehensive tracking of all clicks, mouse movements (max 10 points/sec), game events
@@ -107,10 +109,21 @@ A Kahoot/Duolingo-inspired quiz web app where players have a base 1 minute to an
    - SignInPage and InstructionsPage fully implemented
    - Code quality tools (ESLint, Prettier, TypeScript strict mode)
 
+3. **Game Timer System** (Task 05 - Completed)
+   - Custom `useGameTimer` hook with state machine (idle → countdown → running ↔ paused → ended)
+   - 3-second countdown overlay before game starts
+   - 60-second base timer with +15 second streak bonuses (max 4 streaks)
+   - Timer pause functionality for wrong answers (5 seconds)
+   - MM:SS display format with visual progress bar
+   - Low-time warning (red color when ≤5 seconds)
+   - Automatic navigation to results when time expires
+   - Bonus time notification component
+   - Full GameContext integration for time tracking
+   - Proper memory management and cleanup
+
 ### 🚧 In Progress / Planned
 - Game session management and randomized question serving
-- Timer implementation with streak bonuses
-- Full gameplay mechanics (PlayingPage)
+- Full gameplay mechanics with actual questions (PlayingPage currently uses mock data)
 - Results screen with leaderboard (ResultsPage)
 - Comprehensive telemetry tracking
 - Microsoft Fabric integration

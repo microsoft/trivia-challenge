@@ -9,7 +9,7 @@
 - [x] Design Cosmos DB collections for users, sessions, questions, and scores
 
 ### Game Mechanics
-- [ ] Implement 1-minute base timer with 20-second streak bonuses (up to 2 minutes total)
+- [x] Implement 1-minute base timer with 15-second streak bonuses (up to 2 minutes total, max 4 streaks)
 - [ ] Build forgiving streak system (wrong answer steps back one level)
 - [ ] Implement difficulty-weighted scoring with proportional time bonuses
 - [ ] Create time pressure and varying answer choice counts for difficulty
@@ -38,9 +38,10 @@
 ## Technical Specifications
 
 ### Timer System
-- Base game time: 1 minute
-- Streak bonus: +20 seconds per completed streak
-- Maximum total time: 2 minutes
+- Base game time: 1 minute (60 seconds)
+- Streak bonus: +15 seconds per completed streak (5 correct answers)
+- Maximum streaks: 4 streaks (60 seconds total bonus)
+- Maximum total time: 2 minutes (120 seconds)
 
 ### Scoring Algorithm
 - Primary: Points weighted by difficulty level

@@ -1,7 +1,7 @@
 /**
  * Timer Bar Component
  * 
- * Displays the countdown timer with a progress bar
+ * Displays the countdown timer with a progress bar in MM:SS format
  */
 
 import { useMemo } from 'react'
@@ -9,15 +9,21 @@ import { useMemo } from 'react'
 interface TimerBarProps {
   timeLeft: number
   maxTime: number
+  isLowTime?: boolean
 }
 
-export default function TimerBar({ timeLeft, maxTime }: TimerBarProps) {
+export default function TimerBar({ timeLeft, maxTime, isLowTime = false }: TimerBarProps) {
   const progress = useMemo(() => {
     return (timeLeft / maxTime) * 100
   }, [timeLeft, maxTime])
 
-  const isLowTime = timeLeft <= 5
-  const displayTime = Math.floor(timeLeft)
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const displayTime = formatTime(timeLeft)
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4">

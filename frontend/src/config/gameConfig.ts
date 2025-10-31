@@ -12,7 +12,8 @@ export const gameConfig = {
   timer: {
     initialSeconds: 60, // Base game time in seconds
     countdownSeconds: 3, // Countdown before game starts
-    bonusSeconds: 5, // Bonus time awarded for streak completion
+    bonusSeconds: 15, // Bonus time awarded for streak completion
+    maxStreaks: 4, // Maximum number of streaks that award bonus time
     wrongAnswerPauseSeconds: 5, // Time to display wrong answer modal
     lowTimeThreshold: 5, // Seconds remaining to trigger red timer warning
   },
