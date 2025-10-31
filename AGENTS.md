@@ -29,7 +29,7 @@ A Kahoot/Duolingo-inspired quiz web app where players have a base 1 minute to an
 - **Input Methods**: Touch, mouse and keyboard only (keyboard mappings configurable)
 - **Game Timer**: 
   - Base: 60 seconds
-  - Streak bonus: +5 seconds for every 5 correct answers
+  - Streak bonus: +15 seconds for every 5 correct answers
   - 3-second countdown before game starts
   - Timer pauses during wrong answer modal (5 seconds)
 - **Game Flow**: signin → instructions → playing → results
@@ -68,10 +68,12 @@ A Kahoot/Duolingo-inspired quiz web app where players have a base 1 minute to an
 
 - **TypeScript**: Strict mode enabled, comprehensive type definitions
 - **React**: Functional components with hooks, proper state management
+- **Architecture**: Game logic and context separated into dedicated classes for extensibility (e.g., future DevTools/Debug bar)
 - **API Design**: RESTful endpoints with OpenAPI documentation
 - **Error Handling**: Comprehensive error boundaries and API error responses
 - **Performance**: Optimize for high concurrency and real-time interactions
 - **Accessibility**: WCAG 2.1 AA compliance for inclusive design
+- **Telemetry**: Event names are namespaced with dots (e.g., `user.registered`, `game.started`, `question.answered`)
 
 ## Security Considerations
 
