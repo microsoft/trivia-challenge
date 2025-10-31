@@ -8,17 +8,17 @@ namespace IQChallenge.Api.Repositories;
 public interface IQuestionDrawRepository
 {
     /// <summary>
-    /// Gets a question draw by seed
+    /// Gets a question draw by sessionId
     /// </summary>
-    Task<QuestionDraw?> GetBySeedAsync(int seed);
+    Task<QuestionDraw?> GetBySessionIdAsync(string sessionId);
 
     /// <summary>
-    /// Creates a new question draw
+    /// Creates a new question draw with sessionId as ID
     /// </summary>
     Task<QuestionDraw> CreateAsync(QuestionDraw draw);
 
     /// <summary>
-    /// Creates a question draw from all available questions with a specific seed
+    /// Creates a question draw from all available questions with a specific seed and sessionId
     /// </summary>
-    Task<QuestionDraw> CreateDrawFromQuestionsAsync(int seed, List<Question> questions);
+    Task<QuestionDraw> CreateDrawFromQuestionsAsync(string sessionId, string userId, int seed, List<Question> questions);
 }

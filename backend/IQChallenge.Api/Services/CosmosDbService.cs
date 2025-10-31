@@ -13,6 +13,7 @@ public class CosmosDbService
     private readonly Container _questionsContainer;
     private readonly Container _questionDrawsContainer;
     private readonly Container _gameSessionsContainer;
+    private readonly Container _gameSessionAnswersContainer;
     private readonly ILogger<CosmosDbService> _logger;
 
     public CosmosDbService(
@@ -22,6 +23,7 @@ public class CosmosDbService
         string questionsContainerName,
         string questionDrawsContainerName,
         string gameSessionsContainerName,
+        string gameSessionAnswersContainerName,
         ILogger<CosmosDbService> logger)
     {
         _cosmosClient = cosmosClient ?? throw new ArgumentNullException(nameof(cosmosClient));
@@ -32,6 +34,7 @@ public class CosmosDbService
         _questionsContainer = _database.GetContainer(questionsContainerName);
         _questionDrawsContainer = _database.GetContainer(questionDrawsContainerName);
         _gameSessionsContainer = _database.GetContainer(gameSessionsContainerName);
+        _gameSessionAnswersContainer = _database.GetContainer(gameSessionAnswersContainerName);
 
         _logger.LogInformation("CosmosDbService initialized with database: {DatabaseName}", databaseName);
     }
@@ -55,6 +58,11 @@ public class CosmosDbService
     /// Gets the GameSessions container
     /// </summary>
     public Container GameSessionsContainer => _gameSessionsContainer;
+
+    /// <summary>
+    /// Gets the GameSessionAnswers container
+    /// </summary>
+    public Container GameSessionAnswersContainer => _gameSessionAnswersContainer;
 
     /// <summary>
     /// Gets the database for health check purposes
@@ -118,12 +126,12 @@ public class CosmosDbService
 
             _logger.LogInformation("Container {ContainerId} ready", _questionDrawsContainer.Id);
 
-            // Create GameSessions container with partition key on /id
+            // Create GameSessions container with partition key on /userId
             await _database.CreateContainerIfNotExistsAsync(
                 new ContainerProperties
                 {
                     Id = _gameSessionsContainer.Id,
-                    PartitionKeyPath = "/id",
+                    PartitionKeyPath = "/userId",
                     IndexingPolicy = new IndexingPolicy
                     {
                         IndexingMode = IndexingMode.Consistent,
@@ -133,6 +141,22 @@ public class CosmosDbService
                 });
 
             _logger.LogInformation("Container {ContainerId} ready", _gameSessionsContainer.Id);
+
+            // Create GameSessionAnswers container with partition key on /userId
+            await _database.CreateContainerIfNotExistsAsync(
+                new ContainerProperties
+                {
+                    Id = _gameSessionAnswersContainer.Id,
+                    PartitionKeyPath = "/userId",
+                    IndexingPolicy = new IndexingPolicy
+                    {
+                        IndexingMode = IndexingMode.Consistent,
+                        Automatic = true,
+                        IncludedPaths = { new IncludedPath { Path = "/*" } }
+                    }
+                });
+
+            _logger.LogInformation("Container {ContainerId} ready", _gameSessionAnswersContainer.Id);
 
             _logger.LogInformation("Cosmos DB initialization completed successfully");
         }

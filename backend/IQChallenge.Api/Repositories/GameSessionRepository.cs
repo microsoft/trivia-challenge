@@ -18,13 +18,19 @@ public class GameSessionRepository : IGameSessionRepository
         _logger = logger;
     }
 
-    public async Task<GameSession?> GetByIdAsync(string sessionId)
+    public async Task<GameSession?> GetByIdAsync(string sessionId, string? userId)
     {
         try
         {
+            if (userId == null)
+            {
+                _logger.LogWarning("UserId is required to retrieve session {SessionId}", sessionId);
+                return null;
+            }
+
             var response = await _container.ReadItemAsync<GameSession>(
                 sessionId,
-                new PartitionKey(sessionId));
+                new PartitionKey(userId));
             return response.Resource;
         }
         catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -39,12 +45,12 @@ public class GameSessionRepository : IGameSessionRepository
         }
     }
 
-    public async Task<List<GameSession>> GetByUserEmailAsync(string userEmail)
+    public async Task<List<GameSession>> GetByUserIdAsync(string userId)
     {
         try
         {
-            var query = new QueryDefinition("SELECT * FROM c WHERE c.userEmail = @userEmail ORDER BY c.createdAt DESC")
-                .WithParameter("@userEmail", userEmail);
+            var query = new QueryDefinition("SELECT * FROM c WHERE c.userId = @userId ORDER BY c.startTime DESC")
+                .WithParameter("@userId", userId);
 
             var iterator = _container.GetItemQueryIterator<GameSession>(query);
             var sessions = new List<GameSession>();
@@ -55,12 +61,12 @@ public class GameSessionRepository : IGameSessionRepository
                 sessions.AddRange(response);
             }
 
-            _logger.LogInformation("Retrieved {Count} sessions for user {UserEmail}", sessions.Count, userEmail);
+            _logger.LogInformation("Retrieved {Count} sessions for user {UserId}", sessions.Count, userId);
             return sessions;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving sessions for user {UserEmail}", userEmail);
+            _logger.LogError(ex, "Error retrieving sessions for user {UserId}", userId);
             throw;
         }
     }
@@ -69,21 +75,21 @@ public class GameSessionRepository : IGameSessionRepository
     {
         try
         {
-            session.CreatedAt = DateTime.UtcNow;
+            session.StartTime = DateTime.UtcNow;
             session.UpdatedAt = DateTime.UtcNow;
             
             var response = await _container.CreateItemAsync(
                 session,
-                new PartitionKey(session.Id));
+                new PartitionKey(session.UserId));
             
-            _logger.LogInformation("Created session {SessionId} for user {UserEmail}",
-                session.Id, session.UserEmail);
+            _logger.LogInformation("Created session {SessionId} for user {UserId}",
+                session.Id, session.UserId);
             
             return response.Resource;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating session for user {UserEmail}", session.UserEmail);
+            _logger.LogError(ex, "Error creating session for user {UserId}", session.UserId);
             throw;
         }
     }
@@ -97,7 +103,7 @@ public class GameSessionRepository : IGameSessionRepository
             var response = await _container.ReplaceItemAsync(
                 session,
                 session.Id,
-                new PartitionKey(session.Id));
+                new PartitionKey(session.UserId));
             
             _logger.LogInformation("Updated session {SessionId}", session.Id);
             

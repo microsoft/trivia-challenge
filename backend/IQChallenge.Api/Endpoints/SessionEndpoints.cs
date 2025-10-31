@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning.Builder;
 using IQChallenge.Api.Models;
 using IQChallenge.Api.Models.Dtos.Sessions;
@@ -5,9 +6,6 @@ using IQChallenge.Api.Repositories;
 
 namespace IQChallenge.Api.Endpoints;
 
-/// <summary>
-/// Game session-related endpoints
-/// </summary>
 public static class SessionEndpoints
 {
     public static IVersionedEndpointRouteBuilder MapSessionEndpoints(this IVersionedEndpointRouteBuilder builder)
@@ -16,47 +14,41 @@ public static class SessionEndpoints
             .WithTags("Sessions")
             .WithOpenApi();
 
-        group.MapPost("/", CreateSession)
-            .WithName("CreateSession")
-            .WithSummary("Create a new game session")
-            .Produces<ApiResponse<SessionResponse>>(201)
-            .Produces(400)
-            .Produces(500);
-
-        group.MapGet("/{sessionId}", GetSession)
-            .WithName("GetSession")
-            .WithSummary("Get session by ID")
-            .Produces<ApiResponse<SessionResponse>>(200)
-            .Produces(404)
-            .Produces(500);
-
-        group.MapPost("/{sessionId}/start", StartSession)
+        group.MapPost("/start", StartSession)
             .WithName("StartSession")
-            .WithSummary("Start a game session")
-            .Produces<ApiResponse<SessionResponse>>(200)
-            .Produces(404)
+            .WithSummary("Start a new game session")
+            .Produces<ApiResponse<StartSessionResponse>>(201)
             .Produces(400)
             .Produces(500);
 
-        group.MapPost("/{sessionId}/complete", CompleteSession)
-            .WithName("CompleteSession")
-            .WithSummary("Complete a game session with results")
-            .Produces<ApiResponse<SessionResponse>>(200)
+        group.MapGet("/{sessionId}/questions", GetSessionQuestions)
+            .WithName("GetSessionQuestions")
+            .WithSummary("Get all questions for a session")
+            .Produces<ApiResponse<SessionQuestionsResponse>>(200)
             .Produces(404)
-            .Produces(400)
             .Produces(500);
 
-        group.MapGet("/leaderboard/top", GetTopScores)
-            .WithName("GetTopScores")
-            .WithSummary("Get leaderboard top scores")
-            .Produces<ApiResponse<List<SessionResponse>>>(200)
+        group.MapPost("/{sessionId}/answers", SubmitAnswer)
+            .WithName("SubmitAnswer")
+            .WithSummary("Submit an answer and get points")
+            .Produces<ApiResponse<SubmitAnswerResponse>>(200)
+            .Produces(400)
+            .Produces(404)
+            .Produces(500);
+
+        group.MapPost("/{sessionId}/end", EndSession)
+            .WithName("EndSession")
+            .WithSummary("End a session and get final results")
+            .Produces<ApiResponse<EndSessionResponse>>(200)
+            .Produces(400)
+            .Produces(404)
             .Produces(500);
 
         return builder;
     }
 
-    private static async Task<IResult> CreateSession(
-        Models.Dtos.Sessions.CreateSessionRequest request,
+    private static async Task<IResult> StartSession(
+        [FromBody] StartSessionRequest request,
         IGameSessionRepository sessionRepository,
         IQuestionDrawRepository drawRepository,
         IQuestionRepository questionRepository,
@@ -64,240 +56,250 @@ public static class SessionEndpoints
     {
         try
         {
-            int drawSeed;
-            QuestionDraw? draw;
-
-            if (request.DrawSeed.HasValue)
+            var seed = Random.Shared.Next();
+            var allQuestions = await questionRepository.GetAllAsync();
+            
+            if (allQuestions == null || allQuestions.Count == 0)
             {
-                // Use specified draw seed
-                drawSeed = request.DrawSeed.Value;
-                draw = await drawRepository.GetBySeedAsync(drawSeed);
+                return Results.BadRequest(ApiResponse<StartSessionResponse>.BadRequest("No questions available"));
+            }
 
-                if (draw == null)
-                {
-                    return Results.BadRequest(ApiResponse<SessionResponse>.BadRequest($"Draw with seed {drawSeed} not found"));
-                }
-            }
-            else
-            {
-                // Generate new random draw
-                drawSeed = new Random().Next();
-                
-                // Get all questions
-                var allQuestions = await questionRepository.GetAllAsync();
-                
-                if (allQuestions.Count == 0)
-                {
-                    return Results.BadRequest(ApiResponse<SessionResponse>.BadRequest("No questions available"));
-                }
-                
-                // Create new draw
-                draw = await drawRepository.CreateDrawFromQuestionsAsync(drawSeed, allQuestions);
-            }
+            var sessionId = Guid.NewGuid().ToString();
+            var draw = await drawRepository.CreateDrawFromQuestionsAsync(sessionId, request.UserId, seed, allQuestions);
 
             var session = new GameSession
             {
-                UserEmail = request.UserEmail.ToLowerInvariant(),
-                DrawSeed = drawSeed,
-                Status = "created"
+                Id = sessionId,
+                UserId = request.UserId,
+                Seed = seed,
+                Status = "active",
+                StartTime = DateTime.UtcNow,
+                TotalScore = 0,
+                QuestionsAnswered = 0,
+                CorrectAnswers = 0,
+                StreaksCompleted = 0
             };
 
             var createdSession = await sessionRepository.CreateAsync(session);
 
-            var response = new SessionResponse
+            var response = new StartSessionResponse
             {
                 SessionId = createdSession.Id,
-                UserEmail = createdSession.UserEmail,
-                DrawSeed = createdSession.DrawSeed,
-                Status = createdSession.Status,
-                TotalScore = createdSession.TotalScore,
-                MaxStreak = createdSession.MaxStreak,
-                CorrectAnswers = createdSession.CorrectAnswers,
-                IncorrectAnswers = createdSession.IncorrectAnswers,
-                CreatedAt = createdSession.CreatedAt,
-                StartedAt = createdSession.StartedAt,
-                CompletedAt = createdSession.CompletedAt
+                UserId = createdSession.UserId,
+                Seed = createdSession.Seed,
+                QuestionsUrl = $"/api/v1.0/sessions/{createdSession.Id}/questions",
+                StartTime = createdSession.StartTime,
+                Status = createdSession.Status
             };
 
-            return Results.Created($"/api/v1.0/sessions/{createdSession.Id}", ApiResponse<SessionResponse>.Created(response));
+            logger.LogInformation("Created session {SessionId} for user {UserId} with seed {Seed}", 
+                createdSession.Id, createdSession.UserId, createdSession.Seed);
+
+            return Results.Created($"/api/v1.0/sessions/{createdSession.Id}", ApiResponse<StartSessionResponse>.Created(response));
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error creating session");
+            logger.LogError(ex, "Error starting session for user {UserId}", request.UserId);
             return Results.StatusCode(500);
         }
     }
 
-    private static async Task<IResult> GetSession(
+    private static async Task<IResult> GetSessionQuestions(
         string sessionId,
         IGameSessionRepository sessionRepository,
+        IQuestionDrawRepository drawRepository,
         ILogger<Program> logger)
     {
         try
         {
-            var session = await sessionRepository.GetByIdAsync(sessionId);
-
-            if (session == null)
+            var draw = await drawRepository.GetBySessionIdAsync(sessionId);
+            if (draw == null || draw.Questions == null)
             {
-                return Results.NotFound(ApiResponse<SessionResponse>.NotFound("Session not found"));
+                return Results.NotFound(ApiResponse<SessionQuestionsResponse>.NotFound("Questions not found for session"));
             }
 
-            var response = new SessionResponse
+            var questionDtos = draw.Questions.Select(q => new SessionQuestionDto
             {
-                SessionId = session.Id,
-                UserEmail = session.UserEmail,
-                DrawSeed = session.DrawSeed,
-                Status = session.Status,
-                TotalScore = session.TotalScore,
-                MaxStreak = session.MaxStreak,
-                CorrectAnswers = session.CorrectAnswers,
-                IncorrectAnswers = session.IncorrectAnswers,
-                CreatedAt = session.CreatedAt,
-                StartedAt = session.StartedAt,
-                CompletedAt = session.CompletedAt
+                QuestionId = q.QuestionId,
+                QuestionText = q.QuestionText,
+                Category = q.Category ?? string.Empty,
+                Choices = q.Choices,
+                CorrectAnswerIndex = q.CorrectAnswerIndex,
+                Metadata = q.Metadata
+            }).ToList();
+
+            var response = new SessionQuestionsResponse
+            {
+                Questions = questionDtos
             };
 
-            return Results.Ok(ApiResponse<SessionResponse>.Ok(response));
+            logger.LogInformation("Retrieved {QuestionCount} questions for session {SessionId}", 
+                questionDtos.Count, sessionId);
+
+            return Results.Ok(ApiResponse<SessionQuestionsResponse>.Ok(response));
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error retrieving session {SessionId}", sessionId);
+            logger.LogError(ex, "Error getting questions for session {SessionId}", sessionId);
             return Results.StatusCode(500);
         }
     }
 
-    private static async Task<IResult> StartSession(
+    private static async Task<IResult> SubmitAnswer(
         string sessionId,
+        [FromBody] SubmitAnswerRequest request,
         IGameSessionRepository sessionRepository,
+        IQuestionDrawRepository drawRepository,
+        IGameSessionAnswerRepository answerRepository,
         ILogger<Program> logger)
     {
         try
         {
-            var session = await sessionRepository.GetByIdAsync(sessionId);
+            // Get the question draw first to retrieve userId for partition key
+            var draw = await drawRepository.GetBySessionIdAsync(sessionId);
+            if (draw == null || draw.Questions == null)
+            {
+                return Results.NotFound(ApiResponse<SubmitAnswerResponse>.NotFound("Questions not found for session"));
+            }
 
+            var session = await sessionRepository.GetByIdAsync(sessionId, draw.UserId);
             if (session == null)
             {
-                return Results.NotFound(ApiResponse<SessionResponse>.NotFound("Session not found"));
+                return Results.NotFound(ApiResponse<SubmitAnswerResponse>.NotFound("Session not found"));
             }
 
-            if (session.Status != "created")
+            if (session.Status != "active")
             {
-                return Results.BadRequest(ApiResponse<SessionResponse>.BadRequest("Session already started"));
+                return Results.BadRequest(ApiResponse<SubmitAnswerResponse>.BadRequest("Session is not active"));
             }
 
-            session.Status = "active";
-            session.StartedAt = DateTime.UtcNow;
-
-            var updatedSession = await sessionRepository.UpdateAsync(session);
-
-            var response = new SessionResponse
+            var question = draw.Questions.FirstOrDefault(q => q.QuestionId == request.QuestionId);
+            if (question == null)
             {
-                SessionId = updatedSession.Id,
-                UserEmail = updatedSession.UserEmail,
-                DrawSeed = updatedSession.DrawSeed,
-                Status = updatedSession.Status,
-                TotalScore = updatedSession.TotalScore,
-                MaxStreak = updatedSession.MaxStreak,
-                CorrectAnswers = updatedSession.CorrectAnswers,
-                IncorrectAnswers = updatedSession.IncorrectAnswers,
-                CreatedAt = updatedSession.CreatedAt,
-                StartedAt = updatedSession.StartedAt,
-                CompletedAt = updatedSession.CompletedAt
+                return Results.BadRequest(ApiResponse<SubmitAnswerResponse>.BadRequest("Question not found in session"));
+            }
+
+            var isCorrect = request.AnswerIndex == question.CorrectAnswerIndex;
+            int pointsEarned = 0;
+            
+            if (isCorrect)
+            {
+                int basePoints = 10;
+                if (question.Metadata != null && question.Metadata.ContainsKey("difficulty"))
+                {
+                    var difficulty = question.Metadata["difficulty"];
+                    basePoints = difficulty?.ToLower() switch
+                    {
+                        "medium" => 15,
+                        "hard" => 20,
+                        _ => 10
+                    };
+                }
+
+                const double maxTime = 120.0;
+                double timeRemainingRatio = Math.Max(0, (maxTime - request.TimeElapsed) / maxTime);
+                pointsEarned = (int)Math.Round(basePoints * (1 + timeRemainingRatio));
+            }
+
+            var answerRecord = new GameSessionAnswer
+            {
+                Id = Guid.NewGuid().ToString(),
+                UserId = session.UserId,
+                SessionId = sessionId,
+                QuestionId = request.QuestionId,
+                AnswerIndex = request.AnswerIndex,
+                IsCorrect = isCorrect,
+                PointsEarned = pointsEarned,
+                TimeElapsed = request.TimeElapsed,
+                Timestamp = DateTime.UtcNow
             };
 
-            return Results.Ok(ApiResponse<SessionResponse>.Ok(response));
+            await answerRepository.CreateAsync(answerRecord);
+
+            session.TotalScore += pointsEarned;
+            session.QuestionsAnswered++;
+            if (isCorrect)
+            {
+                session.CorrectAnswers++;
+            }
+
+            await sessionRepository.UpdateAsync(session);
+
+            var response = new SubmitAnswerResponse
+            {
+                PointsEarned = pointsEarned,
+                TotalScore = session.TotalScore
+            };
+
+            logger.LogInformation("Answer submitted for session {SessionId}, question {QuestionId}: {IsCorrect}, points: {Points}", 
+                sessionId, request.QuestionId, isCorrect, pointsEarned);
+
+            return Results.Ok(ApiResponse<SubmitAnswerResponse>.Ok(response));
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error starting session {SessionId}", sessionId);
+            logger.LogError(ex, "Error submitting answer for session {SessionId}", sessionId);
             return Results.StatusCode(500);
         }
     }
 
-    private static async Task<IResult> CompleteSession(
+    private static async Task<IResult> EndSession(
         string sessionId,
-        CompleteSessionRequest request,
+        [FromBody] EndSessionRequest request,
         IGameSessionRepository sessionRepository,
+        IQuestionDrawRepository drawRepository,
         ILogger<Program> logger)
     {
         try
         {
-            var session = await sessionRepository.GetByIdAsync(sessionId);
-
-            if (session == null)
+            // Get the question draw first to retrieve userId for partition key
+            var draw = await drawRepository.GetBySessionIdAsync(sessionId);
+            if (draw == null)
             {
-                return Results.NotFound(ApiResponse<SessionResponse>.NotFound("Session not found"));
+                return Results.NotFound(ApiResponse<EndSessionResponse>.NotFound("Session not found"));
             }
 
-            if (session.Status == "completed")
+            var session = await sessionRepository.GetByIdAsync(sessionId, draw.UserId);
+            if (session == null)
             {
-                return Results.BadRequest(ApiResponse<SessionResponse>.BadRequest("Session already completed"));
+                return Results.NotFound(ApiResponse<EndSessionResponse>.NotFound("Session not found"));
+            }
+
+            if (session.Status != "active")
+            {
+                return Results.BadRequest(ApiResponse<EndSessionResponse>.BadRequest("Session is not active"));
             }
 
             session.Status = "completed";
-            session.CompletedAt = DateTime.UtcNow;
-            session.TotalScore = request.TotalScore;
-            session.MaxStreak = request.MaxStreak;
+            session.EndTime = DateTime.UtcNow;
+            session.QuestionsAnswered = request.QuestionsAnswered;
             session.CorrectAnswers = request.CorrectAnswers;
-            session.IncorrectAnswers = request.IncorrectAnswers;
+            session.StreaksCompleted = request.StreaksCompleted;
 
-            var updatedSession = await sessionRepository.UpdateAsync(session);
+            await sessionRepository.UpdateAsync(session);
 
-            var response = new SessionResponse
+            var accuracy = session.QuestionsAnswered > 0 
+                ? (double)session.CorrectAnswers / session.QuestionsAnswered * 100 
+                : 0.0;
+
+            var response = new EndSessionResponse
             {
-                SessionId = updatedSession.Id,
-                UserEmail = updatedSession.UserEmail,
-                DrawSeed = updatedSession.DrawSeed,
-                Status = updatedSession.Status,
-                TotalScore = updatedSession.TotalScore,
-                MaxStreak = updatedSession.MaxStreak,
-                CorrectAnswers = updatedSession.CorrectAnswers,
-                IncorrectAnswers = updatedSession.IncorrectAnswers,
-                CreatedAt = updatedSession.CreatedAt,
-                StartedAt = updatedSession.StartedAt,
-                CompletedAt = updatedSession.CompletedAt
+                SessionId = session.Id,
+                FinalScore = session.TotalScore,
+                QuestionsAnswered = session.QuestionsAnswered,
+                CorrectAnswers = session.CorrectAnswers,
+                Accuracy = accuracy,
+                StreaksCompleted = session.StreaksCompleted
             };
 
-            return Results.Ok(ApiResponse<SessionResponse>.Ok(response));
+            logger.LogInformation("Session {SessionId} ended with score {Score}, {Correct}/{Total} correct", 
+                sessionId, session.TotalScore, session.CorrectAnswers, session.QuestionsAnswered);
+
+            return Results.Ok(ApiResponse<EndSessionResponse>.Ok(response));
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error completing session {SessionId}", sessionId);
-            return Results.StatusCode(500);
-        }
-    }
-
-    private static async Task<IResult> GetTopScores(
-        int count,
-        bool daily,
-        IGameSessionRepository sessionRepository,
-        ILogger<Program> logger)
-    {
-        try
-        {
-            DateTime? since = daily ? DateTime.UtcNow.Date : null;
-            var sessions = await sessionRepository.GetTopScoresAsync(count, since);
-
-            var response = sessions.Select(s => new SessionResponse
-            {
-                SessionId = s.Id,
-                UserEmail = s.UserEmail,
-                DrawSeed = s.DrawSeed,
-                Status = s.Status,
-                TotalScore = s.TotalScore,
-                MaxStreak = s.MaxStreak,
-                CorrectAnswers = s.CorrectAnswers,
-                IncorrectAnswers = s.IncorrectAnswers,
-                CreatedAt = s.CreatedAt,
-                StartedAt = s.StartedAt,
-                CompletedAt = s.CompletedAt
-            }).ToList();
-
-            return Results.Ok(ApiResponse<List<SessionResponse>>.Ok(response));
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error retrieving top scores");
+            logger.LogError(ex, "Error ending session {SessionId}", sessionId);
             return Results.StatusCode(500);
         }
     }

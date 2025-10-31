@@ -8,10 +8,16 @@ namespace IQChallenge.Api.Models;
 public class QuestionDraw
 {
     /// <summary>
-    /// Draw seed value (used as partition key and ID)
+    /// Session ID (used as partition key and ID)
     /// </summary>
     [JsonPropertyName("id")]
-    public string Id { get; set; } = null!; // Will be set from seed
+    public string Id { get; set; } = null!; // Will be set from sessionId
+
+    /// <summary>
+    /// User ID who owns this draw
+    /// </summary>
+    [JsonPropertyName("userId")]
+    public required string UserId { get; set; }
 
     /// <summary>
     /// The seed value used for randomization
@@ -66,4 +72,10 @@ public class DrawQuestion
     /// </summary>
     [JsonPropertyName("category")]
     public string? Category { get; set; }
+
+    /// <summary>
+    /// Additional metadata about the question
+    /// </summary>
+    [JsonPropertyName("metadata")]
+    public Dictionary<string, string>? Metadata { get; set; }
 }

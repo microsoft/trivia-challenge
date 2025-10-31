@@ -150,6 +150,7 @@ builder.Services.AddSingleton<CosmosDbService>(serviceProvider =>
         settings.QuestionsContainerName,
         settings.QuestionDrawsContainerName,
         settings.GameSessionsContainerName,
+        settings.GameSessionAnswersContainerName,
         logger);
 });
 
@@ -158,6 +159,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
 builder.Services.AddScoped<IQuestionDrawRepository, QuestionDrawRepository>();
 builder.Services.AddScoped<IGameSessionRepository, GameSessionRepository>();
+builder.Services.AddScoped<IGameSessionAnswerRepository, GameSessionAnswerRepository>();
 
 // Add background service for database initialization
 builder.Services.AddHostedService<DatabaseInitializationService>();

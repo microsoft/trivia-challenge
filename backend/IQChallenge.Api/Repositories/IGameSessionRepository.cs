@@ -8,14 +8,14 @@ namespace IQChallenge.Api.Repositories;
 public interface IGameSessionRepository
 {
     /// <summary>
-    /// Gets a session by ID
+    /// Gets a session by ID (userId parameter kept for compatibility but not used)
     /// </summary>
-    Task<GameSession?> GetByIdAsync(string sessionId);
+    Task<GameSession?> GetByIdAsync(string sessionId, string? userId);
 
     /// <summary>
-    /// Gets all sessions for a user by email
+    /// Gets all sessions for a user by userId
     /// </summary>
-    Task<List<GameSession>> GetByUserEmailAsync(string userEmail);
+    Task<List<GameSession>> GetByUserIdAsync(string userId);
 
     /// <summary>
     /// Creates a new session

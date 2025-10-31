@@ -5,8 +5,8 @@
 ### Core Game Infrastructure
 - [x] Create .NET 10 Minimal API with user session management and question serving endpoints
 - [x] Set up React + TypeScript + Tailwind with Kahoot/Duolingo-inspired design
-- [ ] Implement randomized question loading from JSON file (no difficulty filtering)
-- [ ] Design Cosmos DB collections for users, sessions, questions, and scores
+- [x] Implement randomized question loading from JSON file (no difficulty filtering)
+- [x] Design Cosmos DB collections for users, sessions, questions, and scores
 
 ### Game Mechanics
 - [ ] Implement 1-minute base timer with 20-second streak bonuses (up to 2 minutes total)

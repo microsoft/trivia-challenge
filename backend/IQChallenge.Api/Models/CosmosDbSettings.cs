@@ -55,6 +55,13 @@ public class CosmosDbSettings
     public required string GameSessionsContainerName { get; set; }
 
     /// <summary>
+    /// Name of the GameSessionAnswers container
+    /// </summary>
+    [Required]
+    [MinLength(1)]
+    public required string GameSessionAnswersContainerName { get; set; }
+
+    /// <summary>
     /// Maximum retry attempts on rate limited requests
     /// </summary>
     [Range(0, 10)]
