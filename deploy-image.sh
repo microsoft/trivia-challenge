@@ -15,7 +15,7 @@
 # Options:
 #   --resource-group, -g  Resource group name (default: rg-iqchallenge-bicep)
 #   --app-name, -a        App Service name (if not provided, will be discovered)
-#   --image-tag, -t       Image tag (default: latest)
+#   --image-tag, -t       Additional image tag to apply (default: latest)
 #   --no-cache            Build without Docker cache
 #   --help, -h            Show this help message
 #
@@ -40,7 +40,7 @@ NC='\033[0m' # No Color
 RESOURCE_GROUP="rg-iqchallenge-bicep"
 IMAGE_TAG="latest"
 APP_NAME=""
-NO_CACHE=""
+NO_CACHE=false
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -282,7 +282,7 @@ while [ $# -gt 0 ]; do
             shift 2
             ;;
         --no-cache)
-            NO_CACHE="--no-cache"
+            NO_CACHE=true
             shift
             ;;
         -*)
@@ -327,24 +327,65 @@ ACR_LOGIN_SERVER=$(az acr show --name "$ACR_NAME" --resource-group "$RESOURCE_GR
 
 log_success "ACR Login Server: $ACR_LOGIN_SERVER"
 
-# Build image name
-IMAGE_NAME="$ACR_LOGIN_SERVER/iqchallenge:$IMAGE_TAG"
+# Build image coordinates
+IMAGE_REPO="$ACR_LOGIN_SERVER/iqchallenge"
+
+log_info "Retrieving Git commit SHA..."
+if ! command -v git >/dev/null 2>&1; then
+    log_error "Git is required to determine the commit SHA for tagging"
+    exit 1
+fi
+
+GIT_SHA=$(git -C "$SCRIPT_DIR" rev-parse --short=12 HEAD 2>/dev/null || true)
+
+if [ -z "$GIT_SHA" ]; then
+    log_error "Unable to determine Git commit SHA. Ensure this script is run within a Git repository."
+    exit 1
+fi
+
+log_success "Git SHA: $GIT_SHA"
+
+TAGS_TO_PUSH=("latest" "$GIT_SHA")
+
+if [ "$IMAGE_TAG" != "latest" ] && [ "$IMAGE_TAG" != "$GIT_SHA" ]; then
+    TAGS_TO_PUSH+=("$IMAGE_TAG")
+fi
+
+log_info "Image repository: $IMAGE_REPO"
+log_info "Tags to apply: ${TAGS_TO_PUSH[*]}"
 
 # Step 1: Build Docker Image
 log_info "========================================"
 log_info "Step 1: Building Docker image..."
 log_info "========================================"
 echo ""
-log_info "Image: $IMAGE_NAME"
+log_info "Image repository: $IMAGE_REPO"
+log_info "Git SHA tag: $GIT_SHA"
+if [ "$IMAGE_TAG" != "latest" ] && [ "$IMAGE_TAG" != "$GIT_SHA" ]; then
+    log_info "Additional tag: $IMAGE_TAG"
+fi
+log_info "All tags: ${TAGS_TO_PUSH[*]}"
 log_info "Context: $SCRIPT_DIR"
 
-if [ -n "$NO_CACHE" ]; then
+if [ "$NO_CACHE" = true ]; then
     log_warning "Building without cache..."
 fi
 
 cd "$SCRIPT_DIR"
 
-docker build $NO_CACHE -t "$IMAGE_NAME" -f Dockerfile .
+BUILD_CMD=(docker build)
+
+if [ "$NO_CACHE" = true ]; then
+    BUILD_CMD+=("--no-cache")
+fi
+
+for tag in "${TAGS_TO_PUSH[@]}"; do
+    BUILD_CMD+=(-t "$IMAGE_REPO:$tag")
+done
+
+BUILD_CMD+=(-f Dockerfile .)
+
+"${BUILD_CMD[@]}"
 
 log_success "Docker image built successfully"
 echo ""
@@ -355,26 +396,29 @@ log_info "Step 2: Pushing image to ACR..."
 log_info "========================================"
 echo ""
 
-log_info "Pushing image: $IMAGE_NAME"
 log_info "(Already logged in from prerequisite check)"
 
-if ! docker push "$IMAGE_NAME"; then
-    log_error "Failed to push image to ACR"
-    echo ""
-    echo "This could be due to:"
-    echo "  1. Network connectivity issues"
-    echo "  2. ACR storage quota exceeded"
-    echo "  3. ACR service temporarily unavailable"
-    echo ""
-    echo "Try logging in again manually:"
-    echo "  az acr login --name $ACR_NAME"
-    echo ""
-    echo "Then retry the push:"
-    echo "  docker push $IMAGE_NAME"
-    exit 1
-fi
+for tag in "${TAGS_TO_PUSH[@]}"; do
+    local_image="$IMAGE_REPO:$tag"
+    log_info "Pushing image: $local_image"
+    if ! docker push "$local_image"; then
+        log_error "Failed to push image tag '$tag' to ACR"
+        echo ""
+        echo "This could be due to:"
+        echo "  1. Network connectivity issues"
+        echo "  2. ACR storage quota exceeded"
+        echo "  3. ACR service temporarily unavailable"
+        echo ""
+        echo "Try logging in again manually:"
+        echo "  az acr login --name $ACR_NAME"
+        echo ""
+        echo "Then retry the push:"
+        echo "  docker push $local_image"
+        exit 1
+    fi
+done
 
-log_success "Image pushed successfully"
+log_success "All image tags pushed successfully"
 echo ""
 
 # Step 3: Restart Web App to Pull Latest Image
@@ -408,7 +452,7 @@ log_info "Updating container image configuration..."
 az webapp config container set \
     --name "$APP_NAME" \
     --resource-group "$RESOURCE_GROUP" \
-    --docker-custom-image-name "$IMAGE_NAME" \
+    --docker-custom-image-name "$IMAGE_REPO:$GIT_SHA" \
     --docker-registry-server-url "https://$ACR_LOGIN_SERVER"
 
 log_success "Container configuration updated"
@@ -431,7 +475,9 @@ log_info "========================================"
 log_success "Deployment Complete!"
 log_info "========================================"
 echo ""
-log_info "Image: $IMAGE_NAME"
+log_info "Image repository: $IMAGE_REPO"
+log_info "Tags pushed: ${TAGS_TO_PUSH[*]}"
+log_info "Web App image: $IMAGE_REPO:$GIT_SHA"
 log_info "App Service: $APP_NAME"
 log_info "URL: https://$APP_URL"
 echo ""
