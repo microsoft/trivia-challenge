@@ -173,7 +173,7 @@ export default function ResultsPage() {
 
   const handlePlayAgain = useCallback(() => {
     resetGame()
-    navigate('/instructions', { replace: true })
+    navigate('/', { replace: true })
   }, [navigate, resetGame])
 
   const handleCopySummary = useCallback(async () => {
