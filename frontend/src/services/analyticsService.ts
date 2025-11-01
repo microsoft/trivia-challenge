@@ -120,16 +120,24 @@ class AnalyticsService {
     this.isFlushing = true
     const batch = this.queue.splice(0, this.queue.length)
 
-    try {
-      for (const item of batch) {
-        await this.send(item)
-      }
-    } catch (error) {
-      console.error('Telemetry flush failed; re-queueing events', error)
-      this.queue.unshift(...batch)
-    } finally {
-      this.isFlushing = false
-    }
+    const sendPromises = batch.map(item =>
+      this.send(item).catch(error => {
+        console.error('Telemetry flush failed; re-queueing event', error)
+        this.queue.unshift(item)
+      })
+    )
+
+    void Promise.allSettled(sendPromises)
+      .catch(error => {
+        console.error('Telemetry flush encountered an unexpected error', error)
+      })
+      .finally(() => {
+        this.isFlushing = false
+
+        if (this.queue.length > 0) {
+          void this.flush()
+        }
+      })
   }
 
   private sanitize<T extends Record<string, unknown>>(data: T): T {
@@ -164,7 +172,7 @@ class AnalyticsService {
     }
   }
 
-  private async send(item: AnalyticsQueueItem): Promise<void> {
+  private send(item: AnalyticsQueueItem): Promise<void> {
     const payload: TelemetryEvent = {
       event: item.event,
       type: item.type,
@@ -174,12 +182,14 @@ class AnalyticsService {
       context: item.context,
     }
 
-    const response = await apiClient.post<ApiResponse<TelemetryTrackResponse>>(this.config.endpoint, payload)
-
-    if (!response.success) {
-      const message = response.errorMessage ?? 'Telemetry request rejected by API'
-      throw new Error(message)
-    }
+    return apiClient
+      .post<ApiResponse<TelemetryTrackResponse>>(this.config.endpoint, payload)
+      .then(response => {
+        if (!response.success) {
+          const message = response.errorMessage ?? 'Telemetry request rejected by API'
+          throw new Error(message)
+        }
+      })
   }
 
   private handleClick = (event: MouseEvent): void => {

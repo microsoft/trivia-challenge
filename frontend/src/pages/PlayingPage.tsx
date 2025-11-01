@@ -60,6 +60,7 @@ export default function PlayingPage() {
     correctAnswers,
     streaksCompleted,
   })
+  const isMountedRef = useRef(true)
 
   useEffect(() => {
     metricsRef.current = {
@@ -119,6 +120,13 @@ export default function PlayingPage() {
       if (wrongAnswerTimeoutRef.current) {
         window.clearTimeout(wrongAnswerTimeoutRef.current)
       }
+    }
+  }, [])
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
     }
   }, [])
 
@@ -269,101 +277,104 @@ export default function PlayingPage() {
     setIsSubmitting(false)
   }, [goToNextQuestion])
 
-  const handleAnswerSelect = useCallback(async (answerIndex: number) => {
+  const handleAnswerSelect = useCallback((answerIndex: number) => {
     if (!session || !currentQuestion || isSubmitting || timerState !== 'running') {
       return
     }
 
     const isCorrect = answerIndex === currentQuestion.correctAnswerIndex
     const timeElapsed = maxTime - timeLeft
+    const sessionId = session.sessionId
+    const questionId = currentQuestion.questionId
 
     setIsSubmitting(true)
     setError(null)
 
-    try {
-      const response = await sessionService.submitAnswer(session.sessionId, {
-        questionId: currentQuestion.questionId,
+    void sessionService
+      .submitAnswer(sessionId, {
+        questionId,
         answerIndex,
         timeElapsed,
         isCorrect,
       })
-
-      setScore(response.totalScore)
-
-      analytics.track(
-        'game.answerquestion',
-        {
-          sessionId: session.sessionId,
-          questionId: currentQuestion.questionId,
-          answerIndex,
-          isCorrect,
-          responseTime: timeElapsed,
-          totalScore: response.totalScore,
-        },
-        {
-          page: 'playing',
+      .then(response => {
+        if (isMountedRef.current) {
+          setScore(response.totalScore)
         }
-      )
 
-      const updatedQuestionsAnswered = metricsRef.current.questionsAnswered + 1
-      const updatedCorrectAnswers = isCorrect
-        ? metricsRef.current.correctAnswers + 1
-        : metricsRef.current.correctAnswers
-      const updatedStreak = isCorrect
-        ? currentStreak + 1
-        : Math.max(0, currentStreak - gameConfig.streak.decrementOnWrong)
-
-      let updatedStreaksCompleted = metricsRef.current.streaksCompleted
-
-      setQuestionsAnswered(updatedQuestionsAnswered)
-      setCorrectAnswers(updatedCorrectAnswers)
-      setCurrentStreak(updatedStreak)
-
-      if (isCorrect) {
-        const rawCompleted = Math.floor(updatedStreak / gameConfig.streak.threshold)
-        const cappedCompleted = Math.min(rawCompleted, gameConfig.timer.maxStreaks)
-
-        if (cappedCompleted > updatedStreaksCompleted) {
-          updatedStreaksCompleted = cappedCompleted
-          setStreaksCompleted(cappedCompleted)
-
-          if (rawCompleted <= gameConfig.timer.maxStreaks) {
-            addBonusTime(rawCompleted)
-            analytics.track(
-              'game.streakcompleted',
-              {
-                sessionId: session.sessionId,
-                streakLevel: cappedCompleted,
-                currentStreak: updatedStreak,
-              },
-              {
-                page: 'playing',
-              }
-            )
+        analytics.track(
+          'game.answerquestion',
+          {
+            sessionId,
+            questionId,
+            answerIndex,
+            isCorrect,
+            responseTime: timeElapsed,
+            totalScore: response.totalScore,
+            apiSuccess: true,
+          },
+          {
+            page: 'playing',
           }
-        }
+        )
+      })
+      .catch(err => {
+        const message = err instanceof Error ? err.message : 'Failed to submit answer. Please try again.'
+        console.error('Failed to submit answer', err)
 
-        metricsRef.current = {
-          questionsAnswered: updatedQuestionsAnswered,
-          correctAnswers: updatedCorrectAnswers,
-          streaksCompleted: updatedStreaksCompleted,
-        }
+        analytics.track(
+          'game.answerquestion',
+          {
+            sessionId,
+            questionId,
+            answerIndex,
+            isCorrect,
+            responseTime: timeElapsed,
+            apiSuccess: false,
+            error: message,
+          },
+          {
+            page: 'playing',
+          }
+        )
+      })
 
-        const nextIndex = currentQuestionIndex + 1
-        if (nextIndex >= questions.length) {
-          setIsSubmitting(false)
-          handleSessionEnd({
-            questionsAnswered: updatedQuestionsAnswered,
-            correctAnswers: updatedCorrectAnswers,
-            streaksCompleted: updatedStreaksCompleted,
-            finalTimeRemaining: timeLeft,
-          })
-          return
-        }
+    const updatedQuestionsAnswered = metricsRef.current.questionsAnswered + 1
+    const updatedCorrectAnswers = isCorrect
+      ? metricsRef.current.correctAnswers + 1
+      : metricsRef.current.correctAnswers
+    const updatedStreak = isCorrect
+      ? currentStreak + 1
+      : Math.max(0, currentStreak - gameConfig.streak.decrementOnWrong)
 
-        setCurrentQuestionIndex(nextIndex)
-        setIsSubmitting(false)
-        return
+    let updatedStreaksCompleted = metricsRef.current.streaksCompleted
+
+    setQuestionsAnswered(updatedQuestionsAnswered)
+    setCorrectAnswers(updatedCorrectAnswers)
+    setCurrentStreak(updatedStreak)
+
+    if (isCorrect) {
+      const rawCompleted = Math.floor(updatedStreak / gameConfig.streak.threshold)
+      const cappedCompleted = Math.min(rawCompleted, gameConfig.timer.maxStreaks)
+
+      if (cappedCompleted > updatedStreaksCompleted) {
+        updatedStreaksCompleted = cappedCompleted
+        setStreaksCompleted(cappedCompleted)
+
+        if (rawCompleted <= gameConfig.timer.maxStreaks) {
+          addBonusTime(rawCompleted)
+          analytics.track(
+            'game.streakcompleted',
+            {
+              sessionId,
+              streakLevel: cappedCompleted,
+              currentStreak: updatedStreak,
+            },
+            {
+              page: 'playing',
+            }
+          )
+        }
       }
 
       metricsRef.current = {
@@ -372,23 +383,41 @@ export default function PlayingPage() {
         streaksCompleted: updatedStreaksCompleted,
       }
 
-      setShowPauseMessage(true)
-      pauseTimer(gameConfig.timer.wrongAnswerPauseSeconds)
-
-      if (wrongAnswerTimeoutRef.current) {
-        window.clearTimeout(wrongAnswerTimeoutRef.current)
+      const nextIndex = currentQuestionIndex + 1
+      if (nextIndex >= questions.length) {
+        setIsSubmitting(false)
+        handleSessionEnd({
+          questionsAnswered: updatedQuestionsAnswered,
+          correctAnswers: updatedCorrectAnswers,
+          streaksCompleted: updatedStreaksCompleted,
+          finalTimeRemaining: timeLeft,
+        })
+        return
       }
 
-      wrongAnswerTimeoutRef.current = window.setTimeout(() => {
-        setShowPauseMessage(false)
-        resumeTimer()
-        handleQuestionProgress()
-      }, gameConfig.timer.wrongAnswerPauseSeconds * 1000)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to submit answer. Please try again.'
-      setError(message)
+      setCurrentQuestionIndex(nextIndex)
       setIsSubmitting(false)
+      return
     }
+
+    metricsRef.current = {
+      questionsAnswered: updatedQuestionsAnswered,
+      correctAnswers: updatedCorrectAnswers,
+      streaksCompleted: updatedStreaksCompleted,
+    }
+
+    setShowPauseMessage(true)
+    pauseTimer(gameConfig.timer.wrongAnswerPauseSeconds)
+
+    if (wrongAnswerTimeoutRef.current) {
+      window.clearTimeout(wrongAnswerTimeoutRef.current)
+    }
+
+    wrongAnswerTimeoutRef.current = window.setTimeout(() => {
+      setShowPauseMessage(false)
+      resumeTimer()
+      handleQuestionProgress()
+    }, gameConfig.timer.wrongAnswerPauseSeconds * 1000)
   }, [
     session,
     currentQuestion,
