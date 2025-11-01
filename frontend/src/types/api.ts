@@ -101,8 +101,17 @@ export interface LeaderboardEntry {
 }
 
 export interface TelemetryEvent {
-  type: 'click' | 'mousemove' | 'keypress' | 'game_event'
-  timestamp: number
-  sessionId: string
-  data: Record<string, unknown>
+  event: string
+  type: string
+  timestamp: string
+  userId?: string
+  properties?: Record<string, unknown>
+  context?: Record<string, unknown>
+}
+
+export interface TelemetryTrackResponse {
+  eventId: string
+  processedAtUtc: string
+  forwarded: boolean
+  message?: string
 }

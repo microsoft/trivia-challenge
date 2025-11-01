@@ -3,12 +3,14 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   type Dispatch,
   type ReactNode,
   type SetStateAction,
 } from 'react'
 import type { User, GameSession, SessionQuestion } from '../types/api'
 import { gameConfig } from '../config/gameConfig'
+import { analytics } from '../services/analyticsService'
 
 interface GameState {
   // Player data
@@ -84,17 +86,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   // Reset game state
   const resetGame = useCallback(() => {
+    setSession(null)
     setQuestions([])
     setCurrentQuestionIndex(0)
     setIsPlaying(false)
-  setTimeLeft(gameConfig.timer.initialSeconds)
-  setMaxTime(gameConfig.timer.initialSeconds)
+    setTimeLeft(gameConfig.timer.initialSeconds)
+    setMaxTime(gameConfig.timer.initialSeconds)
     setCurrentStreak(0)
     setStreaksCompleted(0)
     setScore(0)
     setQuestionsAnswered(0)
     setCorrectAnswers(0)
   }, [])
+
+  useEffect(() => {
+    analytics.identify(player)
+  }, [player])
+
+  useEffect(() => {
+    analytics.setSession(session?.sessionId ?? null)
+  }, [session])
 
   const value: GameState = {
     player,

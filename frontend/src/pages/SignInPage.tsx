@@ -1,10 +1,12 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useGame } from '../context/GameContext'
 import { userService } from '../services/userService'
+import { analytics } from '../services/analyticsService'
 
 export default function SignInPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { setPlayer } = useGame()
   const [formData, setFormData] = useState({
     name: '',
@@ -13,6 +15,10 @@ export default function SignInPage() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    analytics.track('pageview.home', { path: location.pathname })
+  }, [location.pathname])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,6 +45,18 @@ export default function SignInPage() {
         email,
         ...(phone ? { phoneNumber: phone } : {}),
       })
+
+      analytics.identify(user)
+      analytics.track(
+        'user.register',
+        {
+          userId: user.userId,
+          hasPhoneNumber: Boolean(phone),
+        },
+        {
+          page: 'signin',
+        }
+      )
 
       setPlayer(user)
       navigate('/instructions')

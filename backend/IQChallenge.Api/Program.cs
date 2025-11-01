@@ -1,5 +1,6 @@
 using Microsoft.Azure.Cosmos;
 using Azure.Identity;
+using Azure.Messaging.EventHubs.Producer;
 using Asp.Versioning;
 using IQChallenge.Api;
 using IQChallenge.Api.Models;
@@ -88,6 +89,39 @@ catch (ValidationException ex)
 }
 
 builder.Services.AddSingleton(cosmosDbSettings);
+
+// Configure telemetry / Event Hub integration
+var telemetrySettings = builder.Configuration.GetSection("Telemetry").Get<TelemetrySettings>() ?? new TelemetrySettings();
+
+try
+{
+    telemetrySettings.Validate();
+}
+catch (ValidationException ex)
+{
+    throw new InvalidOperationException($"Invalid Telemetry configuration: {ex.Message}", ex);
+}
+
+builder.Services.AddSingleton(telemetrySettings);
+
+if (telemetrySettings.Enabled)
+{
+    builder.Services.AddSingleton<EventHubProducerClient>(serviceProvider =>
+    {
+        var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("Telemetry forwarding enabled - initializing Event Hub producer client.");
+
+        return new EventHubProducerClient(
+            telemetrySettings.ConnectionString!,
+            telemetrySettings.EventHubName!);
+    });
+
+    builder.Services.AddSingleton<ITelemetryService, EventHubTelemetryService>();
+}
+else
+{
+    builder.Services.AddSingleton<ITelemetryService, NoOpTelemetryService>();
+}
 
 // Register Cosmos DB Client as singleton
 builder.Services.AddSingleton<CosmosClient>(serviceProvider =>
@@ -283,6 +317,7 @@ var versionedApi = app.NewVersionedApi();
 versionedApi.MapUserEndpoints();
 versionedApi.MapSessionEndpoints();
 versionedApi.MapQuestionEndpoints();
+versionedApi.MapTelemetryEndpoints();
 
 // Root endpoint - API info in development, SPA fallback in production
 if (app.Environment.IsDevelopment())

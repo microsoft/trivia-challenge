@@ -84,6 +84,9 @@ export const gameConfig = {
    * Telemetry Settings
    */
   telemetry: {
+    enabled: (import.meta.env.VITE_TELEMETRY_ENABLED ?? 'true') !== 'false',
+    endpoint: '/api/v1.0/telemetry/track',
+    logToConsole: import.meta.env.VITE_TELEMETRY_DEBUG === 'true',
     mouseMovementSampleRate: 10, // Max mouse position samples per second
     batchSize: 50, // Number of events to batch before sending
     flushInterval: 5000, // Flush telemetry every N milliseconds

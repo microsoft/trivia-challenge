@@ -17,6 +17,7 @@ import AnswerGrid from '../components/AnswerGrid'
 import StreakIndicator from '../components/StreakIndicator'
 import { gameConfig } from '../config/gameConfig'
 import { sessionService } from '../services/sessionService'
+import { analytics } from '../services/analyticsService'
 
 export default function PlayingPage() {
   const navigate = useNavigate()
@@ -163,6 +164,17 @@ export default function PlayingPage() {
         startCountdown()
       }
 
+      analytics.track(
+        'game.start',
+        {
+          sessionId: newSession.sessionId,
+          questionCount: fetchedQuestions.length,
+        },
+        {
+          page: 'playing',
+        }
+      )
+
       setLoading(false)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to start the game. Please try again.'
@@ -202,11 +214,27 @@ export default function PlayingPage() {
       finalTimeRemaining: overrides?.finalTimeRemaining ?? timeLeft,
     }
 
+    let apiSuccess = true
     try {
       await sessionService.end(session.sessionId, summary)
     } catch (err) {
+      apiSuccess = false
       console.error('Failed to end session', err)
     } finally {
+      analytics.track(
+        'game.ended',
+        {
+          sessionId: session.sessionId,
+          questionsAnswered: summary.questionsAnswered,
+          correctAnswers: summary.correctAnswers,
+          streaksCompleted: summary.streaksCompleted,
+          timeRemaining: summary.finalTimeRemaining,
+          apiSuccess,
+        },
+        {
+          page: 'results',
+        }
+      )
       setIsPlaying(false)
       navigate('/results', { replace: true })
     }
@@ -262,6 +290,21 @@ export default function PlayingPage() {
 
       setScore(response.totalScore)
 
+      analytics.track(
+        'game.answerquestion',
+        {
+          sessionId: session.sessionId,
+          questionId: currentQuestion.questionId,
+          answerIndex,
+          isCorrect,
+          responseTime: timeElapsed,
+          totalScore: response.totalScore,
+        },
+        {
+          page: 'playing',
+        }
+      )
+
       const updatedQuestionsAnswered = metricsRef.current.questionsAnswered + 1
       const updatedCorrectAnswers = isCorrect
         ? metricsRef.current.correctAnswers + 1
@@ -286,6 +329,17 @@ export default function PlayingPage() {
 
           if (rawCompleted <= gameConfig.timer.maxStreaks) {
             addBonusTime(rawCompleted)
+            analytics.track(
+              'game.streakcompleted',
+              {
+                sessionId: session.sessionId,
+                streakLevel: cappedCompleted,
+                currentStreak: updatedStreak,
+              },
+              {
+                page: 'playing',
+              }
+            )
           }
         }
 
