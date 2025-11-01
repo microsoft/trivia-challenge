@@ -53,6 +53,7 @@ class AnalyticsService {
   private userId?: string
   private currentSessionId?: string
   private lastPointerEventTimestamp = 0
+  private trackedEventCount = 0
 
   initialize(): void {
     if (this.initialized || !this.config.enabled || typeof window === 'undefined') {
@@ -102,6 +103,7 @@ class AnalyticsService {
     }
 
     this.queue.push(queueItem)
+    this.trackedEventCount += 1
 
     if (this.config.logToConsole) {
       console.log('[Telemetry]', queueItem)
@@ -281,6 +283,14 @@ class AnalyticsService {
     if (document.visibilityState === 'hidden') {
       void this.flush()
     }
+  }
+
+  getTrackedEventCount(): number {
+    return this.trackedEventCount
+  }
+
+  resetTrackedEventCount(): void {
+    this.trackedEventCount = 0
   }
 }
 

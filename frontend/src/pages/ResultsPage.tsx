@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import { useGame } from '../context/GameContext'
 import { gameConfig } from '../config/gameConfig'
+import { analytics } from '../services/analyticsService'
 
 interface StatDescriptor {
   label: string
@@ -50,10 +51,11 @@ export default function ResultsPage() {
     streaksCompleted,
     timeLeft,
     maxTime,
+    missedQuestions,
     resetGame,
   } = useGame()
 
-  const [copyStatus, setCopyStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [analyticsEventCount] = useState(() => analytics.getTrackedEventCount())
 
   useEffect(() => {
     if (!player) {
@@ -155,48 +157,20 @@ export default function ResultsPage() {
           value: session ? String(session.seed) : '—',
           helper: 'Ensures identical question order for analytics',
         },
+        {
+          label: 'Telemetry Events',
+          value: analyticsEventCount.toString(),
+          helper: 'Total analytics events emitted during this run',
+        },
       ]
     },
-    [session]
+    [session, analyticsEventCount]
   )
-
-  const summaryText = useMemo(() => {
-    const lines = [
-      'Microsoft Fabric IQ Challenge Results',
-      `Score: ${score} points`,
-      `Accuracy: ${accuracy}% (${correct}/${answered})`,
-      `Streaks completed: ${completedStreaksDisplay}`,
-      `Time remaining: ${formatDuration(timeRemaining)}`,
-    ]
-    return lines.join('\n')
-  }, [score, accuracy, correct, answered, completedStreaksDisplay, timeRemaining])
 
   const handlePlayAgain = useCallback(() => {
     resetGame()
     navigate('/', { replace: true })
   }, [navigate, resetGame])
-
-  const handleCopySummary = useCallback(async () => {
-    try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(summaryText)
-        setCopyStatus('success')
-        return
-      }
-      setCopyStatus('error')
-    } catch (err) {
-      console.error('Unable to copy summary', err)
-      setCopyStatus('error')
-    }
-  }, [summaryText])
-
-  useEffect(() => {
-    if (copyStatus === 'idle') {
-      return
-    }
-    const timeout = window.setTimeout(() => setCopyStatus('idle'), 2500)
-    return () => window.clearTimeout(timeout)
-  }, [copyStatus])
 
   if (!player) {
     return (
@@ -207,6 +181,10 @@ export default function ResultsPage() {
   }
 
   const playerFirstName = player.name.trim().split(/\s+/)[0] || player.name
+  const playerDisplayName = player.name.trim() || player.name
+  const sessionTag = session?.sessionId ? session.sessionId.slice(0, 8).toUpperCase() : '--------'
+  const failedQuestions = missedQuestions
+  const hasFailedQuestions = failedQuestions.length > 0
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#040406] text-white">
@@ -232,41 +210,41 @@ export default function ResultsPage() {
                   You mastered the Fabric IQ Challenge with confident answers and blazing reflexes. Review your highlights below and get ready to climb the leaderboard.
                 </p>
 
-                <div className="mt-10 flex flex-col items-center justify-center rounded-3xl border border-amber-200/30 bg-black/40 px-8 py-10 shadow-[0_18px_48px_rgba(0,0,0,0.45)]">
-                  <span className="text-sm uppercase tracking-[0.35em] text-white/65">Final Score</span>
-                  <p className="mt-4 text-6xl font-black text-amber-300 drop-shadow-[0_20px_35px_rgba(217,119,6,0.45)] md:text-7xl">
-                    {formattedScore}
-                  </p>
-                  <p className="mt-4 text-base font-medium text-white/70 md:text-lg">
-                    Accuracy {accuracy}% · {correct}/{answered} correct answers
-                  </p>
-                  <p className="mt-1 text-sm text-white/50">
-                    {completedStreaksDisplay} completed streak{completedStreaksDisplay === 1 ? '' : 's'} · {formatDuration(timeRemaining)} remaining
-                  </p>
+                <div className="mt-10 w-full max-w-2xl rounded-3xl border border-amber-200/30 bg-black/40 px-8 py-9 text-left shadow-[0_18px_48px_rgba(0,0,0,0.45)]">
+                  <div className="flex flex-col items-center gap-6 text-center md:flex-row md:items-center md:justify-between md:text-left">
+                    <div>
+                      <p className="text-[0.65rem] font-semibold uppercase tracking-[0.38em] text-amber-200/70">Player</p>
+                      <p className="mt-2 text-2xl font-semibold text-white md:text-3xl">{playerDisplayName}</p>
+                    </div>
+                    <div className="flex flex-col items-center rounded-2xl border border-amber-200/40 bg-amber-300/15 px-5 py-3 text-center shadow-[0_18px_42px_rgba(251,191,36,0.28)]">
+                      <p className="text-[0.55rem] font-semibold uppercase tracking-[0.4em] text-amber-100/80">Session</p>
+                      <p className="mt-1 font-mono text-lg font-semibold text-amber-100">{sessionTag}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 flex flex-col items-center text-center">
+                    <span className="text-sm uppercase tracking-[0.35em] text-white/65">Final Score</span>
+                    <p className="mt-4 text-6xl font-black text-amber-300 drop-shadow-[0_20px_35px_rgba(217,119,6,0.45)] md:text-7xl">
+                      {formattedScore}
+                    </p>
+                    <p className="mt-4 text-base font-medium text-white/70 md:text-lg">
+                      Accuracy {accuracy}% · {correct}/{answered} correct answers
+                    </p>
+                    <p className="mt-1 text-sm text-white/50">
+                      {completedStreaksDisplay} completed streak{completedStreaksDisplay === 1 ? '' : 's'} · {formatDuration(timeRemaining)} remaining
+                    </p>
+                  </div>
                 </div>
 
-                <div className="mt-8 flex flex-col items-center gap-4 md:flex-row">
+                <div className="mt-8 flex items-center justify-center">
                   <button
                     type="button"
                     onClick={handlePlayAgain}
-                    className="w-full max-w-xs rounded-2xl bg-linear-to-r from-amber-400 via-amber-300 to-amber-500 py-3.5 text-lg font-semibold text-[#2b1800] shadow-[0_18px_42px_rgba(251,191,36,0.45)] transition hover:brightness-[1.08] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200"
+                    className="w-full max-w-xs rounded-2xl bg-linear-to-r from-amber-400 via-amber-300 to-amber-500 px-4 py-3.5 text-lg font-semibold text-[#2b1800] shadow-[0_18px_42px_rgba(251,191,36,0.45)] transition hover:brightness-[1.08] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200"
                   >
                     Play Again
                   </button>
-
-                  <button
-                    type="button"
-                    onClick={handleCopySummary}
-                    className="w-full max-w-xs rounded-2xl border border-white/20 bg-white/5 py-3.5 text-lg font-semibold text-white shadow-[0_18px_42px_rgba(0,0,0,0.45)] transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40"
-                  >
-                    Copy Summary
-                  </button>
                 </div>
-
-                <p className="mt-2 text-sm text-white/55" role="status">
-                  {copyStatus === 'success' && 'Results copied to clipboard. Share your victory!'}
-                  {copyStatus === 'error' && 'Copy unavailable in this browser. Try capturing a screenshot.'}
-                </p>
               </div>
             </div>
           </section>
@@ -282,6 +260,43 @@ export default function ResultsPage() {
               caption="How you managed the dynamic timer and streak bonuses"
               stats={timeStats}
             />
+          </section>
+
+          <section className="mt-12">
+            <div className="rounded-3xl border border-white/10 bg-white/5 shadow-[0_18px_48px_rgba(0,0,0,0.45)]">
+              <header className="border-b border-white/10 px-7 py-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/60">Missed Questions</p>
+                <p className="mt-2 text-sm text-white/45">Review the prompts that tripped you up and study their correct answers.</p>
+              </header>
+              {hasFailedQuestions ? (
+                <ul className="divide-y divide-white/8">
+                  {failedQuestions.map((question) => {
+                    const correctChoice = question.choices[question.correctAnswerIndex] ?? 'Unavailable'
+                    const selectedChoice = question.choices[question.selectedAnswerIndex] ?? 'No answer recorded'
+                    return (
+                      <li key={question.questionId} className="px-7 py-6">
+                        <p className="text-sm font-semibold text-white md:text-base">{question.questionText}</p>
+                        <p className="mt-3 text-xs uppercase tracking-[0.3em] text-white/40">{question.category}</p>
+                        <div className="mt-4 space-y-1 text-sm">
+                          <p className="text-white/65">
+                            <span className="text-white/45">Correct Answer:</span>{' '}
+                            <span className="font-medium text-emerald-300">{correctChoice}</span>
+                          </p>
+                          <p className="text-white/65">
+                            <span className="text-white/45">Your Answer:</span>{' '}
+                            <span className="font-medium text-rose-300">{selectedChoice}</span>
+                          </p>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              ) : (
+                <div className="px-7 py-8 text-center text-sm text-white/60">
+                  Flawless victory — no missed questions this time. Keep the streak alive!
+                </div>
+              )}
+            </div>
           </section>
 
           <section className="mt-12">

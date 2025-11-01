@@ -12,6 +12,15 @@ import type { User, GameSession, SessionQuestion } from '../types/api'
 import { gameConfig } from '../config/gameConfig'
 import { analytics } from '../services/analyticsService'
 
+interface MissedQuestion {
+  questionId: string
+  questionText: string
+  category: string
+  choices: string[]
+  correctAnswerIndex: number
+  selectedAnswerIndex: number
+}
+
 interface GameState {
   // Player data
   player: User | null
@@ -51,6 +60,10 @@ interface GameState {
   correctAnswers: number
   setCorrectAnswers: Dispatch<SetStateAction<number>>
 
+  // Missed questions
+  missedQuestions: MissedQuestion[]
+  setMissedQuestions: Dispatch<SetStateAction<MissedQuestion[]>>
+
   // Reset game state
   resetGame: () => void
 }
@@ -83,6 +96,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [score, setScore] = useState(0)
   const [questionsAnswered, setQuestionsAnswered] = useState(0)
   const [correctAnswers, setCorrectAnswers] = useState(0)
+  const [missedQuestions, setMissedQuestions] = useState<MissedQuestion[]>([])
 
   // Reset game state
   const resetGame = useCallback(() => {
@@ -97,6 +111,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setScore(0)
     setQuestionsAnswered(0)
     setCorrectAnswers(0)
+    setMissedQuestions([])
+    analytics.resetTrackedEventCount()
   }, [])
 
   useEffect(() => {
@@ -132,6 +148,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setQuestionsAnswered,
     correctAnswers,
     setCorrectAnswers,
+    missedQuestions,
+    setMissedQuestions,
     resetGame,
   }
 

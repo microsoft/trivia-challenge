@@ -39,8 +39,9 @@ export default function PlayingPage() {
     setScore,
     questionsAnswered,
     setQuestionsAnswered,
-    correctAnswers,
-    setCorrectAnswers,
+  correctAnswers,
+  setCorrectAnswers,
+  setMissedQuestions,
   } = useGame()
 
   const [loading, setLoading] = useState(true)
@@ -168,6 +169,7 @@ export default function PlayingPage() {
       setScore(0)
       setCurrentStreak(0)
       setStreaksCompleted(0)
+      setMissedQuestions([])
       setShowPauseMessage(false)
       setIsSubmitting(false)
       metricsRef.current = {
@@ -182,6 +184,8 @@ export default function PlayingPage() {
         countdownStartedRef.current = true
         startCountdown()
       }
+
+      analytics.resetTrackedEventCount()
 
       analytics.track(
         'game.start',
@@ -200,7 +204,7 @@ export default function PlayingPage() {
       setError(message)
       setLoading(false)
     }
-  }, [player, setSession, setQuestions, setCurrentQuestionIndex, setQuestionsAnswered, setCorrectAnswers, setScore, setCurrentStreak, setStreaksCompleted, setIsPlaying, startCountdown])
+  }, [player, setSession, setQuestions, setCurrentQuestionIndex, setQuestionsAnswered, setCorrectAnswers, setScore, setCurrentStreak, setStreaksCompleted, setIsPlaying, setMissedQuestions, startCountdown])
 
   useEffect(() => {
     if (!player) {
@@ -424,6 +428,24 @@ export default function PlayingPage() {
       streaksCompleted: updatedStreaksCompleted,
     }
 
+    setMissedQuestions(prev => {
+      const alreadyTracked = prev.some(item => item.questionId === currentQuestion.questionId)
+      if (alreadyTracked) {
+        return prev
+      }
+      return [
+        ...prev,
+        {
+          questionId: currentQuestion.questionId,
+          questionText: currentQuestion.questionText,
+          category: currentQuestion.category,
+          choices: currentQuestion.choices,
+          correctAnswerIndex: currentQuestion.correctAnswerIndex,
+          selectedAnswerIndex: answerIndex,
+        },
+      ]
+    })
+
     setPauseFeedback({
       selectedIndex: answerIndex,
       correctIndex: currentQuestion.correctAnswerIndex,
@@ -462,6 +484,7 @@ export default function PlayingPage() {
     resumeTimer,
     handleQuestionProgress,
     setCurrentQuestionIndex,
+    setMissedQuestions,
   ])
 
   useEffect(() => {
