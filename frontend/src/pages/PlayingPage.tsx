@@ -50,8 +50,14 @@ export default function PlayingPage() {
   const [showCountdown, setShowCountdown] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPauseMessage, setShowPauseMessage] = useState(false)
+  const [pauseFeedback, setPauseFeedback] = useState<{
+    selectedIndex: number
+    correctIndex: number
+  } | null>(null)
+  const [pauseProgress, setPauseProgress] = useState(0)
 
   const wrongAnswerTimeoutRef = useRef<number | null>(null)
+  const pauseAnimationFrameRef = useRef<number | null>(null)
   const sessionEndedRef = useRef(false)
   const countdownStartedRef = useRef(false)
   const onTimeUpRef = useRef<() => void>(() => {})
@@ -109,6 +115,11 @@ export default function PlayingPage() {
     const entries = Object.entries(gameConfig.keyboard.mappings)
     return new Map(entries.map(([key, index]) => [key.toUpperCase(), index]))
   }, [])
+
+  const pauseGradientId = useMemo(
+    () => `pause-progress-${Math.random().toString(36).slice(2, 8)}`,
+    []
+  )
 
   useEffect(() => {
     setTimeLeft(timeLeft)
@@ -273,6 +284,13 @@ export default function PlayingPage() {
       window.clearTimeout(wrongAnswerTimeoutRef.current)
       wrongAnswerTimeoutRef.current = null
     }
+    const animationFrameId = pauseAnimationFrameRef.current
+    if (animationFrameId) {
+      window.cancelAnimationFrame(animationFrameId)
+      pauseAnimationFrameRef.current = null
+    }
+    setPauseFeedback(null)
+    setPauseProgress(0)
     goToNextQuestion()
     setIsSubmitting(false)
   }, [goToNextQuestion])
@@ -406,6 +424,11 @@ export default function PlayingPage() {
       streaksCompleted: updatedStreaksCompleted,
     }
 
+    setPauseFeedback({
+      selectedIndex: answerIndex,
+      correctIndex: currentQuestion.correctAnswerIndex,
+    })
+    setPauseProgress(0)
     setShowPauseMessage(true)
     pauseTimer(gameConfig.timer.wrongAnswerPauseSeconds)
 
@@ -440,6 +463,46 @@ export default function PlayingPage() {
     handleQuestionProgress,
     setCurrentQuestionIndex,
   ])
+
+  useEffect(() => {
+    if (!showPauseMessage) {
+      const animationFrameId = pauseAnimationFrameRef.current
+      if (animationFrameId) {
+        window.cancelAnimationFrame(animationFrameId)
+        pauseAnimationFrameRef.current = null
+      }
+      setPauseProgress(0)
+      return
+    }
+
+    const durationMs = gameConfig.timer.wrongAnswerPauseSeconds * 1000
+    const start = performance.now()
+
+    const step = () => {
+      const elapsed = performance.now() - start
+      const nextProgress = Math.min(elapsed / durationMs, 1)
+
+      if (isMountedRef.current) {
+        setPauseProgress(nextProgress)
+      }
+
+      if (nextProgress < 1) {
+        pauseAnimationFrameRef.current = window.requestAnimationFrame(step)
+      } else {
+        pauseAnimationFrameRef.current = null
+      }
+    }
+
+    pauseAnimationFrameRef.current = window.requestAnimationFrame(step)
+
+    return () => {
+      const animationFrameId = pauseAnimationFrameRef.current
+      if (animationFrameId) {
+        window.cancelAnimationFrame(animationFrameId)
+        pauseAnimationFrameRef.current = null
+      }
+    }
+  }, [showPauseMessage])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -502,6 +565,10 @@ export default function PlayingPage() {
 
   const streakProgress = currentStreak % gameConfig.streak.threshold
   const completedStreaksDisplay = Math.min(streaksCompleted, gameConfig.timer.maxStreaks)
+  const pauseDurationSeconds = gameConfig.timer.wrongAnswerPauseSeconds
+  const pauseCircleRadius = 54
+  const pauseCircumference = 2 * Math.PI * pauseCircleRadius
+  const pauseSecondsRemaining = Math.max(0, Math.ceil((1 - pauseProgress) * pauseDurationSeconds))
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -535,14 +602,62 @@ export default function PlayingPage() {
               />
             </div>
 
-            {showPauseMessage && (
+            {showPauseMessage && pauseFeedback && (
               <div
-                className="mt-10 text-center"
+                className="mt-10 flex flex-col items-center gap-6"
                 role="status"
                 aria-live="assertive"
               >
-                <p className="text-2xl font-bold text-red-500">Wrong Answer!</p>
-                <p className="mt-4 text-lg text-white/70">Timer paused... Take a breath.</p>
+                <p className="text-2xl font-bold text-white">Let&apos;s review that one.</p>
+                <div className="grid w-full max-w-3xl gap-4 md:grid-cols-2">
+                  <div className="rounded-3xl bg-red-600/90 p-6 shadow-lg shadow-red-600/40">
+                    <p className="text-sm font-semibold uppercase tracking-wide text-white/70">Your answer</p>
+                    <p className="mt-3 text-xl font-semibold text-white">
+                      {currentQuestion.choices[pauseFeedback.selectedIndex] ?? '—'}
+                    </p>
+                  </div>
+                  <div className="rounded-3xl bg-emerald-600/90 p-6 shadow-lg shadow-emerald-600/40">
+                    <p className="text-sm font-semibold uppercase tracking-wide text-white/70">Correct answer</p>
+                    <p className="mt-3 text-xl font-semibold text-white">
+                      {currentQuestion.choices[pauseFeedback.correctIndex] ?? '—'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-white/80">
+                  <div className="relative h-14 w-14">
+                    <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120">
+                      <defs>
+                        <linearGradient id={pauseGradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#f97316" />
+                          <stop offset="100%" stopColor="#3b82f6" />
+                        </linearGradient>
+                      </defs>
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r={pauseCircleRadius}
+                        stroke="rgba(255,255,255,0.2)"
+                        strokeWidth="12"
+                        fill="none"
+                      />
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r={pauseCircleRadius}
+                        stroke={`url(#${pauseGradientId})`}
+                        strokeWidth="12"
+                        strokeLinecap="round"
+                        strokeDasharray={pauseCircumference}
+                        strokeDashoffset={(1 - pauseProgress) * pauseCircumference}
+                        fill="none"
+                      />
+                    </svg>
+                    <span className="absolute inset-0 flex items-center justify-center text-lg font-semibold text-white">
+                      {pauseSecondsRemaining}
+                    </span>
+                  </div>
+                  <p className="text-lg font-medium">Next question loading...</p>
+                </div>
               </div>
             )}
           </>
