@@ -4,6 +4,7 @@ import Header from '../components/Header'
 import { useGame } from '../context/GameContext'
 import { gameConfig } from '../config/gameConfig'
 import { analytics } from '../services/analyticsService'
+import QRCode from 'react-qr-code'
 
 interface StatDescriptor {
   label: string
@@ -39,6 +40,27 @@ function StatGroup({ title, stats, caption }: { title: string; stats: StatDescri
     </section>
   )
 }
+
+const QR_LINKS = [
+  {
+    id: 'leaderboard',
+    title: 'View the Leaderboard',
+    href: 'https://aka.ms/fabriciq/l',
+    description: 'See how your high score compares to other challengers.',
+  },
+  {
+    id: 'learn-fabric',
+    title: 'Learn More About Fabric',
+    href: 'https://aka.ms/fabriciq/f',
+    description: 'Discover tutorials, case studies, and product highlights.',
+  },
+  {
+    id: 'get-certified',
+    title: 'Get Certified',
+    href: 'https://aka.ms/fabriciq/c',
+    description: 'Take the next step with Fabric certifications and training.',
+  },
+] as const
 
 export default function ResultsPage() {
   const navigate = useNavigate()
@@ -249,6 +271,36 @@ export default function ResultsPage() {
             </div>
           </section>
 
+          <section className="mt-12">
+            <div className="rounded-3xl border border-white/10 bg-white/5 shadow-[0_18px_48px_rgba(0,0,0,0.45)]">
+              <header className="border-b border-white/10 px-7 py-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/60">Keep Exploring</p>
+                <p className="mt-2 text-sm text-white/45">Scan a code to keep your Fabric journey going after the challenge.</p>
+              </header>
+              <div className="grid gap-6 px-7 py-8 md:grid-cols-3">
+                {QR_LINKS.map((link) => (
+                  <a
+                    key={link.id}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex flex-col items-center justify-between rounded-2xl border border-white/10 bg-black/40 px-6 py-7 text-center transition hover:border-amber-200/70 hover:shadow-[0_18px_42px_rgba(251,191,36,0.35)]"
+                  >
+                    <div className="rounded-2xl bg-white/5 p-4 shadow-inner" role="img" aria-label={`${link.title} QR code`}>
+                      <QRCode value={link.href} size={148} bgColor="transparent" fgColor="#FCD34D" />
+                    </div>
+                    <div className="mt-6 flex flex-col gap-2">
+                      <p className="text-sm font-semibold text-white md:text-base">{link.title}</p>
+                      <p className="text-xs text-white/60">{link.description}</p>
+                      <span className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-200/80">Scan & Go</span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </section>
+
+
           <section className="mt-12 grid gap-7 lg:grid-cols-2">
             <StatGroup
               title="Performance Summary"
@@ -299,6 +351,7 @@ export default function ResultsPage() {
             </div>
           </section>
 
+          
           <section className="mt-12">
             <StatGroup
               title="Session Details"
