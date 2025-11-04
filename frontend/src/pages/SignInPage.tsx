@@ -51,6 +51,7 @@ export default function SignInPage() {
         'user.register',
         {
           userId: user.userId,
+          name: user.name,
           hasPhoneNumber: Boolean(phone),
         },
         {
