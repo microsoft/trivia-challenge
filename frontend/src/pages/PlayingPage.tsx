@@ -39,9 +39,9 @@ export default function PlayingPage() {
     setScore,
     questionsAnswered,
     setQuestionsAnswered,
-  correctAnswers,
-  setCorrectAnswers,
-  setMissedQuestions,
+    correctAnswers,
+    setCorrectAnswers,
+    setMissedQuestions,
   } = useGame()
 
   const [loading, setLoading] = useState(true)
@@ -554,7 +554,7 @@ export default function PlayingPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col">
-        <Header />
+        <Header userName={player?.name} />
         <div className="flex flex-1 items-center justify-center">
           <p className="text-lg text-white/70" role="status" aria-live="polite">
             Preparing your challenge...
@@ -567,7 +567,7 @@ export default function PlayingPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col">
-        <Header />
+        <Header userName={player?.name} />
         <div className="flex flex-1 flex-col items-center justify-center space-y-6 px-6 text-center">
           <p className="text-xl font-semibold text-red-400" role="alert">
             {error}
@@ -597,7 +597,7 @@ export default function PlayingPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Header />
+      <Header userName={player?.name} />
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8" aria-live="polite" aria-label="Time remaining">
@@ -619,72 +619,72 @@ export default function PlayingPage() {
             />
 
             <div className="mt-8">
-              <AnswerGrid
-                answers={currentQuestion.choices}
-                onAnswerSelect={handleAnswerSelect}
-                disabled={isSubmitting || timerState !== 'running'}
-                keyLabels={answerKeyLabels}
-              />
+              {showPauseMessage && pauseFeedback ? (
+                <div
+                  className="flex flex-col items-center gap-6"
+                  role="status"
+                  aria-live="assertive"
+                >
+                  <p className="text-2xl font-bold text-white">Let&apos;s review that one.</p>
+                  <div className="grid w-full max-w-3xl gap-4 md:grid-cols-2">
+                    <div className="rounded-3xl bg-red-600/90 p-6 shadow-lg shadow-red-600/40">
+                      <p className="text-sm font-semibold uppercase tracking-wide text-white/70">Your answer</p>
+                      <p className="mt-3 text-xl font-semibold text-white">
+                        {currentQuestion.choices[pauseFeedback.selectedIndex] ?? '—'}
+                      </p>
+                    </div>
+                    <div className="rounded-3xl bg-emerald-600/90 p-6 shadow-lg shadow-emerald-600/40">
+                      <p className="text-sm font-semibold uppercase tracking-wide text-white/70">Correct answer</p>
+                      <p className="mt-3 text-xl font-semibold text-white">
+                        {currentQuestion.choices[pauseFeedback.correctIndex] ?? '—'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 text-white/80">
+                    <div className="relative h-14 w-14">
+                      <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120">
+                        <defs>
+                          <linearGradient id={pauseGradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#f97316" />
+                            <stop offset="100%" stopColor="#3b82f6" />
+                          </linearGradient>
+                        </defs>
+                        <circle
+                          cx="60"
+                          cy="60"
+                          r={pauseCircleRadius}
+                          stroke="rgba(255,255,255,0.2)"
+                          strokeWidth="12"
+                          fill="none"
+                        />
+                        <circle
+                          cx="60"
+                          cy="60"
+                          r={pauseCircleRadius}
+                          stroke={`url(#${pauseGradientId})`}
+                          strokeWidth="12"
+                          strokeLinecap="round"
+                          strokeDasharray={pauseCircumference}
+                          strokeDashoffset={(1 - pauseProgress) * pauseCircumference}
+                          fill="none"
+                        />
+                      </svg>
+                      <span className="absolute inset-0 flex items-center justify-center text-lg font-semibold text-white">
+                        {pauseSecondsRemaining}
+                      </span>
+                    </div>
+                    <p className="text-lg font-medium">Next question loading...</p>
+                  </div>
+                </div>
+              ) : (
+                <AnswerGrid
+                  answers={currentQuestion.choices}
+                  onAnswerSelect={handleAnswerSelect}
+                  disabled={isSubmitting || timerState !== 'running'}
+                  keyLabels={answerKeyLabels}
+                />
+              )}
             </div>
-
-            {showPauseMessage && pauseFeedback && (
-              <div
-                className="mt-10 flex flex-col items-center gap-6"
-                role="status"
-                aria-live="assertive"
-              >
-                <p className="text-2xl font-bold text-white">Let&apos;s review that one.</p>
-                <div className="grid w-full max-w-3xl gap-4 md:grid-cols-2">
-                  <div className="rounded-3xl bg-red-600/90 p-6 shadow-lg shadow-red-600/40">
-                    <p className="text-sm font-semibold uppercase tracking-wide text-white/70">Your answer</p>
-                    <p className="mt-3 text-xl font-semibold text-white">
-                      {currentQuestion.choices[pauseFeedback.selectedIndex] ?? '—'}
-                    </p>
-                  </div>
-                  <div className="rounded-3xl bg-emerald-600/90 p-6 shadow-lg shadow-emerald-600/40">
-                    <p className="text-sm font-semibold uppercase tracking-wide text-white/70">Correct answer</p>
-                    <p className="mt-3 text-xl font-semibold text-white">
-                      {currentQuestion.choices[pauseFeedback.correctIndex] ?? '—'}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 text-white/80">
-                  <div className="relative h-14 w-14">
-                    <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120">
-                      <defs>
-                        <linearGradient id={pauseGradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#f97316" />
-                          <stop offset="100%" stopColor="#3b82f6" />
-                        </linearGradient>
-                      </defs>
-                      <circle
-                        cx="60"
-                        cy="60"
-                        r={pauseCircleRadius}
-                        stroke="rgba(255,255,255,0.2)"
-                        strokeWidth="12"
-                        fill="none"
-                      />
-                      <circle
-                        cx="60"
-                        cy="60"
-                        r={pauseCircleRadius}
-                        stroke={`url(#${pauseGradientId})`}
-                        strokeWidth="12"
-                        strokeLinecap="round"
-                        strokeDasharray={pauseCircumference}
-                        strokeDashoffset={(1 - pauseProgress) * pauseCircumference}
-                        fill="none"
-                      />
-                    </svg>
-                    <span className="absolute inset-0 flex items-center justify-center text-lg font-semibold text-white">
-                      {pauseSecondsRemaining}
-                    </span>
-                  </div>
-                  <p className="text-lg font-medium">Next question loading...</p>
-                </div>
-              </div>
-            )}
           </>
         )}
       </div>
