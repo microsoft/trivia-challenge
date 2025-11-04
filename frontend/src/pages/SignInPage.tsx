@@ -148,10 +148,10 @@ export default function SignInPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="phone" className="block text-sm font-semibold uppercase tracking-[0.2em] text-white/60">
-                    Phone (optional)
+                    Phone *
                   </label>
                   <input
-                    type="tel"
+                    type="tel"d
                     id="phone"
                     name="phone"
                     value={formData.phone}
