@@ -148,7 +148,7 @@ export default function ResultsPage() {
         {
           label: 'Time Remaining',
           value: formatDuration(timeRemaining),
-          helper: 'Carry over this momentum to your next run!',
+          helper: 'Time left on your timer at the end of the session',
         },
         {
           label: 'Fastest Pace',
