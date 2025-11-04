@@ -151,7 +151,7 @@ export default function SignInPage() {
                     Phone *
                   </label>
                   <input
-                    type="tel"d
+                    type="tel"
                     id="phone"
                     name="phone"
                     value={formData.phone}
