@@ -1,6 +1,6 @@
 # Infrastructure Deployment
 
-This directory contains the Bicep infrastructure-as-code templates for the IQ Challenge application.
+This directory contains the Bicep infrastructure-as-code templates for the Trivia Challenge application.
 
 ## Overview
 

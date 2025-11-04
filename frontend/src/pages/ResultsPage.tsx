@@ -229,7 +229,7 @@ export default function ResultsPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.4em] text-amber-200/70">Quest Complete</p>
                 <h1 className="mt-6 text-3xl font-semibold text-white md:text-4xl">Outstanding work, {playerFirstName}!</h1>
                 <p className="mt-3 max-w-2xl text-sm text-white/70 md:text-base">
-                  You mastered the Fabric IQ Challenge with confident answers and blazing reflexes. Review your highlights below and get ready to climb the leaderboard.
+                  You mastered the Fabric Trivia Challenge with confident answers and blazing reflexes. Review your highlights below and get ready to climb the leaderboard.
                 </p>
 
                 <div className="mt-10 w-full max-w-2xl rounded-3xl border border-amber-200/30 bg-black/40 px-8 py-9 text-left shadow-[0_18px_48px_rgba(0,0,0,0.45)]">

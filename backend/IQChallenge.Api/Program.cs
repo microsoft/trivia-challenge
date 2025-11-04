@@ -38,12 +38,12 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new()
     {
-        Title = "IQ Challenge API",
+        Title = "Trivia Challenge API",
         Version = "v1.0",
-        Description = "API for Microsoft Fabric IQ Challenge quiz game",
+        Description = "API for Microsoft Fabric Trivia Challenge quiz game",
         Contact = new()
         {
-            Name = "Microsoft Fabric IQ Challenge",
+            Name = "Microsoft Fabric Trivia Challenge",
             Url = new Uri("https://github.com/microsoft/iq-challenge")
         },
         License = new()
@@ -269,7 +269,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "IQ Challenge API v1.0");
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Fabric Trivia Challenge API v1.0");
     });
 }
 else
@@ -322,7 +322,7 @@ versionedApi.MapTelemetryEndpoints();
 // Root endpoint - API info in development, SPA fallback in production
 if (app.Environment.IsDevelopment())
 {
-    app.MapGet("/", () => "IQ Challenge API is running. Visit /swagger for API documentation.")
+    app.MapGet("/", () => "Fabric Trivia Challenge API is running. Visit /swagger for API documentation.")
         .ExcludeFromDescription();
 }
 else

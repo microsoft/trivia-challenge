@@ -1,4 +1,6 @@
-# Microsoft Fabric IQ Challenge
+# Microsoft Fabric Trivia Challenge
+
+> Note: the game was originally named "IQ Challenge" during development, but has been rebranded to "Microsoft Fabric Trivia Challenge" for clarity and marketing purposes.
 
 A Kahoot/Duolingo-inspired quiz web app where players have a base 1 minute to answer randomized Microsoft Fabric questions, with the ability to earn up to 1 additional minute through completed streaks (maximum 2 minutes total). Difficulty is controlled by time pressure and number of answer choices. Features forgiving streak system and comprehensive telemetry including all user interactions.
 
