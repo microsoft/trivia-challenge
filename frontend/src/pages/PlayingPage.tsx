@@ -315,7 +315,10 @@ export default function PlayingPage() {
 
     const isCorrect = answerIndex === currentQuestion.correctAnswerIndex
     // Calculate response time as the time taken to answer this specific question
-    const responseTimeMs = performance.now() - questionDisplayTimeRef.current
+    // Use a guard to ensure we have a valid display time (> 0)
+    const responseTimeMs = questionDisplayTimeRef.current > 0 
+      ? performance.now() - questionDisplayTimeRef.current 
+      : 0
     const timeElapsed = responseTimeMs / 1000 // Convert to seconds
     const sessionId = session.sessionId
     const questionId = currentQuestion.questionId
