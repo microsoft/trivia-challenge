@@ -329,6 +329,7 @@ export default function PlayingPage() {
           {
             sessionId,
             questionId,
+            category: currentQuestion.category,
             answerIndex,
             isCorrect,
             responseTime: timeElapsed,
@@ -349,6 +350,7 @@ export default function PlayingPage() {
           {
             sessionId,
             questionId,
+            category: currentQuestion.category,
             answerIndex,
             isCorrect,
             responseTime: timeElapsed,
