@@ -196,8 +196,10 @@ public static class SessionEndpoints
                     };
                 }
 
-                const double maxTime = 120.0;
-                double timeRemainingRatio = Math.Max(0, (maxTime - request.TimeElapsed) / maxTime);
+                // Maximum expected time to answer a single question (in seconds)
+                // This is used for time-based scoring bonus
+                const double maxResponseTime = 30.0;
+                double timeRemainingRatio = Math.Max(0, (maxResponseTime - request.TimeElapsed) / maxResponseTime);
                 pointsEarned = (int)Math.Round(basePoints * (1 + timeRemainingRatio));
             }
 
