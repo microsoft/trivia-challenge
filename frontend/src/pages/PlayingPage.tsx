@@ -68,6 +68,7 @@ export default function PlayingPage() {
     streaksCompleted,
   })
   const isMountedRef = useRef(true)
+  const questionDisplayTimeRef = useRef<number>(0)
 
   useEffect(() => {
     metricsRef.current = {
@@ -126,6 +127,13 @@ export default function PlayingPage() {
     setTimeLeft(timeLeft)
     setMaxTime(maxTime)
   }, [timeLeft, maxTime, setTimeLeft, setMaxTime])
+
+  // Track when the current question is displayed to the user
+  useEffect(() => {
+    if (timerState === 'running' && currentQuestion) {
+      questionDisplayTimeRef.current = performance.now()
+    }
+  }, [timerState, currentQuestionIndex, currentQuestion])
 
   useEffect(() => {
     return () => {
@@ -281,6 +289,7 @@ export default function PlayingPage() {
       return
     }
     setCurrentQuestionIndex(nextIndex)
+    // The questionDisplayTimeRef will be updated by the effect when the new question renders
   }, [currentQuestionIndex, questions.length, handleSessionEnd, setCurrentQuestionIndex, timeLeft])
 
   const handleQuestionProgress = useCallback(() => {
@@ -305,7 +314,9 @@ export default function PlayingPage() {
     }
 
     const isCorrect = answerIndex === currentQuestion.correctAnswerIndex
-    const timeElapsed = maxTime - timeLeft
+    // Calculate response time as the time taken to answer this specific question
+    const responseTimeMs = performance.now() - questionDisplayTimeRef.current
+    const timeElapsed = responseTimeMs / 1000 // Convert to seconds
     const sessionId = session.sessionId
     const questionId = currentQuestion.questionId
 
@@ -470,7 +481,6 @@ export default function PlayingPage() {
     currentQuestion,
     isSubmitting,
     timerState,
-    maxTime,
     timeLeft,
     setScore,
     currentStreak,
