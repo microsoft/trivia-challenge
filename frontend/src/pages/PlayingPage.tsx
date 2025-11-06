@@ -128,12 +128,12 @@ export default function PlayingPage() {
     setMaxTime(maxTime)
   }, [timeLeft, maxTime, setTimeLeft, setMaxTime])
 
-  // Track when the current question is displayed to the user
+  // Record precise timing when a new question is displayed
   useEffect(() => {
-    if (timerState === 'running' && currentQuestion) {
+    if (currentQuestion) {
       questionDisplayTimeRef.current = performance.now()
     }
-  }, [timerState, currentQuestionIndex, currentQuestion])
+  }, [currentQuestionIndex, currentQuestion])
 
   useEffect(() => {
     return () => {
@@ -314,12 +314,10 @@ export default function PlayingPage() {
     }
 
     const isCorrect = answerIndex === currentQuestion.correctAnswerIndex
-    // Calculate response time as the time taken to answer this specific question
-    // Use a guard to ensure we have a valid display time (> 0)
-    const responseTimeMs = questionDisplayTimeRef.current > 0 
-      ? performance.now() - questionDisplayTimeRef.current 
-      : 0
-    const timeElapsed = responseTimeMs / 1000 // Convert to seconds
+    // Record precise timing when answer is submitted and compute difference in milliseconds
+    const answerTime = performance.now()
+    const responseTimeMs = answerTime - questionDisplayTimeRef.current
+    const timeElapsed = responseTimeMs / 1000 // Convert to seconds for backend API
     const sessionId = session.sessionId
     const questionId = currentQuestion.questionId
 
@@ -345,7 +343,7 @@ export default function PlayingPage() {
             questionId,
             answerIndex,
             isCorrect,
-            responseTime: timeElapsed,
+            responseTime: responseTimeMs,
             totalScore: response.totalScore,
             apiSuccess: true,
           },
@@ -365,7 +363,7 @@ export default function PlayingPage() {
             questionId,
             answerIndex,
             isCorrect,
-            responseTime: timeElapsed,
+            responseTime: responseTimeMs,
             apiSuccess: false,
             error: message,
           },
