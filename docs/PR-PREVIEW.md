@@ -32,6 +32,8 @@ The following secrets must be configured in the GitHub repository:
 - `AZURE_RESOURCE_GROUP` - Resource group for preview deployments
 - `AZURE_LOCATION` (optional) - Azure region for deployments (defaults to `eastus`)
 
+**→ See [PR-PREVIEW-SETUP.md](PR-PREVIEW-SETUP.md) for detailed setup instructions.**
+
 ### Setting Up Azure Credentials
 
 1. Create a service principal with contributor access:
