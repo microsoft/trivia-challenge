@@ -1,0 +1,148 @@
+# PR Preview Environment
+
+This feature allows you to quickly deploy and test pull requests in a live Azure environment.
+
+## How It Works
+
+### 🚀 Deploy a Preview Environment
+
+1. Open a pull request
+2. Comment `#deploy` on the PR
+3. The GitHub Action will:
+   - Add a 🚀 reaction to your comment
+   - Build Docker images with PR-specific tags
+   - Push images to Azure Container Registry
+   - Deploy to Azure Container Instances
+   - Comment back with the preview URL
+
+The preview environment includes:
+- The IQ Challenge application (from your PR branch)
+- Azure Cosmos DB Emulator (for data storage)
+
+### 🧹 Automatic Cleanup
+
+When the PR is closed (merged or not), the preview environment is automatically deleted to save resources.
+
+## Prerequisites
+
+The following secrets must be configured in the GitHub repository:
+
+- `AZURE_CREDENTIALS` - Azure service principal credentials in JSON format
+- `ACR_NAME` - Name of the Azure Container Registry
+- `AZURE_RESOURCE_GROUP` - Resource group for preview deployments
+- `AZURE_LOCATION` (optional) - Azure region for deployments (defaults to `eastus`)
+
+### Setting Up Azure Credentials
+
+1. Create a service principal with contributor access:
+   ```bash
+   az ad sp create-for-rbac --name "iq-challenge-pr-previews" \
+     --role contributor \
+     --scopes /subscriptions/{subscription-id}/resourceGroups/{resource-group} \
+     --sdk-auth
+   ```
+
+2. Copy the JSON output and add it as the `AZURE_CREDENTIALS` secret in GitHub
+
+3. Ensure the service principal has:
+   - `AcrPush` role on the Azure Container Registry
+   - `Contributor` role on the resource group for creating container instances
+
+## Manual Deployment (GitHub-Agnostic)
+
+The deployment script can be run manually or from any CI/CD system:
+
+```bash
+./scripts/deploy-pr-preview.sh <acr-name> <pr-number> <git-sha>
+```
+
+Example:
+```bash
+./scripts/deploy-pr-preview.sh myacr 123 abc1234567890
+```
+
+This script:
+- Builds the Docker image
+- Tags it with `pr-{number}-{sha}` and `pr-{number}-latest`
+- Pushes to Azure Container Registry
+
+## Architecture
+
+```
+Pull Request
+    │
+    ├─ Comment: #deploy
+    │
+    └─ GitHub Action
+        │
+        ├─ Build Docker Image
+        │   └─ Tag: pr-{number}-{sha}
+        │
+        ├─ Push to ACR
+        │
+        └─ Deploy to Azure Container Instances (via YAML)
+            │
+            ├─ App Container (Your PR code)
+            │   └─ Port 80
+            │
+            └─ Cosmos DB Emulator
+                └─ Port 8081
+```
+
+The deployment uses an Azure Container Instances YAML file (`azure-container-instance.yml`) which defines a multi-container group similar to docker-compose but in ACI-native format. This allows deploying both the application and Cosmos DB emulator together.
+
+## Resource Naming
+
+All resources follow a consistent naming pattern:
+
+- **Container Group**: `iq-pr-{number}`
+- **DNS Label**: `iq-pr-{number}` (unique FQDN)
+- **Image Tags**: `pr-{number}-{sha}`, `pr-{number}-latest`
+
+## Costs and Limits
+
+- Each preview environment uses Azure Container Instances (pay-per-second billing)
+- Default resources: 2 CPU cores, 4 GB RAM
+- Preview environments are automatically cleaned up when PRs close
+- Consider setting Azure spending limits or quotas for preview deployments
+
+## Troubleshooting
+
+### Preview deployment fails
+
+1. Check that all required secrets are configured
+2. Verify Azure service principal has correct permissions
+3. Check Azure Container Registry quota and limits
+4. Review workflow logs for detailed error messages
+
+### Preview URL is not accessible
+
+1. Wait a few minutes - the Cosmos DB emulator takes time to initialize
+2. Check Azure Portal for container instance status
+3. Review container logs in Azure Portal
+
+### Manual cleanup required
+
+If automatic cleanup fails, manually delete the container group:
+
+```bash
+az container delete \
+  --resource-group {resource-group} \
+  --name iq-pr-{number} \
+  --yes
+```
+
+## Security Considerations
+
+- Preview environments use the Cosmos DB emulator (not production data)
+- CORS is configured to allow all origins (`*`) for preview testing
+- Each PR gets an isolated environment
+- Environments are temporary and automatically cleaned up
+- The Cosmos DB emulator uses well-known public test credentials (safe for ephemeral environments)
+
+## Limitations
+
+- Preview deployments use Azure Container Instances (not Azure Container Apps or Kubernetes)
+- No custom domain support (uses Azure-provided FQDN)
+- Limited to single-region deployment
+- Cosmos DB emulator limitations apply (no replication, limited throughput)

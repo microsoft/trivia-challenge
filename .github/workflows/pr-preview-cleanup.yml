@@ -1,0 +1,95 @@
+name: PR Preview - Cleanup
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  cleanup:
+    name: Delete PR Preview Environment
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Delete Azure Container Instance
+        env:
+          RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # Container group name
+          CONTAINER_GROUP_NAME="iq-pr-${PR_NUMBER}"
+          
+          echo "Checking if container group exists: $CONTAINER_GROUP_NAME"
+          
+          # Check if the container group exists
+          if az container show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$CONTAINER_GROUP_NAME" \
+            --output none 2>/dev/null; then
+            
+            echo "Deleting container group: $CONTAINER_GROUP_NAME"
+            az container delete \
+              --resource-group "$RESOURCE_GROUP" \
+              --name "$CONTAINER_GROUP_NAME" \
+              --yes
+            
+            echo "Container group deleted successfully"
+          else
+            echo "Container group does not exist, skipping deletion"
+          fi
+
+      - name: Comment on PR about cleanup
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const containerGroup = `iq-pr-${prNumber}`;
+            
+            const comment = `🧹 **PR Preview Environment Cleaned Up**
+            
+            The preview environment for this PR has been deleted.
+            
+            **Deleted Resources:**
+            - Container Group: \`${containerGroup}\``;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: comment
+            });
+
+      - name: Handle cleanup failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const containerGroup = `iq-pr-${prNumber}`;
+            
+            const comment = `⚠️ **PR Preview Cleanup Warning**
+            
+            Failed to automatically delete the preview environment. 
+            
+            **Manual cleanup may be required:**
+            - Container Group: \`${containerGroup}\`
+            
+            Please check the [workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: comment
+            });
