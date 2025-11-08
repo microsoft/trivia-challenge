@@ -11,7 +11,7 @@
 ### Game Mechanics
 - [x] Implement 1-minute base timer with 15-second streak bonuses (up to 2 minutes total, max 4 streaks)
 - [ ] Build forgiving streak system (wrong answer steps back one level)
-- [ ] Implement difficulty-weighted scoring with proportional time bonuses
+- [x] Implement simplified scoring (10 points per correct answer)
 - [ ] Create time pressure and varying answer choice counts for difficulty
 
 ### User Interface & Experience
@@ -44,8 +44,8 @@
 - Maximum total time: 2 minutes (120 seconds)
 
 ### Scoring Algorithm
-- Primary: Points weighted by difficulty level
-- Secondary: Time bonuses (proportional to difficulty points)
+- Simplified: 10 points per correct answer
+- No difficulty or time bonuses
 - Principle: More correct answers always beats faster completion
 
 ### Telemetry Requirements

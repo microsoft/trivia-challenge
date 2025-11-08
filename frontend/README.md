@@ -124,7 +124,7 @@ Modify `src/config/gameConfig.ts` to adjust:
 
 - Timer settings (base time, bonuses, countdown)
 - Streak system (threshold, decrement on wrong answer)
-- Scoring (difficulty points, time bonus multiplier)
+- Scoring (10 points per correct answer)
 - Keyboard mappings
 - API endpoints
 - Telemetry configuration
@@ -159,10 +159,8 @@ Modify `src/config/gameConfig.ts` to adjust:
 
 ### Scoring
 
-- **Easy**: 10 points base
-- **Medium**: 20 points base
-- **Hard**: 30 points base
-- **Time Bonus**: Up to 50% of base points for fast answers
+- **Simplified**: 10 points per correct answer
+- **No time or difficulty bonuses**
 
 ## 🔧 Development Tips
 

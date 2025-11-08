@@ -8,7 +8,7 @@ Implement a complete game session management system that creates randomized ques
 - **Draw all questions at session start** and return the complete set to frontend (including correct answers for instant feedback)
 - Save the question draw in Cosmos DB linked to the session
 - Track each player answer in Cosmos DB (userId, sessionId, questionId, answerIndex, timestamp)
-- **Frontend computes**: streak count, time remaining, time bonuses
+- **Frontend computes**: streak count, time remaining
 - **Backend computes**: points earned per question and final score
 - Support session resumption (player can continue if disconnected)
 - End session and finalize score when timer expires or player exits
@@ -95,18 +95,15 @@ Submit an answer and get points earned
   {
     "success": true,
     "data": {
-      "pointsEarned": 15,
-      "totalScore": 135
+      "pointsEarned": 10,
+      "totalScore": 80
     }
   }
   ```
 - **Backend Logic**:
   1. Validate session exists and is active
   2. Calculate points earned:
-     - Base points by difficulty (easy=10, medium=15, hard=20)
-     - Time bonus: proportional to time remaining
-     - Formula: `basePoints * (1 + timeRemainingRatio)`
-     - Example: If 50% time remaining, bonus = 50% of base points
+     - Simplified scoring: 10 points per correct answer
   3. Save answer to GameSessionAnswers container:
      - userId, sessionId, questionId, answerIndex, isCorrect, pointsEarned, timeElapsed, timestamp
   4. Update session total score
@@ -565,7 +562,7 @@ export const telemetryService = new TelemetryService()
   - [x] GET /sessions/{id}/questions - Return all questions with correct answers
   - [x] POST /sessions/{id}/answers - Submit answer and calculate points
   - [x] POST /sessions/{id}/end - Finalize session
-- [x] Implement point calculation algorithm (base points + time bonus)
+- [x] Implement simplified point calculation (10 points per correct answer)
 - [x] Add Cosmos DB containers for GameSessions, QuestionDraws, GameSessionAnswers
 - [ ] Test all backend endpoints with Swagger/Postman (requires Cosmos DB container recreation)
 
@@ -627,13 +624,11 @@ export const telemetryService = new TelemetryService()
 **Endpoints (SessionEndpoints.cs):**
 - ✅ `POST /api/v1.0/sessions/start` - Creates session, generates random seed, creates question draw
 - ✅ `GET /api/v1.0/sessions/{id}/questions` - Returns all questions with correct answers for offline gameplay
-- ✅ `POST /api/v1.0/sessions/{id}/answers` - Calculates points (base + time bonus) and tracks answers
+- ✅ `POST /api/v1.0/sessions/{id}/answers` - Calculates points (10 per correct answer) and tracks answers
 - ✅ `POST /api/v1.0/sessions/{id}/end` - Finalizes session with accuracy calculation
 
 **Point Calculation:**
-- Base points: easy=10, medium=15, hard=20
-- Time bonus: `basePoints * (1 + timeRemainingRatio)` where timeRemainingRatio = (maxTime - timeElapsed) / maxTime
-- Example: Medium question (15 pts) answered with 50% time remaining = 15 * (1 + 0.5) = 22 points
+- Simplified scoring: 10 points per correct answer
 
 **Cosmos DB Configuration:**
 - ✅ Containers configured: GameSessions (partition: /userId), GameSessionAnswers (partition: /userId), QuestionDraws (partition: /id)

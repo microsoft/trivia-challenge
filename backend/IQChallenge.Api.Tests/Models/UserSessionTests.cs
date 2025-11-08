@@ -98,13 +98,13 @@ public class UserSessionTests
             DisplayName = "Test"
         };
 
-        // Act
-        session.TotalScore += 10; // Easy question
-        session.TotalScore += 20; // Medium question
-        session.TotalScore += 30; // Hard question
+        // Act - Simplified scoring: 10 points per correct answer
+        session.TotalScore += 10; // Correct answer
+        session.TotalScore += 10; // Correct answer
+        session.TotalScore += 10; // Correct answer
 
         // Assert
-        Assert.Equal(60, session.TotalScore);
+        Assert.Equal(30, session.TotalScore);
     }
 
     [Fact]

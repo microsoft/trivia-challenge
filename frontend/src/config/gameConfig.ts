@@ -31,12 +31,13 @@ export const gameConfig = {
    * Scoring
    */
   scoring: {
+    pointsPerCorrectAnswer: 10, // Simplified: 10 points per correct answer
+    // Note: Difficulty levels below are for categorization only, not scoring
     difficulty: {
       easy: 10,
-      medium: 20,
-      hard: 30,
+      medium: 10,
+      hard: 10,
     },
-    timeBonusMultiplier: 0.5, // Time bonus as percentage of base points
   },
 
   /**
