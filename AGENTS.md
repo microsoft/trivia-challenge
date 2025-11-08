@@ -48,7 +48,7 @@ A Kahoot/Duolingo-inspired quiz web app where players have a base 1 minute to an
 - **Concurrency**: Support for 10 concurrent players initially, scalable to 80K
 - **Leaderboards**: Both daily and cumulative leaderboards
 - **Difficulty System**: Three levels (easy/medium/hard) with forgiving streak progression
-- **Scoring**: Points weighted by difficulty level + proportional time bonuses
+- **Scoring**: Simplified - 10 points per correct answer
 
 ## Challenges and Mitigation Strategies
 
@@ -56,7 +56,7 @@ A Kahoot/Duolingo-inspired quiz web app where players have a base 1 minute to an
 - **High concurrent users at Ignite**: Implement proper scaling with Azure App Service and connection pooling for Cosmos DB
 - **Touch vs mouse interaction differences**: Thorough testing across devices and input methods with responsive design
 - **Network latency affecting game experience**: Implement offline-capable question caching and optimistic UI updates
-- **Dynamic timer complexity**: Careful testing of streak-based time bonus calculations and UI updates
+- **Dynamic timer complexity**: Careful testing of streak-based time calculations and UI updates
 - **Telemetry data volume**: Use efficient data schemas and consider sampling strategies for mouse movement data
 
 ## Development Workflow

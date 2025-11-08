@@ -184,23 +184,8 @@ public static class SessionEndpoints
             
             if (isCorrect)
             {
-                int basePoints = 10;
-                if (question.Metadata != null && question.Metadata.ContainsKey("difficulty"))
-                {
-                    var difficulty = question.Metadata["difficulty"];
-                    basePoints = difficulty?.ToLower() switch
-                    {
-                        "medium" => 15,
-                        "hard" => 20,
-                        _ => 10
-                    };
-                }
-
-                // Maximum expected time to answer a single question (in seconds)
-                // This is used for time-based scoring bonus
-                const double maxResponseTime = 30.0;
-                double timeRemainingRatio = Math.Max(0, (maxResponseTime - request.TimeElapsed) / maxResponseTime);
-                pointsEarned = (int)Math.Round(basePoints * (1 + timeRemainingRatio));
+                // Simplified scoring: 10 points per correct answer
+                pointsEarned = 10;
             }
 
             var answerRecord = new GameSessionAnswer
