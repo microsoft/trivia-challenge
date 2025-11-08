@@ -23,6 +23,7 @@ const EVENT_TYPE_MAP: Record<AnalyticsEventName, AnalyticsEventType> = {
   'game.start': 'game',
   'game.answerquestion': 'game',
   'game.streakcompleted': 'game',
+  'game.skipwronganswer': 'game',
   'game.ended': 'game',
   'page.click': 'interaction',
   'page.touch': 'interaction',

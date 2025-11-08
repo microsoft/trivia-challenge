@@ -308,6 +308,30 @@ export default function PlayingPage() {
     setIsSubmitting(false)
   }, [goToNextQuestion])
 
+  const handleSkipWrongAnswer = useCallback(() => {
+    if (!showPauseMessage || !pauseFeedback || !session) {
+      return
+    }
+
+    // Track skip action in telemetry
+    analytics.track(
+      'game.skipwronganswer',
+      {
+        sessionId: session.sessionId,
+        questionId: currentQuestion?.questionId,
+        timeRemaining: pauseProgress,
+      },
+      {
+        page: 'playing',
+      }
+    )
+
+    // Clean up pause state and resume timer
+    setShowPauseMessage(false)
+    resumeTimer()
+    handleQuestionProgress()
+  }, [showPauseMessage, pauseFeedback, session, currentQuestion, pauseProgress, resumeTimer, handleQuestionProgress])
+
   const handleAnswerSelect = useCallback((answerIndex: number) => {
     if (!session || !currentQuestion || isSubmitting || timerState !== 'running') {
       return
@@ -542,6 +566,15 @@ export default function PlayingPage() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Handle skip during wrong answer pause screen
+      if (showPauseMessage && pauseFeedback) {
+        if (event.key === ' ' || event.key === 'Enter') {
+          event.preventDefault()
+          handleSkipWrongAnswer()
+        }
+        return
+      }
+
       if (timerState !== 'running' || isSubmitting || !currentQuestion) {
         return
       }
@@ -560,7 +593,7 @@ export default function PlayingPage() {
     window.addEventListener('keydown', handleKeyDown)
 
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [keyToAnswerIndex, handleAnswerSelect, timerState, isSubmitting, currentQuestion])
+  }, [keyToAnswerIndex, handleAnswerSelect, timerState, isSubmitting, currentQuestion, showPauseMessage, pauseFeedback, handleSkipWrongAnswer])
 
   if (loading) {
     return (
@@ -686,6 +719,14 @@ export default function PlayingPage() {
                     </div>
                     <p className="text-lg font-medium">Next question loading...</p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={handleSkipWrongAnswer}
+                    className="mt-4 rounded-xl bg-white/10 px-6 py-3 font-semibold text-white transition hover:bg-white/20 active:scale-95"
+                    aria-label="Skip to next question"
+                  >
+                    Skip <span className="text-white/60">(Space or Enter)</span>
+                  </button>
                 </div>
               ) : (
                 <AnswerGrid

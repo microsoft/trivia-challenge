@@ -4,6 +4,7 @@ export type AnalyticsEventName =
   | 'game.start'
   | 'game.answerquestion'
   | 'game.streakcompleted'
+  | 'game.skipwronganswer'
   | 'game.ended'
   | 'page.click'
   | 'page.touch'
