@@ -1,0 +1,177 @@
+name: PR Preview - Deploy
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write  # Required for OIDC authentication
+
+jobs:
+  deploy:
+    name: Deploy PR Preview Environment
+    # Only run on PR comments containing #deploy
+    if: |
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '#deploy')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Add reaction to comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket'
+            });
+
+      - name: Get PR details
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            core.setOutput('sha', pr.data.head.sha);
+            core.setOutput('ref', pr.data.head.ref);
+            core.setOutput('number', context.issue.number);
+            
+            return pr.data;
+
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr.outputs.sha }}
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          # Support both OIDC (recommended) and service principal authentication
+          # OIDC: Requires client-id, tenant-id, subscription-id secrets
+          # Service Principal: Requires creds secret with JSON credentials
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          # Fallback to service principal if OIDC secrets not configured
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Build and push Docker image
+        id: build
+        env:
+          ACR_NAME: ${{ secrets.ACR_NAME }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          GIT_SHA: ${{ steps.pr.outputs.sha }}
+        run: |
+          chmod +x ./scripts/deploy-pr-preview.sh
+          ./scripts/deploy-pr-preview.sh "$ACR_NAME" "$PR_NUMBER" "$GIT_SHA"
+
+      - name: Get ACR login server
+        id: acr
+        run: |
+          ACR_LOGIN_SERVER=$(az acr show --name ${{ secrets.ACR_NAME }} --query loginServer --output tsv)
+          echo "login_server=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
+
+      - name: Deploy to Azure Container Instances
+        id: deploy
+        env:
+          RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+          ACR_NAME: ${{ secrets.ACR_NAME }}
+          ACR_LOGIN_SERVER: ${{ steps.acr.outputs.login_server }}
+          IMAGE_TAG: pr-${{ steps.pr.outputs.number }}-${{ steps.pr.outputs.sha }}
+          LOCATION: ${{ secrets.AZURE_LOCATION || 'eastus' }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          GIT_SHA: ${{ steps.pr.outputs.sha }}
+        run: |
+          # Shorten SHA for display
+          SHORT_SHA=$(echo "$GIT_SHA" | cut -c1-12)
+          IMAGE_TAG="pr-${PR_NUMBER}-${SHORT_SHA}"
+          IMAGE_FULL="${ACR_LOGIN_SERVER}/iqchallenge:${IMAGE_TAG}"
+          
+          # Container group name (must be unique and DNS-compliant)
+          CONTAINER_GROUP_NAME="iq-pr-${PR_NUMBER}"
+          
+          # Get ACR credentials
+          ACR_USERNAME=$(az acr credential show --name $ACR_NAME --query username --output tsv)
+          ACR_PASSWORD=$(az acr credential show --name $ACR_NAME --query passwords[0].value --output tsv)
+          
+          # Create ACI deployment YAML from template
+          echo "Preparing ACI deployment configuration..."
+          envsubst < azure-container-instance.yml > /tmp/aci-deployment.yml
+          
+          cat /tmp/aci-deployment.yml
+          
+          # Deploy container group using YAML
+          echo "Creating Azure Container Instance: $CONTAINER_GROUP_NAME"
+          az container create \
+            --resource-group "$RESOURCE_GROUP" \
+            --file /tmp/aci-deployment.yml
+          
+          # Get the FQDN
+          FQDN=$(az container show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$CONTAINER_GROUP_NAME" \
+            --query ipAddress.fqdn \
+            --output tsv)
+          
+          echo "fqdn=$FQDN" >> $GITHUB_OUTPUT
+          echo "container_group=$CONTAINER_GROUP_NAME" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR with deployment URL
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fqdn = '${{ steps.deploy.outputs.fqdn }}';
+            const prNumber = '${{ steps.pr.outputs.number }}';
+            const sha = '${{ steps.pr.outputs.sha }}'.substring(0, 12);
+            const containerGroup = '${{ steps.deploy.outputs.container_group }}';
+            
+            const comment = `🚀 **PR Preview Environment Deployed!**
+            
+            **Preview URL:** http://${fqdn}
+            
+            **Details:**
+            - PR: #${prNumber}
+            - Commit: \`${sha}\`
+            - Container: \`${containerGroup}\`
+            
+            **Note:** It may take a few minutes for the application to fully start. The Cosmos DB emulator needs time to initialize.
+            
+            ---
+            *This preview environment will be automatically deleted when the PR is closed.*`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+
+      - name: Handle deployment failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const comment = `❌ **PR Preview Deployment Failed**
+            
+            The deployment encountered an error. Please check the [workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });

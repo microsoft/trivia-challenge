@@ -212,6 +212,7 @@ See [DEPLOY-IMAGE.md](DEPLOY-IMAGE.md) for detailed deployment documentation.
 
 - [Docker Deployment Guide](DOCKER.md)
 - [Dev Container Setup](.devcontainer/README.md)
+- [PR Preview Environments](docs/PR-PREVIEW.md) - Deploy PRs for testing
 - [API Specifications](docs/specs/)
 - [Architecture Overview](docs/src/content/docs/product/overview.md)
 

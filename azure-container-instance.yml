@@ -1,0 +1,86 @@
+# Azure Container Instances YAML Template for PR Preview
+# This file is a template and will be populated with actual values during deployment
+apiVersion: '2021-09-01'
+location: ${LOCATION}
+name: ${CONTAINER_GROUP_NAME}
+properties:
+  containers:
+  # Cosmos DB Emulator
+  - name: cosmosdb
+    properties:
+      image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+      resources:
+        requests:
+          cpu: 2.0
+          memoryInGb: 3.0
+      ports:
+      - protocol: TCP
+        port: 8081
+      - protocol: TCP
+        port: 10250
+      - protocol: TCP
+        port: 10251
+      - protocol: TCP
+        port: 10252
+      - protocol: TCP
+        port: 10253
+      - protocol: TCP
+        port: 10254
+      - protocol: TCP
+        port: 10255
+      environmentVariables:
+      - name: AZURE_COSMOS_EMULATOR_PARTITION_COUNT
+        value: '10'
+      - name: AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE
+        value: 'false'
+      - name: AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE
+        value: '127.0.0.1'
+  
+  # IQ Challenge Application
+  - name: app
+    properties:
+      image: ${IMAGE_FULL}
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGb: 1.0
+      ports:
+      - protocol: TCP
+        port: 8080
+      - protocol: TCP
+        port: 80
+      environmentVariables:
+      - name: ASPNETCORE_ENVIRONMENT
+        value: 'Production'
+      - name: ASPNETCORE_URLS
+        value: 'http://+:80'
+      - name: CosmosDb__EndpointUri
+        value: 'https://localhost:8081'
+      - name: CosmosDb__PrimaryKey
+        value: 'C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=='
+      - name: CosmosDb__DatabaseName
+        value: 'IQChallengeDb'
+      - name: Cors__AllowedOrigins__0
+        value: '*'
+  
+  imageRegistryCredentials:
+  - server: ${ACR_LOGIN_SERVER}
+    username: ${ACR_USERNAME}
+    password: ${ACR_PASSWORD}
+  
+  ipAddress:
+    type: Public
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 8081
+    dnsNameLabel: ${CONTAINER_GROUP_NAME}
+  
+  osType: Linux
+  restartPolicy: OnFailure
+
+tags:
+  purpose: pr-preview
+  pr-number: '${PR_NUMBER}'
+  git-sha: '${GIT_SHA}'
