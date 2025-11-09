@@ -27,28 +27,21 @@ When the PR is closed (merged or not), the preview environment is automatically 
 
 The following secrets must be configured in the GitHub repository:
 
+**For OIDC Authentication (Recommended):**
+- `AZURE_CLIENT_ID` - Application (client) ID
+- `AZURE_TENANT_ID` - Directory (tenant) ID
+- `AZURE_SUBSCRIPTION_ID` - Subscription ID
+- `ACR_NAME` - Name of the Azure Container Registry
+- `AZURE_RESOURCE_GROUP` - Resource group for preview deployments
+- `AZURE_LOCATION` (optional) - Azure region for deployments (defaults to `eastus`)
+
+**For Service Principal Authentication (Legacy):**
 - `AZURE_CREDENTIALS` - Azure service principal credentials in JSON format
 - `ACR_NAME` - Name of the Azure Container Registry
 - `AZURE_RESOURCE_GROUP` - Resource group for preview deployments
 - `AZURE_LOCATION` (optional) - Azure region for deployments (defaults to `eastus`)
 
 **→ See [PR-PREVIEW-SETUP.md](PR-PREVIEW-SETUP.md) for detailed setup instructions.**
-
-### Setting Up Azure Credentials
-
-1. Create a service principal with contributor access:
-   ```bash
-   az ad sp create-for-rbac --name "iq-challenge-pr-previews" \
-     --role contributor \
-     --scopes /subscriptions/{subscription-id}/resourceGroups/{resource-group} \
-     --sdk-auth
-   ```
-
-2. Copy the JSON output and add it as the `AZURE_CREDENTIALS` secret in GitHub
-
-3. Ensure the service principal has:
-   - `AcrPush` role on the Azure Container Registry
-   - `Contributor` role on the resource group for creating container instances
 
 ## Manual Deployment (GitHub-Agnostic)
 
