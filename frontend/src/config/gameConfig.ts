@@ -13,7 +13,8 @@ export const gameConfig = {
     initialSeconds: 60, // Base game time in seconds
     countdownSeconds: 3, // Countdown before game starts
     bonusSeconds: 10, // Bonus time awarded for streak completion
-    maxStreaks: 4, // Maximum number of streaks that award bonus time
+    maxStreaks: 5, // Maximum number of streaks that award bonus time
+    maxTotalSeconds: 120, // Cap the total game duration
     wrongAnswerPauseSeconds: 5, // Time to display wrong answer modal
     lowTimeThreshold: 5, // Seconds remaining to trigger red timer warning
   },
