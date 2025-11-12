@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import QRCode from 'react-qr-code'
 import { useGame } from '../context/GameContext'
 import { userService } from '../services/userService'
 import { analytics } from '../services/analyticsService'
@@ -181,6 +182,24 @@ export default function SignInPage() {
                 </p>
                 <p>
                   When you start the Challenge, your gameplay and telemetry data feed the Microsoft Fabric Real-Time Intelligence demo so attendees can see live analytics. That telemetry may inform post-event learnings or future Microsoft marketing.
+                </p>
+                <p>
+                  Review the{' '}
+                  <a
+                    href="http://aka.ms/igniteRTI-racingrules"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative inline-flex items-center justify-center text-amber-300 transition hover:text-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/60"
+                  >
+                    Terms and Conditions
+                    <span className="pointer-events-none absolute left-1/2 bottom-full z-20 hidden -translate-x-1/2 -translate-y-3 rounded-2xl border border-white/10 bg-neutral-950/95 p-4 text-white shadow-[0_18px_30px_rgba(0,0,0,0.45)] group-hover:flex group-focus-visible:flex">
+                      <span className="flex flex-col items-center gap-2">
+                        <span className="text-[0.68rem] uppercase tracking-[0.2em] text-white/60">Scan QR</span>
+                        <div className="rounded-xl bg-white p-1"><QRCode value="http://aka.ms/igniteRTI-racingrules" size={96} /></div>
+                      </span>
+                    </span>
+                  </a>{' '}
+                  before you begin your challenge run.
                 </p>
               </div>
             </div>
