@@ -7,6 +7,7 @@
 
 import { apiClient } from './apiClient'
 import { gameConfig } from '../config/gameConfig'
+import { getCookie } from '../lib/utils'
 import type { ApiResponse, TelemetryTrackResponse, TelemetryEvent } from '../types/api'
 import type {
   AnalyticsEventName,
@@ -166,6 +167,12 @@ class AnalyticsService {
 
     if (this.currentSessionId) {
       baseContext.sessionId = this.currentSessionId
+    }
+
+    // Include stationId from cookie if present
+    const stationId = getCookie('stationId')
+    if (stationId) {
+      baseContext.stationId = stationId
     }
 
     return {
