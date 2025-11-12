@@ -101,7 +101,6 @@ export default function ResultsPage() {
   const completedStreaksDisplay = Math.min(streaksCompleted, gameConfig.timer.maxStreaks)
 
   const formattedScore = useMemo(() => new Intl.NumberFormat().format(score), [score])
-
   const performanceStats = useMemo<StatDescriptor[]>(
     () => [
       {
@@ -128,37 +127,31 @@ export default function ResultsPage() {
     [answered, accuracy, correct, incorrect, formattedScore, completedStreaksDisplay]
   )
 
-  const timeStats = useMemo<StatDescriptor[]>(
-    () => {
-      const percentUsed = totalTimeBudget > 0 ? Math.round((timeSpent / totalTimeBudget) * 100) : 0
-      const averagePerQuestion = answered > 0 ? `${formatDuration(timeSpent / answered)}/question` : '—'
-      const paceHelper = answered > 0 ? 'Average response time per question' : 'Play again to record a pace'
+  const timeStats = useMemo<StatDescriptor[]>(() => {
+    const averagePerQuestion = answered > 0 ? `${formatDuration(timeSpent / answered)}/question` : '—'
+    const paceHelper = answered > 0 ? 'Average response time per question' : 'Play again to record a pace'
 
-      return [
-        {
-          label: 'Total Time Budget',
-          value: formatDuration(totalTimeBudget),
-          helper: `${baseTime}s base · +${bonusSecondsEarned}s bonus`,
-        },
-        {
-          label: 'Time Spent',
-          value: formatDuration(timeSpent),
-          helper: `${percentUsed}% of your time used`,
-        },
-        {
-          label: 'Time Remaining',
-          value: formatDuration(timeRemaining),
-          helper: 'Time left on your timer at the end of the session',
-        },
-        {
-          label: 'Fastest Pace',
-          value: averagePerQuestion,
-          helper: paceHelper,
-        },
-      ]
-    },
-    [answered, baseTime, bonusSecondsEarned, timeRemaining, timeSpent, totalTimeBudget]
-  )
+    return [
+      {
+        label: 'Total Time Budget',
+        value: formatDuration(totalTimeBudget),
+        helper: `${baseTime}s base · +${bonusSecondsEarned}s bonus`,
+      },
+      {
+        label: 'Bonus Time Earned',
+        value: `+${bonusSecondsEarned}s`,
+        helper:
+          completedStreaksDisplay > 0
+            ? `${completedStreaksDisplay} completed streak${completedStreaksDisplay === 1 ? '' : 's'} kept the clock on your side`
+            : 'Rack up streaks to unlock extra time',
+      },
+      {
+        label: 'Average Pace',
+        value: averagePerQuestion,
+        helper: paceHelper,
+      },
+    ]
+  }, [answered, baseTime, bonusSecondsEarned, completedStreaksDisplay, timeSpent, totalTimeBudget])
 
   const sessionStats = useMemo<StatDescriptor[]>(
     () => {
@@ -189,6 +182,48 @@ export default function ResultsPage() {
     [session, analyticsEventCount]
   )
 
+  const playerName = (player?.name ?? '').trim()
+  const playerFirstName = playerName.split(/\s+/)[0] || player?.name || 'Player'
+  const playerDisplayName = playerName || player?.name || 'Player'
+  const sessionTag = session?.sessionId ? session.sessionId.slice(0, 8).toUpperCase() : '--------'
+  const failedQuestions = missedQuestions
+  const hasFailedQuestions = failedQuestions.length > 0
+
+  const accuracyFeedback = useMemo(() => {
+    if (accuracy >= 95) {
+      return {
+        title: `Legendary accuracy, ${playerFirstName}!`,
+        message: 'Every tap landed perfectly. The leaderboard should be nervous about your next run.',
+      }
+    }
+
+    if (accuracy >= 85) {
+      return {
+        title: `Elite run, ${playerFirstName}.`,
+        message: 'You read the board like a pro and kept the streak meter glowing. Another game could put you on top.',
+      }
+    }
+
+    if (accuracy >= 70) {
+      return {
+        title: `Great rhythm, ${playerFirstName}!`,
+        message: 'Smart calls and solid pace—one more push and those streak bonuses are yours for the taking.',
+      }
+    }
+
+    if (accuracy >= 50) {
+      return {
+        title: `Solid hustle, ${playerFirstName}.`,
+        message: 'You kept the momentum alive. Sharpen a couple answers and you will turbocharge your score.',
+      }
+    }
+
+    return {
+      title: `Bold effort, ${playerFirstName}!`,
+      message: 'You kept swinging and learned the terrain. Queue up another round and turn those insights into streaks.',
+    }
+  }, [accuracy, playerFirstName])
+
   const handlePlayAgain = useCallback(() => {
     resetGame()
     navigate('/', { replace: true })
@@ -201,12 +236,6 @@ export default function ResultsPage() {
       </div>
     )
   }
-
-  const playerFirstName = player.name.trim().split(/\s+/)[0] || player.name
-  const playerDisplayName = player.name.trim() || player.name
-  const sessionTag = session?.sessionId ? session.sessionId.slice(0, 8).toUpperCase() : '--------'
-  const failedQuestions = missedQuestions
-  const hasFailedQuestions = failedQuestions.length > 0
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#040406] text-white">
@@ -227,10 +256,8 @@ export default function ResultsPage() {
 
               <div className="relative flex flex-col items-center text-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.4em] text-amber-200/70">Quest Complete</p>
-                <h1 className="mt-6 text-3xl font-semibold text-white md:text-4xl">Outstanding work, {playerFirstName}!</h1>
-                <p className="mt-3 max-w-2xl text-sm text-white/70 md:text-base">
-                  You mastered the Fabric Trivia Challenge with confident answers and blazing reflexes. Review your highlights below and get ready to climb the leaderboard.
-                </p>
+                <h1 className="mt-6 text-3xl font-semibold text-white md:text-4xl">{accuracyFeedback.title}</h1>
+                <p className="mt-3 max-w-2xl text-sm text-white/70 md:text-base">{accuracyFeedback.message}</p>
 
                 <div className="mt-10 w-full max-w-2xl rounded-3xl border border-amber-200/30 bg-black/40 px-8 py-9 text-left shadow-[0_18px_48px_rgba(0,0,0,0.45)]">
                   <div className="flex flex-col items-center gap-6 text-center md:flex-row md:items-center md:justify-between md:text-left">
@@ -253,7 +280,7 @@ export default function ResultsPage() {
                       Accuracy {accuracy}% · {correct}/{answered} correct answers
                     </p>
                     <p className="mt-1 text-sm text-white/50">
-                      {completedStreaksDisplay} completed streak{completedStreaksDisplay === 1 ? '' : 's'} · {formatDuration(timeRemaining)} remaining
+                      {completedStreaksDisplay} completed streak{completedStreaksDisplay === 1 ? '' : 's'}
                     </p>
                   </div>
                 </div>
