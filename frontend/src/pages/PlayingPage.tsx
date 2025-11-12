@@ -332,9 +332,22 @@ export default function PlayingPage() {
     const timeElapsed = responseTimeMs / 1000 // Convert to seconds for backend API
     const sessionId = session.sessionId
     const questionId = currentQuestion.questionId
+    const remainingTimeSeconds = timeLeft
+    const questionNumber = currentQuestionIndex + 1
 
     setIsSubmitting(true)
     setError(null)
+
+    const baseTelemetry = {
+      sessionId,
+      questionId,
+      category: currentQuestion.category,
+      answerIndex,
+      isCorrect,
+      responseTime: responseTimeMs,
+      remainingTimeSeconds,
+      questionNumber,
+    }
 
     void sessionService
       .submitAnswer(sessionId, {
@@ -351,12 +364,7 @@ export default function PlayingPage() {
         analytics.track(
           'game.answerquestion',
           {
-            sessionId,
-            questionId,
-            category: currentQuestion.category,
-            answerIndex,
-            isCorrect,
-            responseTime: responseTimeMs,
+            ...baseTelemetry,
             totalScore: response.totalScore,
             apiSuccess: true,
           },
@@ -372,12 +380,7 @@ export default function PlayingPage() {
         analytics.track(
           'game.answerquestion',
           {
-            sessionId,
-            questionId,
-            category: currentQuestion.category,
-            answerIndex,
-            isCorrect,
-            responseTime: responseTimeMs,
+            ...baseTelemetry,
             apiSuccess: false,
             error: message,
           },
