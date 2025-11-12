@@ -111,7 +111,7 @@ export default function SignInPage() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="relative mt-8 space-y-6">
+              <form onSubmit={handleSubmit} autoComplete="off" className="relative mt-8 space-y-6">
                 <div className="space-y-2">
                   <label htmlFor="name" className="block text-sm font-semibold uppercase tracking-[0.2em] text-white/60">
                     Name *
@@ -128,7 +128,7 @@ export default function SignInPage() {
                     onChange={handleChange}
                     className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition focus:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/40 placeholder:text-white/40"
                     placeholder="Enter your name"
-                    autoComplete="name"
+                    autoComplete="off"
                   />
                 </div>
 
@@ -145,7 +145,7 @@ export default function SignInPage() {
                     onChange={handleChange}
                     className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition focus:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/40 placeholder:text-white/40"
                     placeholder="Enter your email"
-                    autoComplete="email"
+                    autoComplete="off"
                   />
                 </div>
 
@@ -161,7 +161,7 @@ export default function SignInPage() {
                     onChange={handleChange}
                     className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition focus:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/40 placeholder:text-white/40"
                     placeholder="Enter your phone number"
-                    autoComplete="tel"
+                    autoComplete="off"
                   />
                 </div>
 
