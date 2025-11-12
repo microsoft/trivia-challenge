@@ -627,6 +627,7 @@ export default function PlayingPage() {
             <QuestionContainer
               questionText={currentQuestion.questionText}
               questionNumber={currentQuestionIndex + 1}
+              category={currentQuestion.category}
             />
 
             <div className="mt-8">
