@@ -390,42 +390,60 @@ export default function PlayingPage() {
         )
       })
 
+    const streakThreshold = gameConfig.streak.threshold
+    const streakDecrement = gameConfig.streak.decrementOnWrong
+    const maxAwardableStreaks = gameConfig.timer.maxStreaks
+
     const updatedQuestionsAnswered = metricsRef.current.questionsAnswered + 1
     const updatedCorrectAnswers = isCorrect
       ? metricsRef.current.correctAnswers + 1
       : metricsRef.current.correctAnswers
-    const updatedStreak = isCorrect
-      ? currentStreak + 1
-      : Math.max(0, currentStreak - gameConfig.streak.decrementOnWrong)
 
+    let updatedStreakProgress = currentStreak
     let updatedStreaksCompleted = metricsRef.current.streaksCompleted
+    let awardedStreakLevel: number | null = null
+    let streakProgressBeforeReset: number | null = null
+
+    if (isCorrect) {
+      const tentativeProgress = currentStreak + 1
+
+      if (tentativeProgress >= streakThreshold) {
+        const nextCompletedTotal = Math.min(updatedStreaksCompleted + 1, maxAwardableStreaks)
+
+        if (nextCompletedTotal > updatedStreaksCompleted) {
+          updatedStreaksCompleted = nextCompletedTotal
+          setStreaksCompleted(nextCompletedTotal)
+          awardedStreakLevel = nextCompletedTotal
+          streakProgressBeforeReset = tentativeProgress
+        }
+
+        updatedStreakProgress = tentativeProgress - streakThreshold
+      } else {
+        updatedStreakProgress = tentativeProgress
+      }
+    } else {
+      updatedStreakProgress = Math.max(0, currentStreak - streakDecrement)
+    }
 
     setQuestionsAnswered(updatedQuestionsAnswered)
     setCorrectAnswers(updatedCorrectAnswers)
-    setCurrentStreak(updatedStreak)
+    setCurrentStreak(updatedStreakProgress)
 
     if (isCorrect) {
-      const rawCompleted = Math.floor(updatedStreak / gameConfig.streak.threshold)
-      const cappedCompleted = Math.min(rawCompleted, gameConfig.timer.maxStreaks)
-
-      if (cappedCompleted > updatedStreaksCompleted) {
-        updatedStreaksCompleted = cappedCompleted
-        setStreaksCompleted(cappedCompleted)
-
-        if (rawCompleted <= gameConfig.timer.maxStreaks) {
-          addBonusTime(rawCompleted)
-          analytics.track(
-            'game.streakcompleted',
-            {
-              sessionId,
-              streakLevel: cappedCompleted,
-              currentStreak: updatedStreak,
-            },
-            {
-              page: 'playing',
-            }
-          )
-        }
+      if (awardedStreakLevel !== null) {
+        addBonusTime(awardedStreakLevel)
+        analytics.track(
+          'game.streakcompleted',
+          {
+            sessionId,
+            streakLevel: awardedStreakLevel,
+            currentStreak: streakProgressBeforeReset ?? streakThreshold,
+            streakProgressAfterReset: updatedStreakProgress,
+          },
+          {
+            page: 'playing',
+          }
+        )
       }
 
       metricsRef.current = {
