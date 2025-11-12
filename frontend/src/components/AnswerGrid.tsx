@@ -14,10 +14,10 @@ interface AnswerGridProps {
 }
 
 const answerColors = [
-  { bg: '#10b981', key: 'A' }, // Green
-  { bg: '#3b82f6', key: 'K' }, // Blue
-  { bg: '#a855f7', key: 'S' }, // Purple
-  { bg: '#f97316', key: 'L' }, // Orange
+  { bg: '#dc2626', fg: '#ffffff', key: 'A' }, // Red
+  { bg: '#facc15', fg: '#111827', key: 'K' }, // Yellow
+  { bg: '#16a34a', fg: '#ffffff', key: 'S' }, // Green
+  { bg: '#2563eb', fg: '#ffffff', key: 'L' }, // Blue
 ]
 
 export default function AnswerGrid({
@@ -49,13 +49,14 @@ export default function AnswerGrid({
               onClick={() => handleClick(index)}
               disabled={disabled || !answer}
               className={`
-                relative p-6 rounded-2xl text-left text-white font-medium text-lg
+                relative p-6 rounded-2xl text-left font-medium text-lg
                 transition-all duration-200 transform hover:scale-105 active:scale-95
                 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
                 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-offset-background
               `}
               style={{
                 backgroundColor: color.bg,
+                color: color.fg,
                 boxShadow: `0 4px 14px 0 ${color.bg}80`,
               }}
             >
@@ -66,7 +67,7 @@ export default function AnswerGrid({
 
               {/* Answer text */}
               <div className="pl-14 pr-4">
-                {answer || <span className="text-white/50">No answer</span>}
+                {answer || <span style={{ color: `${color.fg}80` }}>No answer</span>}
               </div>
             </button>
           )
