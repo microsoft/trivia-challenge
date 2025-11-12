@@ -208,10 +208,11 @@ The deployment scripts will:
 
 See [DEPLOY-IMAGE.md](DEPLOY-IMAGE.md) for detailed deployment documentation.
 
-## �📚 Documentation
+## 📚 Documentation
 
 - [Docker Deployment Guide](DOCKER.md)
 - [Dev Container Setup](.devcontainer/README.md)
+- [Station ID Tracking](docs/STATION_ID_TRACKING.md)
 - [API Specifications](docs/specs/)
 - [Architecture Overview](docs/src/content/docs/product/overview.md)
 
