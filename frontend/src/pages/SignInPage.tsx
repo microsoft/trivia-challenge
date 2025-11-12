@@ -116,6 +116,9 @@ export default function SignInPage() {
                   <label htmlFor="name" className="block text-sm font-semibold uppercase tracking-[0.2em] text-white/60">
                     Name *
                   </label>
+                  <p className="text-xs font-normal text-white/45">
+                    Can be a nickname and will be how you find yourself on the leaderboard
+                  </p>
                   <input
                     type="text"
                     id="name"
