@@ -7,25 +7,21 @@ const instructionCards = [
     icon: '🕒',
     title: '60 Second Quest',
     description: 'Answer as many questions as you can before the hourglass runs dry!',
-    background: 'linear-gradient(180deg, #1a2850 0%, #121b36 100%)'
   },
   {
     icon: '✨',
     title: 'Magical Streak Bonus',
-    description: 'Gather 5 correct answers in a row to summon +5 bonus seconds to your timer.',
-    background: 'linear-gradient(180deg, #1f3b2a 0%, #14261b 100%)'
+    description: 'Gather 5 correct answers in a row to summon +15 bonus seconds to your timer.'
   },
   {
     icon: '🎯',
     title: 'Choose Wisely',
-    description: 'Pick the right answer from four mystical options. Wrong turns chip away at your streak.',
-    background: 'linear-gradient(180deg, #1c2b69 0%, #16214b 100%)'
+    description: 'Pick the right answer from four mystical options. Wrong turns chip away at your streak.'
   },
   {
     icon: '⚡',
     title: 'Instant Revelation',
-    description: 'Stay calm—when a mistake happens, the correct path is revealed so you can learn fast.',
-    background: 'linear-gradient(180deg, #341b63 0%, #221143 100%)'
+    description: 'Stay calm—when a mistake happens, the correct path is revealed so you can learn fast.'
   }
 ]
 
@@ -76,23 +72,37 @@ export default function InstructionsPage() {
                 </p>
               </div>
 
-              <div className="relative mt-10 grid gap-5 sm:grid-cols-2">
+              <div className="relative mt-10 grid gap-y-10 gap-x-7 sm:grid-cols-2 sm:gap-x-9 lg:gap-x-12">
                 {instructionCards.map(card => (
-                  <div
+                  <article
                     key={card.title}
-                    className="flex h-full flex-col rounded-3xl border border-amber-200/30 bg-white/5 p-[1.5px] shadow-[0_24px_48px_rgba(0,0,0,0.45)]"
+                    className="relative flex h-full cursor-default flex-col rounded-[32px] border border-amber-200/45 bg-gradient-to-b from-[#fff0c2]/95 via-[#f3dcb0]/90 to-[#debc81]/90 px-7 pb-8 pt-10 text-left text-[#2f1809] shadow-[0_26px_60px_rgba(0,0,0,0.32)]"
                   >
                     <div
-                      className="flex h-full flex-col rounded-[26px] px-6 py-6 text-left text-white shadow-[0_20px_40px_rgba(0,0,0,0.35)]"
-                      style={{ background: card.background }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl" aria-hidden="true">{card.icon}</span>
-                        <h2 className="text-lg font-semibold text-white md:text-xl">{card.title}</h2>
+                      className="pointer-events-none absolute left-1/2 top-0 h-9 w-[82%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#fff7d6] opacity-90 shadow-[0_14px_28px_rgba(0,0,0,0.28)]"
+                      aria-hidden="true"
+                    />
+                    <div
+                      className="pointer-events-none absolute bottom-0 left-1/2 h-9 w-[82%] -translate-x-1/2 translate-y-1/2 rounded-full bg-[#e6c790] opacity-80 shadow-[0_-12px_24px_rgba(0,0,0,0.22)]"
+                      aria-hidden="true"
+                    />
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#2f1809]/10 text-2xl shadow-inner" aria-hidden="true">
+                        {card.icon}
+                      </span>
+                      <div>
+                        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.28em] text-[#7c5517]/70">
+                          Adventurer Tip
+                        </p>
+                        <h2 className="mt-1 text-xl font-semibold text-[#2f1809] md:text-[1.35rem]">
+                          {card.title}
+                        </h2>
                       </div>
-                      <p className="mt-4 text-sm text-white/70 md:text-base">{card.description}</p>
                     </div>
-                  </div>
+                    <p className="mt-6 text-base leading-7 text-[#3c2812]/80 md:text-lg">
+                      {card.description}
+                    </p>
+                  </article>
                 ))}
               </div>
 
