@@ -252,7 +252,10 @@ export default function ResultsPage() {
         <main className="mt-6 flex-1">
           <section className="relative overflow-hidden rounded-[34px] border border-amber-200/20 bg-white/5 p-[1.5px] shadow-[0_32px_64px_rgba(0,0,0,0.65)] backdrop-blur-sm">
             <div className="relative rounded-[30px] bg-neutral-950/85 px-8 pb-12 pt-14">
-              <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top,rgba(255,215,128,0.35)_0%,rgba(17,17,17,0)_70%)]" aria-hidden="true" />
+              <div
+                className="pointer-events-none absolute left-1/2 top-0 h-72 w-[130%] -translate-x-1/2 -translate-y-[42%] bg-[radial-gradient(ellipse_at_center,rgba(255,208,120,0.38)_0%,rgba(17,17,17,0.75)_52%,rgba(17,17,17,0)_78%)]"
+                aria-hidden="true"
+              />
 
               <div className="relative flex flex-col items-center text-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.4em] text-amber-200/70">Quest Complete</p>
