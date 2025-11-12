@@ -5,7 +5,7 @@
  * Shows the bonus amount with a fade-in/fade-out animation.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface BonusTimeNotificationProps {
   bonusSeconds: number
@@ -19,26 +19,34 @@ export default function BonusTimeNotification({
   onAnimationComplete,
 }: BonusTimeNotificationProps) {
   const [visible, setVisible] = useState(false)
+  const onCompleteRef = useRef(onAnimationComplete)
 
   useEffect(() => {
-    if (show) {
-      setVisible(true)
-      
-      // Auto-hide after animation
-      const timeout = setTimeout(() => {
-        setVisible(false)
-        onAnimationComplete?.()
-      }, 2000)
+    onCompleteRef.current = onAnimationComplete
+  }, [onAnimationComplete])
 
-      return () => clearTimeout(timeout)
+  useEffect(() => {
+    if (!show) {
+      setVisible(false)
+      return
     }
-  }, [show, onAnimationComplete])
+
+    setVisible(true)
+
+    // Auto-hide after animation window
+    const timeout = window.setTimeout(() => {
+      setVisible(false)
+      onCompleteRef.current?.()
+    }, 5000)
+
+    return () => window.clearTimeout(timeout)
+  }, [show])
 
   if (!visible) return null
 
   return (
     <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-40 animate-bounce">
-      <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-4 rounded-full shadow-2xl border-4 border-white">
+      <div className="bg-linear-to-r from-green-500 to-emerald-500 text-white px-8 py-4 rounded-full shadow-2xl border-4 border-white">
         <div className="flex items-center gap-3">
           <svg
             className="w-8 h-8"
