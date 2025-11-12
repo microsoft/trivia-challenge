@@ -138,14 +138,23 @@ export function useGameTimer({
 
   // Add bonus time for streak completion
   const addBonusTime = useCallback((streaksCompleted: number) => {
-    // Only award bonus if under max streaks
     if (streaksCompleted <= gameConfig.timer.maxStreaks) {
       const bonusSeconds = gameConfig.timer.bonusSeconds
-      
-      setTimeLeft((prev) => prev + bonusSeconds)
-      setMaxTime((prev) => prev + bonusSeconds)
-      
-      onBonusAwarded?.(bonusSeconds)
+      const maxTotalSeconds = gameConfig.timer.maxTotalSeconds ?? Number.POSITIVE_INFINITY
+
+      let effectiveBonus = bonusSeconds
+
+      setTimeLeft(prev => {
+        const next = Math.min(prev + bonusSeconds, maxTotalSeconds)
+        effectiveBonus = next - prev
+        return next
+      })
+
+      setMaxTime(prev => Math.min(prev + effectiveBonus, maxTotalSeconds))
+
+      if (effectiveBonus > 0) {
+        onBonusAwarded?.(effectiveBonus)
+      }
     }
   }, [onBonusAwarded])
 
