@@ -69,6 +69,7 @@ export default function PlayingPage() {
   })
   const isMountedRef = useRef(true)
   const questionDisplayTimeRef = useRef<number>(0)
+  const pauseAutoHandledRef = useRef(false)
 
   useEffect(() => {
     metricsRef.current = {
@@ -308,6 +309,17 @@ export default function PlayingPage() {
     setIsSubmitting(false)
   }, [goToNextQuestion])
 
+  const handleSkipPause = useCallback(() => {
+    if (pauseAutoHandledRef.current) {
+      return
+    }
+
+    pauseAutoHandledRef.current = true
+    setShowPauseMessage(false)
+    resumeTimer()
+    handleQuestionProgress()
+  }, [resumeTimer, handleQuestionProgress])
+
   const handleAnswerSelect = useCallback((answerIndex: number) => {
     if (!session || !currentQuestion || isSubmitting || timerState !== 'running') {
       return
@@ -465,6 +477,7 @@ export default function PlayingPage() {
       correctIndex: currentQuestion.correctAnswerIndex,
     })
     setPauseProgress(0)
+    pauseAutoHandledRef.current = false
     setShowPauseMessage(true)
     pauseTimer(gameConfig.timer.wrongAnswerPauseSeconds)
 
@@ -473,9 +486,7 @@ export default function PlayingPage() {
     }
 
     wrongAnswerTimeoutRef.current = window.setTimeout(() => {
-      setShowPauseMessage(false)
-      resumeTimer()
-      handleQuestionProgress()
+      handleSkipPause()
     }, gameConfig.timer.wrongAnswerPauseSeconds * 1000)
   }, [
     session,
@@ -494,10 +505,9 @@ export default function PlayingPage() {
     questions.length,
     handleSessionEnd,
     pauseTimer,
-    resumeTimer,
-    handleQuestionProgress,
     setCurrentQuestionIndex,
     setMissedQuestions,
+    handleSkipPause,
   ])
 
   useEffect(() => {
@@ -542,6 +552,14 @@ export default function PlayingPage() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (showPauseMessage) {
+        if (event.code === 'Space' || event.key === ' ') {
+          event.preventDefault()
+          handleSkipPause()
+        }
+        return
+      }
+
       if (timerState !== 'running' || isSubmitting || !currentQuestion) {
         return
       }
@@ -560,7 +578,25 @@ export default function PlayingPage() {
     window.addEventListener('keydown', handleKeyDown)
 
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [keyToAnswerIndex, handleAnswerSelect, timerState, isSubmitting, currentQuestion])
+  }, [
+    showPauseMessage,
+    handleSkipPause,
+    timerState,
+    isSubmitting,
+    currentQuestion,
+    keyToAnswerIndex,
+    handleAnswerSelect,
+  ])
+
+  useEffect(() => {
+    if (!showPauseMessage) {
+      return
+    }
+
+    if (pauseProgress >= 1) {
+      handleSkipPause()
+    }
+  }, [showPauseMessage, pauseProgress, handleSkipPause])
 
   if (loading) {
     return (
@@ -687,6 +723,13 @@ export default function PlayingPage() {
                     </div>
                     <p className="text-lg font-medium">Next question loading...</p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={handleSkipPause}
+                    className="rounded-full bg-white/10 px-5 py-2 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  >
+                    Skip wait · Space
+                  </button>
                 </div>
               ) : (
                 <AnswerGrid
