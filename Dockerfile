@@ -38,27 +38,28 @@ COPY frontend/ ./
 RUN npm run build
 
 ##################################################
-# Stage 3: Final Runtime Image
+# Stage 3: Build Health Probe (for container health checks)
 ##################################################
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS healthcheck-build
+
+WORKDIR /src/healthcheck
+
+RUN dotnet new console --framework net10.0
+RUN rm Program.cs
+RUN printf "using System;\nusing System.Net.Http;\n\nvar client = new HttpClient\n{\n    Timeout = TimeSpan.FromSeconds(2)\n};\n\ntry\n{\n    using var response = await client.GetAsync(\"http://127.0.0.1:8080/health\");\n    Environment.Exit(response.IsSuccessStatusCode ? 0 : 1);\n}\ncatch\n{\n    Environment.Exit(1);\n}\n" > Program.cs
+RUN dotnet publish -c Release -o /out
+
+##################################################
+# Stage 4: Final Runtime Image (Chiseled)
+##################################################
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled AS final
 
 WORKDIR /app
 
-# Install curl for healthchecks (optional but recommended)
-RUN apk add --no-cache curl
-
-# Copy backend published files
-COPY --from=backend-build /app/publish .
-
-# Copy frontend build output to wwwroot
-COPY --from=frontend-build /app/dist ./wwwroot
-
-# Create a non-root user
-RUN addgroup -g 1000 appuser && \
-    adduser -u 1000 -G appuser -s /bin/sh -D appuser && \
-    chown -R appuser:appuser /app
-
-USER appuser
+# Copy backend published files and assets with non-root ownership
+COPY --from=backend-build --chown=app:app /app/publish .
+COPY --from=frontend-build --chown=app:app /app/dist ./wwwroot
+COPY --from=healthcheck-build --chown=app:app /out ./healthcheck
 
 # Expose port
 EXPOSE 8080
@@ -67,8 +68,8 @@ EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-# Health check
+# Health check using lightweight probe binary (no shell available in chiseled image)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+    CMD ["dotnet", "/app/healthcheck/healthcheck.dll"]
 
 ENTRYPOINT ["dotnet", "IQChallenge.Api.dll"]
