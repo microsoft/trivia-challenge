@@ -45,19 +45,19 @@ const QR_LINKS = [
   {
     id: 'leaderboard',
     title: 'View the Leaderboard',
-    href: 'https://aka.ms/fabriciq/l',
+    href: 'https://aka.ms/fabrictrivia/l',
     description: 'See how your high score compares to other challengers.',
   },
   {
     id: 'learn-fabric',
     title: 'Learn More About Fabric',
-    href: 'https://aka.ms/fabriciq/f',
+    href: 'https://aka.ms/fabrictrivia/f',
     description: 'Discover tutorials, case studies, and product highlights.',
   },
   {
     id: 'get-certified',
     title: 'Get Certified',
-    href: 'https://aka.ms/fabriciq/c',
+    href: 'https://aka.ms/fabrictrivia/c',
     description: 'Take the next step with Fabric certifications and training.',
   },
 ] as const
