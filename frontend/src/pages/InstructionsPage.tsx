@@ -11,17 +11,17 @@ const instructionCards = [
   {
     icon: '✨',
     title: 'Magical Streak Bonus',
-    description: 'Gather 5 correct answers in a row to summon +15 bonus seconds to your timer.'
+    description: 'Gather 5 correct answers in a row to summon +10 bonus seconds to your timer.'
   },
   {
     icon: '🎯',
     title: 'Choose Wisely',
-    description: 'Pick the right answer from four mystical options. Wrong turns chip away at your streak.'
+    description: 'Wrong answers chip away at your streak. Get 10 wrong and your quest is history!'
   },
   {
     icon: '⚡',
     title: 'Instant Revelation',
-    description: 'Stay calm—when a mistake happens, the correct path is revealed so you can learn fast.'
+    description: 'Incorrect answers pause the timer so you can study the facts for next time.'
   }
 ]
 
