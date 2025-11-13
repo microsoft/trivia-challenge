@@ -31,6 +31,8 @@ export interface GameSession {
   questionsAnswered?: number
   correctAnswers?: number
   streaksCompleted?: number
+  heartsRemaining?: number
+  gameOverReason?: string | null
 }
 
 export interface SessionQuestion {
@@ -79,6 +81,8 @@ export interface EndSessionRequest {
   correctAnswers: number
   streaksCompleted: number
   finalTimeRemaining: number
+  heartsRemaining: number
+  gameOverReason?: string
 }
 
 export interface EndSessionResponse {
@@ -88,6 +92,8 @@ export interface EndSessionResponse {
   correctAnswers: number
   accuracy: number
   streaksCompleted: number
+  heartsRemaining: number
+  gameOverReason?: string
 }
 
 export interface LeaderboardEntry {

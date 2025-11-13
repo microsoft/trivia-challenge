@@ -9,6 +9,7 @@ Implement a complete game session management system that creates randomized ques
 - Save the question draw in Cosmos DB linked to the session
 - Track each player answer in Cosmos DB (userId, sessionId, questionId, answerIndex, timestamp)
 - **Frontend computes**: streak count, time remaining
+- Track a heart meter for each session (five starting hearts, minus 0.5 per wrong answer, terminate session when hearts reach zero)
 - **Backend computes**: points earned per question and final score
 - Support session resumption (player can continue if disconnected)
 - End session and finalize score when timer expires or player exits
@@ -117,7 +118,9 @@ Finalize session and calculate final score
     "questionsAnswered": 30,
     "correctAnswers": 25,
     "streaksCompleted": 5,
-    "finalTimeRemaining": 12
+    "finalTimeRemaining": 12,
+    "heartsRemaining": 2.5,
+    "gameOverReason": "hearts.depleted"
   }
   ```
 - **Response**: 
@@ -130,7 +133,9 @@ Finalize session and calculate final score
       "questionsAnswered": 30,
       "correctAnswers": 25,
       "accuracy": 83.3,
-      "streaksCompleted": 5
+      "streaksCompleted": 5,
+      "heartsRemaining": 2.5,
+      "gameOverReason": "hearts.depleted"
     }
   }
   ```
@@ -140,6 +145,7 @@ Finalize session and calculate final score
      - status = "completed"
      - endTime = DateTime.UtcNow
      - questionsAnswered, correctAnswers from request
+     - heartsRemaining (double) and optional gameOverReason from request
   3. Calculate accuracy: `(correctAnswers / questionsAnswered) * 100`
   4. Store final statistics
   5. Return final results (leaderboard rank calculation not implemented yet)
@@ -179,6 +185,12 @@ public class GameSession
     
     [JsonPropertyName("streaksCompleted")]
     public int StreaksCompleted { get; set; }
+
+  [JsonPropertyName("heartsRemaining")]
+  public double HeartsRemaining { get; set; }
+
+  [JsonPropertyName("gameOverReason")]
+  public string? GameOverReason { get; set; }
     
     [JsonPropertyName("createdAt")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

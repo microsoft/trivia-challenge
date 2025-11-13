@@ -68,6 +68,18 @@ public class GameSession
     public int StreaksCompleted { get; set; } = 0;
 
     /// <summary>
+    /// Remaining hearts for the session (supports half-heart increments)
+    /// </summary>
+    [JsonPropertyName("heartsRemaining")]
+    public double HeartsRemaining { get; set; } = 5;
+
+    /// <summary>
+    /// Optional code describing how the session ended (e.g., hearts depleted)
+    /// </summary>
+    [JsonPropertyName("gameOverReason")]
+    public string? GameOverReason { get; set; }
+
+    /// <summary>
     /// Timestamp when the session was created
     /// </summary>
     [JsonPropertyName("createdAt")]

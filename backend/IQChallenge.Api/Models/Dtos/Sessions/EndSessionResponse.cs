@@ -11,4 +11,6 @@ public class EndSessionResponse
     public required int CorrectAnswers { get; set; }
     public required double Accuracy { get; set; }
     public required int StreaksCompleted { get; set; }
+    public required double HeartsRemaining { get; set; }
+    public string? GameOverReason { get; set; }
 }
