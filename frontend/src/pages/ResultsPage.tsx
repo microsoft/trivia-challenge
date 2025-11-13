@@ -309,13 +309,10 @@ export default function ResultsPage() {
               </header>
               <div className="grid gap-6 px-7 py-8 md:grid-cols-3">
                 {QR_LINKS.map((link) => (
-                  <a
+                    <div
                     key={link.id}
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="group flex flex-col items-center justify-between rounded-2xl border border-white/10 bg-black/40 px-6 py-7 text-center transition hover:border-amber-200/70 hover:shadow-[0_18px_42px_rgba(251,191,36,0.35)]"
-                  >
+                    >
                     <div className="rounded-2xl bg-white/5 p-4 shadow-inner" role="img" aria-label={`${link.title} QR code`}>
                       <QRCode value={link.href} size={148} bgColor="transparent" fgColor="#FCD34D" />
                     </div>
