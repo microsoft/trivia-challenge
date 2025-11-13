@@ -321,7 +321,7 @@ export default function ResultsPage() {
                       <p className="text-xs text-white/60">{link.description}</p>
                       <span className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-200/80">Scan & Go</span>
                     </div>
-                  </a>
+                  </div>
                 ))}
               </div>
             </div>
