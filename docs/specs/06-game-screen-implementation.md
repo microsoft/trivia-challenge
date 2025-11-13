@@ -8,6 +8,7 @@ Implement the full gameplay experience on `PlayingPage`, wiring real session dat
 - Render each question number, prompt, and the four configured answers via `QuestionContainer` and `AnswerGrid`, matching the existing visual design.
 - Accept answer selections from touch, mouse, and configured keyboard shortcuts, disabling input while a submission is in flight to prevent duplicates.
 - Submit every answer to the backend; on a correct answer, advance immediately while updating streak, score, and totals; on a wrong answer, decrement streak progress, pause the timer for the configured duration, surface a clear wrong-answer state, then continue with the next question after the pause.
+- Maintain a heart meter starting at five hearts, decrementing by 0.5 on each wrong answer, immediately ending the run with a game-over state (and navigation to results) when hearts reach zero while leaving the timer and streak systems unchanged.
 - Keep `GameContext` (or equivalent helper) up to date with streak counts, score, questions answered, correct answers, current question index, and timer values so downstream screens can present accurate stats.
 - Grant timer bonuses when streak thresholds are hit, reflect updated values in `TimerBar`, and trigger the existing bonus notification animation.
 - End the session by calling the backend end-session endpoint with summary metrics (questions answered, correct answers, streaks completed, final time remaining) when time expires or questions are exhausted before navigating to `/results`.
@@ -16,6 +17,7 @@ Implement the full gameplay experience on `PlayingPage`, wiring real session dat
 - Align frontend types and `sessionService` to the v1.0 session endpoints: start session, fetch questions, submit answers, and end session, using the current backend request/response shapes.
 - Persist the active session, loaded questions, and current index in `GameContext` (or a lightweight game engine helper) for the life of the playthrough; do not support session resumption after navigating away.
 - Leverage `useGameTimer` for countdown, low-time warnings, bonus application, pausing for wrong answers, and syncing remaining/max time with context state.
+- Store the live heart count and optional game-over reason in `GameContext`, emit the current heart value with analytics events, and surface it in the results summary without altering existing streak/timer behaviors.
 - Implement keyboard bindings driven by `gameConfig.keyboard.mappings`, including focus indication and debouncing to avoid multiple submissions per key press.
 - Handle loading and error states gracefully (e.g., show a spinner on initial load, retry or route back to instructions on fatal errors) with accessible messaging.
 - Preserve accessibility: ensure answer buttons remain reachable via keyboard, provide ARIA labels for timer/streak indicators, and announce wrong-answer pauses for assistive technologies.
@@ -35,6 +37,7 @@ Implement the full gameplay experience on `PlayingPage`, wiring real session dat
 - Expanded `GameContext` to hold the session question list and active index, resetting them alongside timer and scoring state.
 - Rebuilt `PlayingPage` to start sessions, fetch question draws, manage loading/error states, and coordinate question navigation with keyboard input support.
 - Integrated answer submission with backend scoring, streak tracking, timer pauses, and real-time bonus notifications, ending sessions via the new summary payload.
+- Added a heart system tracking five starting hearts with 0.5 penalties per wrong answer, immediate game-over routing at zero hearts, telemetry enrichment, and a results-page indicator using the new heart visuals.
 
 ## Notes
 

@@ -7,16 +7,8 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import {
-  OneLake32Color,
-  OneLake32Filled,
-  DataFactory32Color,
-  DataFactory32Filled,
-  RealTimeIntelligence32Color,
-  RealTimeIntelligence32Filled,
-  PowerBi32Color,
-  PowerBi32Filled,
-  Copilot32Color,
-  Copilot32Filled,
+  Fabric32Color,
+  Fabric32Filled
 } from '@fabric-msft/svg-icons'
 import { gameConfig } from '../config/gameConfig'
 
@@ -32,11 +24,11 @@ interface StreakIndicatorProps {
 }
 
 const fabricIcons = [
-  { Color: OneLake32Color, Filled: OneLake32Filled, name: 'OneLake' },
-  { Color: DataFactory32Color, Filled: DataFactory32Filled, name: 'Data Factory' },
-  { Color: RealTimeIntelligence32Color, Filled: RealTimeIntelligence32Filled, name: 'Real-Time Intelligence' },
-  { Color: PowerBi32Color, Filled: PowerBi32Filled, name: 'Power BI' },
-  { Color: Copilot32Color, Filled: Copilot32Filled, name: 'Copilot' },
+  { Color: Fabric32Color, Filled: Fabric32Filled, name: 'One good answer' },
+  { Color: Fabric32Color, Filled: Fabric32Filled, name: 'Two good answers' },
+  { Color: Fabric32Color, Filled: Fabric32Filled, name: 'Three good answers' },
+  { Color: Fabric32Color, Filled: Fabric32Filled, name: 'Four good answers' },
+  { Color: Fabric32Color, Filled: Fabric32Filled, name: 'Five good answers' },
 ]
 
 type ConfettiPiece = {
@@ -55,7 +47,7 @@ type ConfettiStyle = CSSProperties & {
 }
 
 const confettiColors = ['#10b981', '#3b82f6', '#a855f7', '#f97316', '#facc15']
-const CONFETTI_DURATION_MS = 1200
+const CONFETTI_DURATION_MS = 2200
 const CELEBRATION_DURATION_MS = 3000
 
 function generateConfettiPieces(count: number): ConfettiPiece[] {

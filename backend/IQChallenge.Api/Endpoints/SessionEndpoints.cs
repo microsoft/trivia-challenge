@@ -77,7 +77,9 @@ public static class SessionEndpoints
                 TotalScore = 0,
                 QuestionsAnswered = 0,
                 CorrectAnswers = 0,
-                StreaksCompleted = 0
+                StreaksCompleted = 0,
+                HeartsRemaining = 5,
+                GameOverReason = null
             };
 
             var createdSession = await sessionRepository.CreateAsync(session);
@@ -262,6 +264,8 @@ public static class SessionEndpoints
             session.QuestionsAnswered = request.QuestionsAnswered;
             session.CorrectAnswers = request.CorrectAnswers;
             session.StreaksCompleted = request.StreaksCompleted;
+            session.HeartsRemaining = request.HeartsRemaining;
+            session.GameOverReason = request.GameOverReason;
 
             await sessionRepository.UpdateAsync(session);
 
@@ -276,7 +280,9 @@ public static class SessionEndpoints
                 QuestionsAnswered = session.QuestionsAnswered,
                 CorrectAnswers = session.CorrectAnswers,
                 Accuracy = accuracy,
-                StreaksCompleted = session.StreaksCompleted
+                StreaksCompleted = session.StreaksCompleted,
+                HeartsRemaining = session.HeartsRemaining,
+                GameOverReason = request.GameOverReason
             };
 
             logger.LogInformation("Session {SessionId} ended with score {Score}, {Correct}/{Total} correct", 

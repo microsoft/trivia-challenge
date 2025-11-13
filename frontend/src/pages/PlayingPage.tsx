@@ -35,12 +35,16 @@ export default function PlayingPage() {
     setCurrentStreak,
     streaksCompleted,
     setStreaksCompleted,
+    hearts,
+    setHearts,
+  gameOverReason,
     setScore,
     questionsAnswered,
     setQuestionsAnswered,
     correctAnswers,
     setCorrectAnswers,
     setMissedQuestions,
+    setGameOverReason,
   } = useGame()
 
   const [loading, setLoading] = useState(true)
@@ -65,6 +69,7 @@ export default function PlayingPage() {
     questionsAnswered,
     correctAnswers,
     streaksCompleted,
+    heartsRemaining: hearts,
   })
   const isMountedRef = useRef(true)
   const questionDisplayTimeRef = useRef<number>(0)
@@ -75,8 +80,9 @@ export default function PlayingPage() {
       questionsAnswered,
       correctAnswers,
       streaksCompleted,
+      heartsRemaining: hearts,
     }
-  }, [questionsAnswered, correctAnswers, streaksCompleted])
+  }, [questionsAnswered, correctAnswers, streaksCompleted, hearts])
 
   const {
     timeLeft,
@@ -177,6 +183,8 @@ export default function PlayingPage() {
       setScore(0)
       setCurrentStreak(0)
       setStreaksCompleted(0)
+      setHearts(gameConfig.hearts.initialCount)
+      setGameOverReason(null)
       setMissedQuestions([])
       setShowPauseMessage(false)
       setIsSubmitting(false)
@@ -184,6 +192,7 @@ export default function PlayingPage() {
         questionsAnswered: 0,
         correctAnswers: 0,
         streaksCompleted: 0,
+        heartsRemaining: gameConfig.hearts.initialCount,
       }
       setIsPlaying(true)
       setShowCountdown(true)
@@ -200,6 +209,7 @@ export default function PlayingPage() {
         {
           sessionId: newSession.sessionId,
           questionCount: fetchedQuestions.length,
+          heartsRemaining: gameConfig.hearts.initialCount,
         },
         {
           page: 'playing',
@@ -212,7 +222,7 @@ export default function PlayingPage() {
       setError(message)
       setLoading(false)
     }
-  }, [player, setSession, setQuestions, setCurrentQuestionIndex, setQuestionsAnswered, setCorrectAnswers, setScore, setCurrentStreak, setStreaksCompleted, setIsPlaying, setMissedQuestions, startCountdown])
+  }, [player, setSession, setQuestions, setCurrentQuestionIndex, setQuestionsAnswered, setCorrectAnswers, setScore, setCurrentStreak, setStreaksCompleted, setHearts, setGameOverReason, setIsPlaying, setMissedQuestions, startCountdown])
 
   useEffect(() => {
     if (!player) {
@@ -229,6 +239,8 @@ export default function PlayingPage() {
       correctAnswers?: number
       streaksCompleted?: number
       finalTimeRemaining?: number
+      heartsRemaining?: number
+      gameOverReason?: string | null
     }
   ) => {
     if (sessionEndedRef.current || !session) {
@@ -243,6 +255,8 @@ export default function PlayingPage() {
       correctAnswers: overrides?.correctAnswers ?? metricsRef.current.correctAnswers,
       streaksCompleted: overrides?.streaksCompleted ?? metricsRef.current.streaksCompleted,
       finalTimeRemaining: overrides?.finalTimeRemaining ?? timeLeft,
+      heartsRemaining: overrides?.heartsRemaining ?? metricsRef.current.heartsRemaining,
+      gameOverReason: overrides?.gameOverReason ?? gameOverReason ?? undefined,
     }
 
     let apiSuccess = true
@@ -260,6 +274,8 @@ export default function PlayingPage() {
           correctAnswers: summary.correctAnswers,
           streaksCompleted: summary.streaksCompleted,
           timeRemaining: summary.finalTimeRemaining,
+          heartsRemaining: summary.heartsRemaining,
+          gameOverReason: summary.gameOverReason ?? undefined,
           apiSuccess,
         },
         {
@@ -269,7 +285,7 @@ export default function PlayingPage() {
       setIsPlaying(false)
       navigate('/results', { replace: true })
     }
-  }, [session, timeLeft, setIsPlaying, navigate])
+  }, [session, timeLeft, gameOverReason, setIsPlaying, navigate])
 
   useEffect(() => {
     onTimeUpRef.current = () => {
@@ -334,6 +350,22 @@ export default function PlayingPage() {
     const remainingTimeSeconds = timeLeft
     const questionNumber = currentQuestionIndex + 1
 
+    const heartPenalty = isCorrect ? 0 : gameConfig.hearts.decrementOnWrong
+    const minimumHearts = gameConfig.hearts.minimum
+    const rawNextHearts = isCorrect ? hearts : hearts - heartPenalty
+    const heartsAfterAnswer = isCorrect
+      ? hearts
+      : Math.max(minimumHearts, Math.round(rawNextHearts * 2) / 2)
+    const heartsDepleted = !isCorrect && heartsAfterAnswer <= minimumHearts
+
+    if (!isCorrect && heartsAfterAnswer !== hearts) {
+      setHearts(heartsAfterAnswer)
+    }
+
+    if (heartsDepleted) {
+      setGameOverReason(prev => prev ?? 'hearts.depleted')
+    }
+
     setIsSubmitting(true)
     setError(null)
 
@@ -346,6 +378,7 @@ export default function PlayingPage() {
       responseTime: responseTimeMs,
       remainingTimeSeconds,
       questionNumber,
+      heartsRemaining: heartsAfterAnswer,
     }
 
     void sessionService
@@ -428,6 +461,13 @@ export default function PlayingPage() {
     setCorrectAnswers(updatedCorrectAnswers)
     setCurrentStreak(updatedStreakProgress)
 
+    metricsRef.current = {
+      questionsAnswered: updatedQuestionsAnswered,
+      correctAnswers: updatedCorrectAnswers,
+      streaksCompleted: updatedStreaksCompleted,
+      heartsRemaining: heartsAfterAnswer,
+    }
+
     if (isCorrect) {
       if (awardedStreakLevel !== null) {
         addBonusTime(awardedStreakLevel)
@@ -438,17 +478,12 @@ export default function PlayingPage() {
             streakLevel: awardedStreakLevel,
             currentStreak: streakProgressBeforeReset ?? streakThreshold,
             streakProgressAfterReset: updatedStreakProgress,
+            heartsRemaining: heartsAfterAnswer,
           },
           {
             page: 'playing',
           }
         )
-      }
-
-      metricsRef.current = {
-        questionsAnswered: updatedQuestionsAnswered,
-        correctAnswers: updatedCorrectAnswers,
-        streaksCompleted: updatedStreaksCompleted,
       }
 
       const nextIndex = currentQuestionIndex + 1
@@ -459,6 +494,7 @@ export default function PlayingPage() {
           correctAnswers: updatedCorrectAnswers,
           streaksCompleted: updatedStreaksCompleted,
           finalTimeRemaining: timeLeft,
+          heartsRemaining: heartsAfterAnswer,
         })
         return
       }
@@ -466,12 +502,6 @@ export default function PlayingPage() {
       setCurrentQuestionIndex(nextIndex)
       setIsSubmitting(false)
       return
-    }
-
-    metricsRef.current = {
-      questionsAnswered: updatedQuestionsAnswered,
-      correctAnswers: updatedCorrectAnswers,
-      streaksCompleted: updatedStreaksCompleted,
     }
 
     setMissedQuestions(prev => {
@@ -491,6 +521,20 @@ export default function PlayingPage() {
         },
       ]
     })
+
+    if (heartsDepleted) {
+      setShowPauseMessage(false)
+      setIsSubmitting(false)
+      handleSessionEnd({
+        questionsAnswered: updatedQuestionsAnswered,
+        correctAnswers: updatedCorrectAnswers,
+        streaksCompleted: updatedStreaksCompleted,
+        finalTimeRemaining: timeLeft,
+        heartsRemaining: heartsAfterAnswer,
+        gameOverReason: 'hearts.depleted',
+      })
+      return
+    }
 
     setPauseFeedback({
       selectedIndex: answerIndex,
@@ -514,6 +558,9 @@ export default function PlayingPage() {
     isSubmitting,
     timerState,
     timeLeft,
+    hearts,
+    setHearts,
+    setGameOverReason,
     setScore,
     currentStreak,
     setCurrentStreak,
@@ -677,6 +724,8 @@ export default function PlayingPage() {
             questionsAnswered={questionsAnswered}
             totalQuestions={questions.length}
             correctAnswers={correctAnswers}
+            heartsRemaining={hearts}
+            maxHearts={gameConfig.hearts.initialCount}
           />
         </div>
 
