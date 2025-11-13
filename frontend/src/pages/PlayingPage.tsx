@@ -9,12 +9,11 @@ import { useNavigate } from 'react-router-dom'
 import { useGame } from '../context/GameContext'
 import { useGameTimer } from '../hooks/useGameTimer'
 import Header from '../components/Header'
-import TimerBar from '../components/TimerBar'
+import GameHeader from '../components/GameHeader'
 import CountdownOverlay from '../components/CountdownOverlay'
 import BonusTimeNotification from '../components/BonusTimeNotification'
 import QuestionContainer from '../components/QuestionContainer'
 import AnswerGrid from '../components/AnswerGrid'
-import StreakIndicator from '../components/StreakIndicator'
 import { gameConfig } from '../config/gameConfig'
 import { sessionService } from '../services/sessionService'
 import { analytics } from '../services/analyticsService'
@@ -668,14 +667,16 @@ export default function PlayingPage() {
       <Header userName={player?.name} />
 
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8" aria-live="polite" aria-label="Time remaining">
-          <TimerBar timeLeft={timeLeft} maxTime={maxTime} isLowTime={isLowTime} />
-        </div>
-
-        <div className="mb-8" aria-live="polite" aria-label="Current streak">
-          <StreakIndicator
+        <div className="mb-8" aria-live="polite" aria-label="Game progress">
+          <GameHeader
+            timeLeft={timeLeft}
+            maxTime={maxTime}
+            isLowTime={isLowTime}
             currentProgress={streakProgress}
             streaksCompleted={completedStreaksDisplay}
+            questionsAnswered={questionsAnswered}
+            totalQuestions={questions.length}
+            correctAnswers={correctAnswers}
           />
         </div>
 
