@@ -6,27 +6,6 @@
 
 import { useMemo } from 'react'
 
-const hexToRgb = (hex: string): [number, number, number] => {
-  const cleaned = hex.replace('#', '')
-  const normalized = cleaned.length === 3
-    ? cleaned.split('').map(char => char + char).join('')
-    : cleaned
-  const intValue = parseInt(normalized, 16)
-  const r = (intValue >> 16) & 255
-  const g = (intValue >> 8) & 255
-  const b = intValue & 255
-  return [r / 255, g / 255, b / 255]
-}
-
-const relativeLuminance = (hex: string): number => {
-  const [r, g, b] = hexToRgb(hex).map(channel => {
-    return channel <= 0.03928
-      ? channel / 12.92
-      : Math.pow((channel + 0.055) / 1.055, 2.4)
-  }) as [number, number, number]
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b
-}
-
 interface TimerBarProps {
   timeLeft: number
   maxTime: number
