@@ -29,6 +29,10 @@ export function hasStationId(): boolean {
   return resolveStationId() !== null
 }
 
+export function getStationId(): string | null {
+  return resolveStationId()
+}
+
 export function isStationLockdownActive(): boolean {
   if (!gameConfig.lockdown.requireStationId) {
     return false
