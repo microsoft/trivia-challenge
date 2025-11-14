@@ -17,6 +17,7 @@
 #   --app-name, -a        App Service name (if not provided, will be discovered)
 #   --image-tag, -t       Additional image tag to apply (default: latest)
 #   --no-cache            Build without Docker cache
+#   --station-lockdown    Enable station lockdown build mode (default: disabled)
 #   --help, -h            Show this help message
 #
 # Examples:
@@ -41,6 +42,7 @@ RESOURCE_GROUP="rg-iqchallenge-bicep"
 IMAGE_TAG="latest"
 APP_NAME=""
 NO_CACHE=false
+ENABLE_STATION_LOCKDOWN=false
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -285,6 +287,10 @@ while [ $# -gt 0 ]; do
             NO_CACHE=true
             shift
             ;;
+        --station-lockdown)
+            ENABLE_STATION_LOCKDOWN=true
+            shift
+            ;;
         -*)
             log_error "Unknown option: $1"
             show_help
@@ -371,6 +377,13 @@ if [ "$NO_CACHE" = true ]; then
     log_warning "Building without cache..."
 fi
 
+STATION_LOCKDOWN_VALUE="false"
+if [ "$ENABLE_STATION_LOCKDOWN" = true ]; then
+    STATION_LOCKDOWN_VALUE="true"
+fi
+
+log_info "Station lockdown build flag: $STATION_LOCKDOWN_VALUE"
+
 cd "$SCRIPT_DIR"
 
 BUILD_CMD=(docker build)
@@ -383,6 +396,7 @@ for tag in "${TAGS_TO_PUSH[@]}"; do
     BUILD_CMD+=(-t "$IMAGE_REPO:$tag")
 done
 
+BUILD_CMD+=(--build-arg "VITE_REQUIRE_STATION_ID=$STATION_LOCKDOWN_VALUE")
 BUILD_CMD+=(-f Dockerfile .)
 
 "${BUILD_CMD[@]}"

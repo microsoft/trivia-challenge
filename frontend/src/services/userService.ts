@@ -8,6 +8,7 @@ import { isAxiosError } from 'axios'
 import { apiClient } from './apiClient'
 import { gameConfig } from '../config/gameConfig'
 import type { ApiResponse, RegisterUserRequest, User } from '../types/api'
+import { ensureStationAccess } from '../lib/stationLockdown'
 
 const { endpoints } = gameConfig.api
 
@@ -16,6 +17,7 @@ export const userService = {
    * Register a player with the backend
    */
   async register(payload: RegisterUserRequest): Promise<User> {
+    ensureStationAccess()
     try {
       const response = await apiClient.post<ApiResponse<User>>(
         `${endpoints.users}/register`,

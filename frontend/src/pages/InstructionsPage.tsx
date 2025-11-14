@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGame } from '../context/GameContext'
+import { getStationLockdownMessage, isStationLockdownActive } from '../lib/stationLockdown'
 
 const instructionCards = [
   {
@@ -28,6 +29,8 @@ const instructionCards = [
 export default function InstructionsPage() {
   const navigate = useNavigate()
   const { player, resetGame, setIsPlaying } = useGame()
+  const isLockdownActive = isStationLockdownActive()
+  const lockdownMessage = getStationLockdownMessage()
 
   useEffect(() => {
     if (!player) {
@@ -39,6 +42,9 @@ export default function InstructionsPage() {
   }, [player, navigate, resetGame])
 
   const handleBegin = () => {
+    if (isLockdownActive) {
+      return
+    }
     setIsPlaying(true)
     navigate('/playing')
   }
@@ -76,7 +82,7 @@ export default function InstructionsPage() {
                 {instructionCards.map(card => (
                   <article
                     key={card.title}
-                    className="relative flex h-full cursor-default flex-col rounded-[32px] border border-amber-200/45 bg-gradient-to-b from-[#fff0c2]/95 via-[#f3dcb0]/90 to-[#debc81]/90 px-7 pb-8 pt-10 text-left text-[#2f1809] shadow-[0_26px_60px_rgba(0,0,0,0.32)]"
+                    className="relative flex h-full cursor-default flex-col rounded-4xl border border-amber-200/45 bg-linear-to-b from-[#fff0c2]/95 via-[#f3dcb0]/90 to-[#debc81]/90 px-7 pb-8 pt-10 text-left text-[#2f1809] shadow-[0_26px_60px_rgba(0,0,0,0.32)]"
                   >
                     <div
                       className="pointer-events-none absolute left-1/2 top-0 h-9 w-[82%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#fff7d6] opacity-90 shadow-[0_14px_28px_rgba(0,0,0,0.28)]"
@@ -106,15 +112,21 @@ export default function InstructionsPage() {
                 ))}
               </div>
 
-              <div className="relative mt-10 flex justify-center">
+              <div className="relative mt-10 flex flex-col items-center space-y-4">
                 <button
                   type="button"
                   onClick={handleBegin}
+                  disabled={isLockdownActive}
                   className="w-full max-w-xs rounded-2xl py-3.5 text-lg font-semibold text-[#2b1800] shadow-[0_18px_40px_rgba(245,158,11,0.45)] transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 hover:brightness-[1.08] hover:shadow-[0_22px_48px_rgba(245,158,11,0.55)] active:brightness-[0.96]"
                   style={{ background: 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 55%, #b45309 100%)' }}
                 >
                   Begin Your Quest
                 </button>
+                {isLockdownActive && (
+                  <p className="max-w-md text-center text-sm font-medium text-red-300" role="alert">
+                    {lockdownMessage}
+                  </p>
+                )}
               </div>
             </div>
           </div>

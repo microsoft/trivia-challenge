@@ -14,6 +14,10 @@ When a user navigates to the application with a `stationId` query parameter, the
 https://your-app.com/?stationId=station-01
 ```
 
+## Lockdown Mode
+
+For event deployments where each kiosk must be configured with a `stationId`, enable lockdown mode by setting the Vite build flag `VITE_REQUIRE_STATION_ID=true`. Builds produced with this flag will block registration and gameplay until a `stationId` is supplied via query parameter (and persisted in the `stationId` cookie). The Docker build script supports this flag through `./deploy-image.sh --station-lockdown` and the multi-stage `Dockerfile` passes the build argument to the frontend compilation step.
+
 ### 2. Cookie Storage
 
 The station ID is persisted in a browser cookie named `stationId`:
