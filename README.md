@@ -107,6 +107,7 @@ iq-challenge/
 ## 🎮 Game Features
 
 - **Time Pressure**: Base 1 minute timer with streak bonuses (up to 2 minutes total)
+- **Heart System**: Start with five hearts, lose half a heart on each incorrect answer, and end the run instantly at zero hearts
 - **Difficulty Levels**: Easy/Medium/Hard with forgiving progression
 - **Leaderboards**: Daily and cumulative rankings
 - **Telemetry**: Comprehensive tracking of all interactions

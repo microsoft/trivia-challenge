@@ -19,6 +19,11 @@ function formatDuration(totalSeconds: number): string {
   return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 }
 
+function formatHeartsValue(totalHearts: number): string {
+  const safeValue = Math.max(0, totalHearts)
+  return Number.isInteger(safeValue) ? safeValue.toFixed(0) : safeValue.toFixed(1)
+}
+
 function StatGroup({ title, stats, caption }: { title: string; stats: StatDescriptor[]; caption?: string }) {
   return (
     <section className="rounded-3xl border border-white/10 bg-white/5 shadow-[0_18px_48px_rgba(0,0,0,0.45)]">
@@ -73,6 +78,8 @@ export default function ResultsPage() {
     streaksCompleted,
     timeLeft,
     maxTime,
+    hearts,
+    gameOverReason,
     missedQuestions,
     resetGame,
   } = useGame()
@@ -99,6 +106,8 @@ export default function ResultsPage() {
   const timeRemaining = Math.max(0, timeLeft)
   const timeSpent = Math.max(0, totalTimeBudget - timeRemaining)
   const completedStreaksDisplay = Math.min(streaksCompleted, gameConfig.timer.maxStreaks)
+  const heartsRemaining = Math.max(0, hearts)
+  const heartsDepleted = heartsRemaining <= 0 || gameOverReason === 'hearts.depleted'
 
   const formattedScore = useMemo(() => new Intl.NumberFormat().format(score), [score])
   const performanceStats = useMemo<StatDescriptor[]>(
@@ -123,8 +132,13 @@ export default function ResultsPage() {
         value: completedStreaksDisplay.toString(),
         helper: `+${completedStreaksDisplay * gameConfig.timer.bonusSeconds}s bonus time earned`,
       },
+      {
+        label: 'Hearts Remaining',
+        value: `${formatHeartsValue(heartsRemaining)} / ${formatHeartsValue(gameConfig.hearts.initialCount)}`,
+        helper: heartsDepleted ? 'All hearts were spent this run' : 'Wrong answers cost 0.5 hearts',
+      },
     ],
-    [answered, accuracy, correct, incorrect, formattedScore, completedStreaksDisplay]
+    [answered, accuracy, correct, incorrect, formattedScore, completedStreaksDisplay, heartsRemaining, heartsDepleted]
   )
 
   const timeStats = useMemo<StatDescriptor[]>(() => {
@@ -224,6 +238,17 @@ export default function ResultsPage() {
     }
   }, [accuracy, playerFirstName])
 
+  const heartsFeedback = useMemo(
+    () => ({
+      title: `Game over, ${playerFirstName}.`,
+      message: 'You ran out of hearts before the clock. Review the questions you missed and jump back in for another run.',
+    }),
+    [playerFirstName]
+  )
+
+  const heroFeedback = heartsDepleted ? heartsFeedback : accuracyFeedback
+  const resultBadgeLabel = heartsDepleted ? 'Game Over' : 'Quest Complete'
+
   const handlePlayAgain = useCallback(() => {
     resetGame()
     navigate('/', { replace: true })
@@ -258,9 +283,9 @@ export default function ResultsPage() {
               />
 
               <div className="relative flex flex-col items-center text-center">
-                <p className="text-xs font-semibold uppercase tracking-[0.4em] text-amber-200/70">Quest Complete</p>
-                <h1 className="mt-6 text-3xl font-semibold text-white md:text-4xl">{accuracyFeedback.title}</h1>
-                <p className="mt-3 max-w-2xl text-sm text-white/70 md:text-base">{accuracyFeedback.message}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.4em] text-amber-200/70">{resultBadgeLabel}</p>
+                <h1 className="mt-6 text-3xl font-semibold text-white md:text-4xl">{heroFeedback.title}</h1>
+                <p className="mt-3 max-w-2xl text-sm text-white/70 md:text-base">{heroFeedback.message}</p>
 
                 <div className="mt-10 w-full max-w-2xl rounded-3xl border border-amber-200/30 bg-black/40 px-8 py-9 text-left shadow-[0_18px_48px_rgba(0,0,0,0.45)]">
                   <div className="flex flex-col items-center gap-6 text-center md:flex-row md:items-center md:justify-between md:text-left">

@@ -7,6 +7,7 @@
 
 import { useMemo } from 'react'
 import StreakIndicator from './StreakIndicator'
+import HeartIndicator from './HeartIndicator'
 
 interface GameHeaderProps {
   timeLeft: number
@@ -17,6 +18,8 @@ interface GameHeaderProps {
   questionsAnswered: number
   totalQuestions: number
   correctAnswers: number
+  heartsRemaining: number
+  maxHearts: number
 }
 
 export default function GameHeader({
@@ -28,6 +31,8 @@ export default function GameHeader({
   questionsAnswered,
   totalQuestions,
   correctAnswers,
+  heartsRemaining,
+  maxHearts,
 }: GameHeaderProps) {
   const ratio = useMemo(() => {
     if (maxTime <= 0) {
@@ -108,10 +113,14 @@ export default function GameHeader({
         </div>
 
         {/* Streak indicators */}
-        <div className="shrink-0">
+        <div className="shrink-0 flex flex-col items-end gap-2">
           <StreakIndicator
             currentProgress={currentProgress}
             streaksCompleted={streaksCompleted}
+          />
+          <HeartIndicator
+            heartsRemaining={heartsRemaining}
+            maxHearts={maxHearts}
           />
         </div>
       </div>

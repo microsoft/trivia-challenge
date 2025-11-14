@@ -48,6 +48,15 @@ export const gameConfig = {
   },
 
   /**
+   * Hearts System
+   */
+  hearts: {
+    initialCount: 5, // Total hearts at the start of each game
+    decrementOnWrong: 0.5, // Hearts lost per incorrect answer
+    minimum: 0, // Lower bound to clamp the heart count
+  },
+
+  /**
    * Keyboard Mappings
    * 
    * Configure which keys correspond to which answer choices.

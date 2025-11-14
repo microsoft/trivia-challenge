@@ -41,6 +41,8 @@ function mapSession(response: StartSessionResponse): GameSession {
     questionsAnswered: 0,
     correctAnswers: 0,
     streaksCompleted: 0,
+    heartsRemaining: gameConfig.hearts.initialCount,
+    gameOverReason: null,
   }
 }
 

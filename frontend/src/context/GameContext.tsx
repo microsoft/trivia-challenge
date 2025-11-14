@@ -52,6 +52,12 @@ interface GameState {
   streaksCompleted: number
   setStreaksCompleted: Dispatch<SetStateAction<number>>
 
+  // Hearts system
+  hearts: number
+  setHearts: Dispatch<SetStateAction<number>>
+  gameOverReason: string | null
+  setGameOverReason: Dispatch<SetStateAction<string | null>>
+
   // Score tracking
   score: number
   setScore: Dispatch<SetStateAction<number>>
@@ -92,6 +98,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [currentStreak, setCurrentStreak] = useState(0)
   const [streaksCompleted, setStreaksCompleted] = useState(0)
 
+  // Hearts system
+  const [hearts, setHearts] = useState<number>(gameConfig.hearts.initialCount)
+  const [gameOverReason, setGameOverReason] = useState<string | null>(null)
+
   // Score state
   const [score, setScore] = useState(0)
   const [questionsAnswered, setQuestionsAnswered] = useState(0)
@@ -108,6 +118,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setMaxTime(gameConfig.timer.initialSeconds)
     setCurrentStreak(0)
     setStreaksCompleted(0)
+  setHearts(gameConfig.hearts.initialCount)
+  setGameOverReason(null)
     setScore(0)
     setQuestionsAnswered(0)
     setCorrectAnswers(0)
@@ -142,6 +154,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setCurrentStreak,
     streaksCompleted,
     setStreaksCompleted,
+  hearts,
+  setHearts,
+  gameOverReason,
+  setGameOverReason,
     score,
     setScore,
     questionsAnswered,

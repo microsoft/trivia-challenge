@@ -30,4 +30,15 @@ public class EndSessionRequest
     /// </summary>
     [Required]
     public required double FinalTimeRemaining { get; set; }
+
+    /// <summary>
+    /// Hearts remaining when the session ended (supports half-heart increments)
+    /// </summary>
+    [Required]
+    public required double HeartsRemaining { get; set; }
+
+    /// <summary>
+    /// Optional code describing why the session ended early (e.g., hearts depleted)
+    /// </summary>
+    public string? GameOverReason { get; set; }
 }
