@@ -17,6 +17,7 @@ import AnswerGrid from '../components/AnswerGrid'
 import { gameConfig } from '../config/gameConfig'
 import { sessionService } from '../services/sessionService'
 import { analytics } from '../services/analyticsService'
+import { getStationLockdownMessage, isStationLockdownActive } from '../lib/stationLockdown'
 
 export default function PlayingPage() {
   const navigate = useNavigate()
@@ -59,6 +60,7 @@ export default function PlayingPage() {
     correctIndex: number
   } | null>(null)
   const [pauseProgress, setPauseProgress] = useState(0)
+  const lockdownMessage = getStationLockdownMessage()
 
   const wrongAnswerTimeoutRef = useRef<number | null>(null)
   const pauseAnimationFrameRef = useRef<number | null>(null)
@@ -161,6 +163,20 @@ export default function PlayingPage() {
       return
     }
 
+    if (isStationLockdownActive()) {
+      setLoading(false)
+      setError(lockdownMessage)
+      setIsPlaying(false)
+      analytics.track(
+        'game.lockdownblocked',
+        {},
+        {
+          page: 'playing',
+        }
+      )
+      return
+    }
+
     setLoading(true)
     setError(null)
     sessionEndedRef.current = false
@@ -222,7 +238,7 @@ export default function PlayingPage() {
       setError(message)
       setLoading(false)
     }
-  }, [player, setSession, setQuestions, setCurrentQuestionIndex, setQuestionsAnswered, setCorrectAnswers, setScore, setCurrentStreak, setStreaksCompleted, setHearts, setGameOverReason, setIsPlaying, setMissedQuestions, startCountdown])
+  }, [player, setSession, setQuestions, setCurrentQuestionIndex, setQuestionsAnswered, setCorrectAnswers, setScore, setCurrentStreak, setStreaksCompleted, setHearts, setGameOverReason, setIsPlaying, setMissedQuestions, startCountdown, lockdownMessage])
 
   useEffect(() => {
     if (!player) {
