@@ -38,9 +38,7 @@ export default function TimerBar({ timeLeft, maxTime, isLowTime = false }: Timer
     return '#ef4444'
   }, [ratio])
 
-  const textColor = useMemo(() => {
-    return '#f8fafc' //'#0f172a' // : '#f8fafc'
-  }, [progressColor])
+  const textColor = '#f8fafc'
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60)

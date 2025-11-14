@@ -5,6 +5,12 @@
  * Modify these values to adjust game behavior without changing core logic.
  */
 
+const lockdownMessageEnv = import.meta.env.VITE_STATION_LOCKDOWN_MESSAGE
+const normalizedLockdownMessage =
+  typeof lockdownMessageEnv === 'string' && lockdownMessageEnv.trim().length > 0
+    ? lockdownMessageEnv.trim()
+    : 'This experience is currently unavailable. Please contact a team member for assistance.'
+
 export const gameConfig = {
   /**
    * Timer Settings
@@ -92,6 +98,14 @@ export const gameConfig = {
     mouseMovementSampleRate: 10, // Max mouse position samples per second
     batchSize: 50, // Number of events to batch before sending
     flushInterval: 5000, // Flush telemetry every N milliseconds
+  },
+
+  /**
+   * Lockdown Settings
+   */
+  lockdown: {
+    requireStationId: import.meta.env.VITE_REQUIRE_STATION_ID === 'true',
+    message: normalizedLockdownMessage,
   },
 } as const
 

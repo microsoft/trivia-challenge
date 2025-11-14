@@ -4,11 +4,14 @@ import QRCode from 'react-qr-code'
 import { useGame } from '../context/GameContext'
 import { userService } from '../services/userService'
 import { analytics } from '../services/analyticsService'
+import { getStationLockdownMessage, isStationLockdownActive } from '../lib/stationLockdown'
 
 export default function SignInPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { setPlayer } = useGame()
+  const isLockdownActive = isStationLockdownActive()
+  const lockdownMessage = getStationLockdownMessage()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -16,6 +19,7 @@ export default function SignInPage() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const displayedError = isLockdownActive ? lockdownMessage : error
 
   useEffect(() => {
     analytics.track('pageview.home', { path: location.pathname })
@@ -24,6 +28,11 @@ export default function SignInPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (isSubmitting) {
+      return
+    }
+
+    if (isLockdownActive) {
+      setError(lockdownMessage)
       return
     }
 
@@ -106,9 +115,9 @@ export default function SignInPage() {
                 </p>
               </div>
 
-              {error && (
+              {displayedError && (
                 <div className="relative mt-8 rounded-xl border border-red-500/50 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                  {error}
+                  {displayedError}
                 </div>
               )}
 
@@ -127,6 +136,7 @@ export default function SignInPage() {
                     required
                     value={formData.name}
                     onChange={handleChange}
+                    disabled={isLockdownActive}
                     className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition focus:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/40 placeholder:text-white/40"
                     placeholder="Enter your name"
                     autoComplete="off"
@@ -144,6 +154,7 @@ export default function SignInPage() {
                     required
                     value={formData.email}
                     onChange={handleChange}
+                    disabled={isLockdownActive}
                     className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition focus:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/40 placeholder:text-white/40"
                     placeholder="Enter your email"
                     autoComplete="off"
@@ -160,6 +171,7 @@ export default function SignInPage() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
+                    disabled={isLockdownActive}
                     className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition focus:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/40 placeholder:text-white/40"
                     placeholder="Enter your phone number"
                     autoComplete="off"
@@ -168,7 +180,7 @@ export default function SignInPage() {
 
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isLockdownActive}
                   className="w-full rounded-2xl py-3.5 text-lg font-semibold text-[#2b1800] shadow-[0_18px_40px_rgba(245,158,11,0.45)] transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 disabled:cursor-not-allowed disabled:opacity-70 hover:brightness-[1.08] hover:shadow-[0_22px_48px_rgba(245,158,11,0.55)] active:brightness-[0.96]"
                   style={{ background: 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 55%, #b45309 100%)' }}
                 >
