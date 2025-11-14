@@ -38,9 +38,9 @@ export default function SignInPage() {
 
     setError(null)
 
-    const name = formData.name.trim()
-    const email = formData.email.trim()
-    const phone = formData.phone.trim()
+    const name = formData.playerName.trim()
+    const email = formData.playerEmail.trim()
+    const phone = formData.playerPhone.trim()
 
     if (!name || !email) {
       setError('Please provide both your name and email to continue.')
@@ -123,7 +123,7 @@ export default function SignInPage() {
 
               <form onSubmit={handleSubmit} autoComplete="off" className="relative mt-8 space-y-6">
                 <div className="space-y-2">
-                  <label htmlFor="name" className="block text-sm font-semibold uppercase tracking-[0.2em] text-white/60">
+                  <label htmlFor="playerName" className="block text-sm font-semibold uppercase tracking-[0.2em] text-white/60">
                     Name *
                   </label>
                   <p className="text-xs font-normal text-white/45">
@@ -131,50 +131,50 @@ export default function SignInPage() {
                   </p>
                   <input
                     type="text"
-                    id="name"
-                    name="name"
+                    id="playerName"
+                    name="playerName"
                     required
-                    value={formData.name}
+                    value={formData.playerName}
                     onChange={handleChange}
                     disabled={isLockdownActive}
                     className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition focus:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/40 placeholder:text-white/40"
                     placeholder="Enter your name"
-                    autoComplete="off"
+                    autoComplete="new-password"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="email" className="block text-sm font-semibold uppercase tracking-[0.2em] text-white/60">
+                  <label htmlFor="playerEmail" className="block text-sm font-semibold uppercase tracking-[0.2em] text-white/60">
                     Email *
                   </label>
                   <input
                     type="email"
-                    id="email"
-                    name="email"
+                    id="playerEmail"
+                    name="playerEmail"
                     required
-                    value={formData.email}
+                    value={formData.playerEmail}
                     onChange={handleChange}
                     disabled={isLockdownActive}
                     className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition focus:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/40 placeholder:text-white/40"
                     placeholder="Enter your email"
-                    autoComplete="off"
+                    autoComplete="new-password"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="phone" className="block text-sm font-semibold uppercase tracking-[0.2em] text-white/60">
+                  <label htmlFor="playerPhone" className="block text-sm font-semibold uppercase tracking-[0.2em] text-white/60">
                     Phone *
                   </label>
                   <input
                     type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
+                    id="playerPhone"
+                    name="playerPhone"
+                    value={formData.playerPhone}
                     onChange={handleChange}
                     disabled={isLockdownActive}
                     className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition focus:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/40 placeholder:text-white/40"
                     placeholder="Enter your phone number"
-                    autoComplete="off"
+                    autoComplete="new-password"
                   />
                 </div>
 
@@ -195,7 +195,7 @@ export default function SignInPage() {
                 <p>
                   When you start the Challenge, your gameplay and telemetry data feed the Microsoft Fabric Real-Time Intelligence demo so attendees can see live analytics. That telemetry may inform post-event learnings or future Microsoft marketing.
                 </p>
-                <p>
+                <div>
                   Review the{' '}
                   <a
                     href="http://aka.ms/igniteRTI-racingrules"
@@ -212,7 +212,7 @@ export default function SignInPage() {
                     </span>
                   </a>{' '}
                   before you begin your challenge run.
-                </p>
+                </div>
               </div>
             </div>
           </div>
