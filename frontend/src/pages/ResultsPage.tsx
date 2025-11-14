@@ -240,8 +240,8 @@ export default function ResultsPage() {
 
   const heartsFeedback = useMemo(
     () => ({
-      title: `Game over, ${playerFirstName}.`,
-      message: 'You ran out of hearts before the clock. Review the questions you missed and jump back in for another run.',
+      title: `Sorry, ${playerFirstName}.`,
+      message: 'You ran out of hearts 💔. Review the questions you missed and jump back in for another run.',
     }),
     [playerFirstName]
   )
