@@ -9,6 +9,7 @@ import { useId, useMemo } from 'react'
 interface HeartIndicatorProps {
   heartsRemaining: number
   maxHearts: number
+  showLabel?: boolean
 }
 
 const HEART_PATH =
@@ -74,7 +75,7 @@ function HeartGlyph({ fillFraction }: { fillFraction: number }) {
   )
 }
 
-export default function HeartIndicator({ heartsRemaining, maxHearts }: HeartIndicatorProps) {
+export default function HeartIndicator({ heartsRemaining, maxHearts, showLabel = true }: HeartIndicatorProps) {
   const totalSlots = Math.max(1, Math.floor(maxHearts))
   const normalizedHearts = Math.min(totalSlots, Math.max(0, heartsRemaining))
 
@@ -102,9 +103,11 @@ export default function HeartIndicator({ heartsRemaining, maxHearts }: HeartIndi
           <HeartGlyph key={index} fillFraction={fill} />
         ))}
       </div>
-      <span className="text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-rose-200/80">
-        {formattedRemaining} / {formattedMax} hearts
-      </span>
+      {showLabel && (
+        <span className="text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-rose-200/80">
+          {formattedRemaining} / {formattedMax} hearts
+        </span>
+      )}
     </div>
   )
 }

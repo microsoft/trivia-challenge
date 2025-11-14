@@ -74,11 +74,16 @@ export default function GameHeader({
   const incorrectRatio = questionsAnswered > 0 ? (incorrectAnswers / questionsAnswered) * 100 : 0
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-6 bg-slate-900/50 rounded-2xl border border-slate-800">
-      {/* First row: Timer and Streak */}
-      <div className="flex items-center justify-between mb-4 gap-4">
-        {/* Timer bar */}
-        <div className="flex-1 max-w-3xl">
+    <div className="w-full max-w-6xl mx-auto px-4 py-4 bg-slate-900/50 rounded-2xl border border-slate-800">
+      <div className="flex items-center gap-6">
+        <div className="shrink-0">
+          <StreakIndicator
+            currentProgress={currentProgress}
+            streaksCompleted={streaksCompleted}
+          />
+        </div>
+
+        <div className="flex-1 min-w-0">
           <div
             className="relative h-12 rounded-full overflow-hidden"
             style={{
@@ -86,7 +91,6 @@ export default function GameHeader({
               border: '3px solid #1e293b',
             }}
           >
-            {/* Progress bar */}
             <div
               className="absolute top-0 left-0 h-full rounded-full"
               style={{
@@ -96,7 +100,6 @@ export default function GameHeader({
               }}
             />
 
-            {/* Timer text */}
             <div className="absolute inset-0 flex items-center justify-center">
               <span
                 className={`text-2xl font-bold ${
@@ -112,67 +115,13 @@ export default function GameHeader({
           </div>
         </div>
 
-        {/* Streak indicators */}
-        <div className="shrink-0 flex flex-col items-end gap-2">
-          <StreakIndicator
-            currentProgress={currentProgress}
-            streaksCompleted={streaksCompleted}
-          />
+        <div className="shrink-0">
           <HeartIndicator
             heartsRemaining={heartsRemaining}
             maxHearts={maxHearts}
+            showLabel={false}
           />
         </div>
-      </div>
-
-      {/* Second row: Question progress and correct/incorrect ratio */}
-      <div className="flex items-center justify-between gap-4">
-        {/* Question counter */}
-        <div className="shrink-0">
-          <p className="text-sm text-slate-400">
-            Question <span className="font-bold text-white">{questionsAnswered}</span> of{' '}
-            <span className="font-bold text-white">{totalQuestions}</span>
-          </p>
-        </div>
-
-        {/* Double-colored progress bar */}
-        <div className="flex-1 max-w-2xl">
-          <div className="h-6 rounded-full overflow-hidden bg-slate-800 flex">
-            {/* Correct answers (green) */}
-            {correctRatio > 0 && (
-              <div
-                className="h-full bg-emerald-500 flex items-center justify-center transition-all duration-300"
-                style={{ width: `${correctRatio}%` }}
-              >
-                {correctAnswers > 0 && (
-                  <span className="text-xs font-bold text-white px-2">{correctAnswers}</span>
-                )}
-              </div>
-            )}
-
-            {/* Incorrect answers (red) */}
-            {incorrectRatio > 0 && (
-              <div
-                className="h-full bg-red-500 flex items-center justify-center transition-all duration-300"
-                style={{ width: `${incorrectRatio}%` }}
-              >
-                {incorrectAnswers > 0 && (
-                  <span className="text-xs font-bold text-white px-2">{incorrectAnswers}</span>
-                )}
-              </div>
-            )}
-
-            {/* Empty state when no questions answered */}
-            {questionsAnswered === 0 && (
-              <div className="h-full w-full flex items-center justify-center">
-                <span className="text-xs text-slate-500">No answers yet</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Spacer to balance layout */}
-        <div className="shrink-0" aria-hidden="true"></div>
       </div>
     </div>
   )
