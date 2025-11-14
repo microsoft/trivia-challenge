@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import type { MutableRefObject } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGame } from '../context/GameContext'
 import { useGameTimer } from '../hooks/useGameTimer'
@@ -18,6 +19,31 @@ import { gameConfig } from '../config/gameConfig'
 import { sessionService } from '../services/sessionService'
 import { analytics } from '../services/analyticsService'
 import { getStationLockdownMessage, isStationLockdownActive } from '../lib/stationLockdown'
+import {
+  ANSWER_CHOICE_STYLES,
+  HALO_BOX_SHADOWS,
+  type HaloVariant,
+  type AnswerChoiceStyle,
+} from '../lib/answerStyles'
+
+type HighlightState = {
+  index: number
+  variant: HaloVariant
+}
+
+const FALLBACK_ANSWER_STYLE: AnswerChoiceStyle = {
+  bg: '#1f2937',
+  fg: '#f9fafb',
+  key: '?',
+}
+
+const resolveAnswerStyle = (index: number): AnswerChoiceStyle => {
+  if (Number.isInteger(index) && index >= 0 && index < ANSWER_CHOICE_STYLES.length) {
+    return ANSWER_CHOICE_STYLES[index]
+  }
+
+  return FALLBACK_ANSWER_STYLE
+}
 
 function PlayingPageBackground() {
   return (
@@ -71,9 +97,11 @@ export default function PlayingPage() {
     correctIndex: number
   } | null>(null)
   const [pauseProgress, setPauseProgress] = useState(0)
+  const [highlightState, setHighlightState] = useState<HighlightState | null>(null)
   const lockdownMessage = getStationLockdownMessage()
 
   const wrongAnswerTimeoutRef = useRef<number | null>(null)
+  const correctAnswerTimeoutRef = useRef<number | null>(null)
   const pauseAnimationFrameRef = useRef<number | null>(null)
   const sessionEndedRef = useRef(false)
   const countdownStartedRef = useRef(false)
@@ -87,6 +115,13 @@ export default function PlayingPage() {
   const isMountedRef = useRef(true)
   const questionDisplayTimeRef = useRef<number>(0)
   const pauseAutoHandledRef = useRef(false)
+
+  const clearTimeoutRef = useCallback((ref: MutableRefObject<number | null>) => {
+    if (ref.current !== null) {
+      window.clearTimeout(ref.current)
+      ref.current = null
+    }
+  }, [])
 
   useEffect(() => {
     metricsRef.current = {
@@ -156,11 +191,10 @@ export default function PlayingPage() {
 
   useEffect(() => {
     return () => {
-      if (wrongAnswerTimeoutRef.current) {
-        window.clearTimeout(wrongAnswerTimeoutRef.current)
-      }
+      clearTimeoutRef(wrongAnswerTimeoutRef)
+      clearTimeoutRef(correctAnswerTimeoutRef)
     }
-  }, [])
+  }, [clearTimeoutRef])
 
   useEffect(() => {
     isMountedRef.current = true
@@ -336,10 +370,8 @@ export default function PlayingPage() {
   }, [currentQuestionIndex, questions.length, handleSessionEnd, setCurrentQuestionIndex, timeLeft])
 
   const handleQuestionProgress = useCallback(() => {
-    if (wrongAnswerTimeoutRef.current) {
-      window.clearTimeout(wrongAnswerTimeoutRef.current)
-      wrongAnswerTimeoutRef.current = null
-    }
+    clearTimeoutRef(wrongAnswerTimeoutRef)
+    clearTimeoutRef(correctAnswerTimeoutRef)
     const animationFrameId = pauseAnimationFrameRef.current
     if (animationFrameId) {
       window.cancelAnimationFrame(animationFrameId)
@@ -349,7 +381,8 @@ export default function PlayingPage() {
     setPauseProgress(0)
     goToNextQuestion()
     setIsSubmitting(false)
-  }, [goToNextQuestion])
+    setHighlightState(null)
+  }, [clearTimeoutRef, goToNextQuestion])
 
   const handleSkipPause = useCallback(() => {
     if (pauseAutoHandledRef.current) {
@@ -368,6 +401,12 @@ export default function PlayingPage() {
     }
 
     const isCorrect = answerIndex === currentQuestion.correctAnswerIndex
+
+    if (isCorrect) {
+      setHighlightState({ index: answerIndex, variant: 'correct' })
+    } else {
+      setHighlightState(null)
+    }
     // Record precise timing when answer is submitted and compute difference in milliseconds
     const answerTime = performance.now()
     const responseTimeMs = answerTime - questionDisplayTimeRef.current
@@ -513,21 +552,34 @@ export default function PlayingPage() {
         )
       }
 
+      clearTimeoutRef(correctAnswerTimeoutRef)
+
       const nextIndex = currentQuestionIndex + 1
-      if (nextIndex >= questions.length) {
+      const advanceAfterHalo = () => {
+        if (!isMountedRef.current) {
+          return
+        }
+
+        setHighlightState(null)
         setIsSubmitting(false)
-        handleSessionEnd({
-          questionsAnswered: updatedQuestionsAnswered,
-          correctAnswers: updatedCorrectAnswers,
-          streaksCompleted: updatedStreaksCompleted,
-          finalTimeRemaining: timeLeft,
-          heartsRemaining: heartsAfterAnswer,
-        })
-        return
+        correctAnswerTimeoutRef.current = null
+
+        if (nextIndex >= questions.length) {
+          handleSessionEnd({
+            questionsAnswered: updatedQuestionsAnswered,
+            correctAnswers: updatedCorrectAnswers,
+            streaksCompleted: updatedStreaksCompleted,
+            finalTimeRemaining: timeLeft,
+            heartsRemaining: heartsAfterAnswer,
+          })
+          return
+        }
+
+        setCurrentQuestionIndex(nextIndex)
       }
 
-      setCurrentQuestionIndex(nextIndex)
-      setIsSubmitting(false)
+      correctAnswerTimeoutRef.current = window.setTimeout(advanceAfterHalo, 500)
+
       return
     }
 
@@ -563,6 +615,7 @@ export default function PlayingPage() {
       return
     }
 
+    setHighlightState(null)
     setPauseFeedback({
       selectedIndex: answerIndex,
       correctIndex: currentQuestion.correctAnswerIndex,
@@ -572,9 +625,8 @@ export default function PlayingPage() {
     setShowPauseMessage(true)
     pauseTimer(gameConfig.timer.wrongAnswerPauseSeconds)
 
-    if (wrongAnswerTimeoutRef.current) {
-      window.clearTimeout(wrongAnswerTimeoutRef.current)
-    }
+    clearTimeoutRef(wrongAnswerTimeoutRef)
+    clearTimeoutRef(correctAnswerTimeoutRef)
 
     wrongAnswerTimeoutRef.current = window.setTimeout(() => {
       handleSkipPause()
@@ -602,6 +654,8 @@ export default function PlayingPage() {
     setCurrentQuestionIndex,
     setMissedQuestions,
     handleSkipPause,
+    clearTimeoutRef,
+    setHighlightState,
   ])
 
   useEffect(() => {
@@ -741,6 +795,22 @@ export default function PlayingPage() {
   const pauseCircleRadius = 54
   const pauseCircumference = 2 * Math.PI * pauseCircleRadius
   const pauseSecondsRemaining = Math.max(0, Math.ceil((1 - pauseProgress) * pauseDurationSeconds))
+  const reviewSelectedStyle = pauseFeedback ? resolveAnswerStyle(pauseFeedback.selectedIndex) : null
+  const reviewCorrectStyle = pauseFeedback ? resolveAnswerStyle(pauseFeedback.correctIndex) : null
+  const reviewSelectedCardStyle = reviewSelectedStyle
+    ? {
+        backgroundColor: reviewSelectedStyle.bg,
+        color: reviewSelectedStyle.fg,
+        boxShadow: `0 6px 14px 0 ${reviewSelectedStyle.bg}80, ${HALO_BOX_SHADOWS.incorrect}`,
+      }
+    : undefined
+  const reviewCorrectCardStyle = reviewCorrectStyle
+    ? {
+        backgroundColor: reviewCorrectStyle.bg,
+        color: reviewCorrectStyle.fg,
+        boxShadow: `0 6px 14px 0 ${reviewCorrectStyle.bg}80, ${HALO_BOX_SHADOWS.correct}`,
+      }
+    : undefined
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#040406] text-white">
@@ -783,15 +853,21 @@ export default function PlayingPage() {
                     >
                       <p className="text-2xl font-bold text-white">Let&apos;s review that one.</p>
                       <div className="grid w-full max-w-3xl gap-4 md:grid-cols-2">
-                        <div className="rounded-3xl bg-red-600/90 p-6 shadow-lg shadow-red-600/40">
-                          <p className="text-sm font-semibold uppercase tracking-wide text-white/70">Your answer</p>
-                          <p className="mt-3 text-xl font-semibold text-white">
+                        <div
+                          className="rounded-3xl p-6 transition-shadow duration-200"
+                          style={reviewSelectedCardStyle}
+                        >
+                          <p className="text-sm font-semibold uppercase tracking-wide opacity-80">Your answer</p>
+                          <p className="mt-3 text-xl font-semibold">
                             {currentQuestion.choices[pauseFeedback.selectedIndex] ?? '—'}
                           </p>
                         </div>
-                        <div className="rounded-3xl bg-emerald-600/90 p-6 shadow-lg shadow-emerald-600/40">
-                          <p className="text-sm font-semibold uppercase tracking-wide text-white/70">Correct answer</p>
-                          <p className="mt-3 text-xl font-semibold text-white">
+                        <div
+                          className="rounded-3xl p-6 transition-shadow duration-200"
+                          style={reviewCorrectCardStyle}
+                        >
+                          <p className="text-sm font-semibold uppercase tracking-wide opacity-80">Correct answer</p>
+                          <p className="mt-3 text-xl font-semibold">
                             {currentQuestion.choices[pauseFeedback.correctIndex] ?? '—'}
                           </p>
                         </div>
@@ -845,6 +921,8 @@ export default function PlayingPage() {
                       onAnswerSelect={handleAnswerSelect}
                       disabled={isSubmitting || timerState !== 'running'}
                       keyLabels={answerKeyLabels}
+                      highlightedIndex={highlightState?.index ?? null}
+                      highlightVariant={highlightState?.variant}
                     />
                   )}
                 </div>
