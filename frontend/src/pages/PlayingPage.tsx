@@ -19,6 +19,17 @@ import { sessionService } from '../services/sessionService'
 import { analytics } from '../services/analyticsService'
 import { getStationLockdownMessage, isStationLockdownActive } from '../lib/stationLockdown'
 
+function PlayingPageBackground() {
+  return (
+    <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#1f2937_0%,#040406_70%)]" />
+      <div className="absolute -top-48 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-amber-400/25 blur-3xl" />
+      <div className="absolute -bottom-32 -left-24 h-72 w-72 rounded-full bg-sky-400/15 blur-3xl" />
+      <div className="absolute -bottom-40 -right-28 h-80 w-80 rounded-full bg-purple-500/15 blur-3xl" />
+    </div>
+  )
+}
+
 export default function PlayingPage() {
   const navigate = useNavigate()
   const {
@@ -683,12 +694,15 @@ export default function PlayingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col">
-        <Header userName={player?.name} />
-        <div className="flex flex-1 items-center justify-center">
-          <p className="text-lg text-white/70" role="status" aria-live="polite">
-            Preparing your challenge...
-          </p>
+      <div className="relative min-h-screen overflow-hidden bg-[#040406] text-white">
+        <PlayingPageBackground />
+        <div className="relative z-10 flex min-h-screen flex-col">
+          <Header userName={player?.name} />
+          <div className="flex flex-1 items-center justify-center px-6">
+            <p className="text-lg text-white/70" role="status" aria-live="polite">
+              Preparing your challenge...
+            </p>
+          </div>
         </div>
       </div>
     )
@@ -696,19 +710,22 @@ export default function PlayingPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col">
-        <Header userName={player?.name} />
-        <div className="flex flex-1 flex-col items-center justify-center space-y-6 px-6 text-center">
-          <p className="text-xl font-semibold text-red-400" role="alert">
-            {error}
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate('/instructions', { replace: true })}
-            className="rounded-2xl bg-amber-400 px-6 py-3 font-semibold text-black shadow-lg transition hover:brightness-110"
-          >
-            Return to Instructions
-          </button>
+      <div className="relative min-h-screen overflow-hidden bg-[#040406] text-white">
+        <PlayingPageBackground />
+        <div className="relative z-10 flex min-h-screen flex-col">
+          <Header userName={player?.name} />
+          <div className="flex flex-1 flex-col items-center justify-center space-y-6 px-6 text-center">
+            <p className="text-xl font-semibold text-red-400" role="alert">
+              {error}
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/instructions', { replace: true })}
+              className="rounded-2xl bg-amber-400 px-6 py-3 font-semibold text-black shadow-lg transition hover:brightness-110"
+            >
+              Return to Instructions
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -726,109 +743,115 @@ export default function PlayingPage() {
   const pauseSecondsRemaining = Math.max(0, Math.ceil((1 - pauseProgress) * pauseDurationSeconds))
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <Header userName={player?.name} />
+    <div className="relative min-h-screen overflow-hidden bg-[#040406] text-white">
+      <PlayingPageBackground />
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8" aria-live="polite" aria-label="Game progress">
-          <GameHeader
-            timeLeft={timeLeft}
-            maxTime={maxTime}
-            isLowTime={isLowTime}
-            currentProgress={streakProgress}
-            streaksCompleted={completedStreaksDisplay}
-            questionsAnswered={questionsAnswered}
-            totalQuestions={questions.length}
-            correctAnswers={correctAnswers}
-            heartsRemaining={hearts}
-            maxHearts={gameConfig.hearts.initialCount}
-          />
-        </div>
+      <div className="relative z-10 flex min-h-screen flex-col">
+        <Header userName={player?.name} />
 
-        {(timerState === 'running' || timerState === 'paused') && (
-          <>
-            <QuestionContainer
-              questionText={currentQuestion.questionText}
-              questionNumber={currentQuestionIndex + 1}
-              category={currentQuestion.category}
-            />
-
-            <div className="mt-8">
-              {showPauseMessage && pauseFeedback ? (
-                <div
-                  className="flex flex-col items-center gap-6"
-                  role="status"
-                  aria-live="assertive"
-                >
-                  <p className="text-2xl font-bold text-white">Let&apos;s review that one.</p>
-                  <div className="grid w-full max-w-3xl gap-4 md:grid-cols-2">
-                    <div className="rounded-3xl bg-red-600/90 p-6 shadow-lg shadow-red-600/40">
-                      <p className="text-sm font-semibold uppercase tracking-wide text-white/70">Your answer</p>
-                      <p className="mt-3 text-xl font-semibold text-white">
-                        {currentQuestion.choices[pauseFeedback.selectedIndex] ?? '—'}
-                      </p>
-                    </div>
-                    <div className="rounded-3xl bg-emerald-600/90 p-6 shadow-lg shadow-emerald-600/40">
-                      <p className="text-sm font-semibold uppercase tracking-wide text-white/70">Correct answer</p>
-                      <p className="mt-3 text-xl font-semibold text-white">
-                        {currentQuestion.choices[pauseFeedback.correctIndex] ?? '—'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 text-white/80">
-                    <div className="relative h-14 w-14">
-                      <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120">
-                        <defs>
-                          <linearGradient id={pauseGradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stopColor="#f97316" />
-                            <stop offset="100%" stopColor="#3b82f6" />
-                          </linearGradient>
-                        </defs>
-                        <circle
-                          cx="60"
-                          cy="60"
-                          r={pauseCircleRadius}
-                          stroke="rgba(255,255,255,0.2)"
-                          strokeWidth="12"
-                          fill="none"
-                        />
-                        <circle
-                          cx="60"
-                          cy="60"
-                          r={pauseCircleRadius}
-                          stroke={`url(#${pauseGradientId})`}
-                          strokeWidth="12"
-                          strokeLinecap="round"
-                          strokeDasharray={pauseCircumference}
-                          strokeDashoffset={(1 - pauseProgress) * pauseCircumference}
-                          fill="none"
-                        />
-                      </svg>
-                      <span className="absolute inset-0 flex items-center justify-center text-lg font-semibold text-white">
-                        {pauseSecondsRemaining}
-                      </span>
-                    </div>
-                    <p className="text-lg font-medium">Next question loading...</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleSkipPause}
-                    className="rounded-full bg-white/10 px-5 py-2 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-                  >
-                    Skip wait · Space
-                  </button>
-                </div>
-              ) : (
-                <AnswerGrid
-                  answers={currentQuestion.choices}
-                  onAnswerSelect={handleAnswerSelect}
-                  disabled={isSubmitting || timerState !== 'running'}
-                  keyLabels={answerKeyLabels}
-                />
-              )}
+        <div className="flex-1">
+          <div className="container mx-auto px-4 py-8">
+            <div className="mb-8" aria-live="polite" aria-label="Game progress">
+              <GameHeader
+                timeLeft={timeLeft}
+                maxTime={maxTime}
+                isLowTime={isLowTime}
+                currentProgress={streakProgress}
+                streaksCompleted={completedStreaksDisplay}
+                questionsAnswered={questionsAnswered}
+                totalQuestions={questions.length}
+                correctAnswers={correctAnswers}
+                heartsRemaining={hearts}
+                maxHearts={gameConfig.hearts.initialCount}
+              />
             </div>
-          </>
-        )}
+
+            {(timerState === 'running' || timerState === 'paused') && (
+              <>
+                <QuestionContainer
+                  questionText={currentQuestion.questionText}
+                  questionNumber={currentQuestionIndex + 1}
+                  category={currentQuestion.category}
+                />
+
+                <div className="mt-8">
+                  {showPauseMessage && pauseFeedback ? (
+                    <div
+                      className="flex flex-col items-center gap-6"
+                      role="status"
+                      aria-live="assertive"
+                    >
+                      <p className="text-2xl font-bold text-white">Let&apos;s review that one.</p>
+                      <div className="grid w-full max-w-3xl gap-4 md:grid-cols-2">
+                        <div className="rounded-3xl bg-red-600/90 p-6 shadow-lg shadow-red-600/40">
+                          <p className="text-sm font-semibold uppercase tracking-wide text-white/70">Your answer</p>
+                          <p className="mt-3 text-xl font-semibold text-white">
+                            {currentQuestion.choices[pauseFeedback.selectedIndex] ?? '—'}
+                          </p>
+                        </div>
+                        <div className="rounded-3xl bg-emerald-600/90 p-6 shadow-lg shadow-emerald-600/40">
+                          <p className="text-sm font-semibold uppercase tracking-wide text-white/70">Correct answer</p>
+                          <p className="mt-3 text-xl font-semibold text-white">
+                            {currentQuestion.choices[pauseFeedback.correctIndex] ?? '—'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 text-white/80">
+                        <div className="relative h-14 w-14">
+                          <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120">
+                            <defs>
+                              <linearGradient id={pauseGradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stopColor="#f97316" />
+                                <stop offset="100%" stopColor="#3b82f6" />
+                              </linearGradient>
+                            </defs>
+                            <circle
+                              cx="60"
+                              cy="60"
+                              r={pauseCircleRadius}
+                              stroke="rgba(255,255,255,0.2)"
+                              strokeWidth="12"
+                              fill="none"
+                            />
+                            <circle
+                              cx="60"
+                              cy="60"
+                              r={pauseCircleRadius}
+                              stroke={`url(#${pauseGradientId})`}
+                              strokeWidth="12"
+                              strokeLinecap="round"
+                              strokeDasharray={pauseCircumference}
+                              strokeDashoffset={(1 - pauseProgress) * pauseCircumference}
+                              fill="none"
+                            />
+                          </svg>
+                          <span className="absolute inset-0 flex items-center justify-center text-lg font-semibold text-white">
+                            {pauseSecondsRemaining}
+                          </span>
+                        </div>
+                        <p className="text-lg font-medium">Next question loading...</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleSkipPause}
+                        className="rounded-full bg-white/10 px-5 py-2 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                      >
+                        Skip wait · Space
+                      </button>
+                    </div>
+                  ) : (
+                    <AnswerGrid
+                      answers={currentQuestion.choices}
+                      onAnswerSelect={handleAnswerSelect}
+                      disabled={isSubmitting || timerState !== 'running'}
+                      keyLabels={answerKeyLabels}
+                    />
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       {showCountdown && timerState === 'countdown' && <CountdownOverlay value={countdownValue} />}
