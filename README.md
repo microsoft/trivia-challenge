@@ -2,11 +2,15 @@
 
 A quiz web application where players assess their Microsoft Fabric knowledge through an engaging, time-pressured quiz game.
 
+![A screenshot of the main game screen](docs/src/assets/trivia-game.png)
+
 ## 🎯 Overview
 
-- **Purpose**: Help Microsoft Ignite attendees assess their knowledge about Microsoft Fabric
+- **Purpose**: Help events attendees assess their knowledge about Microsoft Fabric, and demonstrate Fabric capabilities.
 - **Format**: Interactive quiz game with time pressure and streak bonuses
-- **Tech Stack**: React + TypeScript + .NET 10 + Azure Cosmos DB + Microsoft Fabric
+- **Tech Stack**: React + TypeScript + .NET 10 + Microsoft Fabric (Cosmos DB, Realtime Intelligence, Power BI)
+
+![Architecture diagram of the solution](docs/src/assets/architecture.png)
 
 ## 🚀 Getting Started
 
@@ -75,7 +79,6 @@ See [DOCKER-QUICKSTART.md](DOCKER-QUICKSTART.md) for quick start guide.
 - ✅ Node.js 22 with TypeScript
 - ✅ .NET 10 SDK
 - ✅ Azure Cosmos DB Emulator (with auto-configuration)
-- ✅ Azure Static Web Apps CLI
 - ✅ All required VS Code extensions
 
 See [.devcontainer/README.md](.devcontainer/README.md) for detailed devcontainer documentation.
@@ -92,8 +95,8 @@ iq-challenge/
 ├── backend/                # .NET 10 API
 │   └── IQChallenge.Api/    # Main API project
 ├── docs/                   # Documentation (Astro)
-├── frontend/               # React + TypeScript (TODO)
-└── infrastructure/         # Azure deployment (TODO)
+├── frontend/               # React + TypeScript frontend
+└── infrastructure/         # Azure deployment
 ```
 
 ## 🏗️ Architecture
@@ -102,7 +105,7 @@ iq-challenge/
 - **Backend**: .NET 10 Minimal API with versioning
 - **Database**: Azure Cosmos DB (local emulator for development)
 - **Analytics**: Microsoft Fabric for real-time telemetry
-- **Hosting**: Azure Static Web Apps + Azure App Service Container
+- **Hosting**: Azure Web App for containers
 
 ## 🎮 Game Features
 
