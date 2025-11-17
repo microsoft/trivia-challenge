@@ -12,7 +12,7 @@ const instructionCards = [
   {
     icon: '✨',
     title: 'Magical Streak Bonus',
-    description: 'Gather 5 correct answers in a row to summon +10 bonus seconds to your timer.'
+    description: 'Gather 5 correct answers in a row to summon +10 bonus seconds.'
   },
   {
     icon: '🎯',
