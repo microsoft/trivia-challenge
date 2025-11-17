@@ -142,6 +142,7 @@ export default function PlayingPage() {
     pauseTimer,
     resumeTimer,
     addBonusTime,
+    deductTime,
   } = useGameTimer({
     onCountdownComplete: () => {
       setShowCountdown(false)
@@ -394,11 +395,15 @@ export default function PlayingPage() {
     }
 
     const isCorrect = answerIndex === currentQuestion.correctAnswerIndex
+    const penaltySeconds = gameConfig.timer.wrongAnswerPenaltySeconds
+    const adjustedTimeLeft = isCorrect ? timeLeft : Math.max(0, timeLeft - penaltySeconds)
+    let timerEndedFromPenalty = false
 
     if (isCorrect) {
       setHighlightState({ index: answerIndex, variant: 'correct' })
     } else {
       setHighlightState(null)
+      timerEndedFromPenalty = deductTime(penaltySeconds)
     }
     // Record precise timing when answer is submitted and compute difference in milliseconds
     const answerTime = performance.now()
@@ -406,7 +411,7 @@ export default function PlayingPage() {
     const timeElapsed = responseTimeMs / 1000 // Convert to seconds for backend API
     const sessionId = session.sessionId
     const questionId = currentQuestion.questionId
-    const remainingTimeSeconds = timeLeft
+    const remainingTimeSeconds = adjustedTimeLeft
     const questionNumber = currentQuestionIndex + 1
 
     const heartPenalty = isCorrect ? 0 : gameConfig.hearts.decrementOnWrong
@@ -601,7 +606,7 @@ export default function PlayingPage() {
         questionsAnswered: updatedQuestionsAnswered,
         correctAnswers: updatedCorrectAnswers,
         streaksCompleted: updatedStreaksCompleted,
-        finalTimeRemaining: timeLeft,
+        finalTimeRemaining: adjustedTimeLeft,
         heartsRemaining: heartsAfterAnswer,
         gameOverReason: 'hearts.depleted',
       })
@@ -615,21 +620,31 @@ export default function PlayingPage() {
     })
     setPauseProgress(0)
     pauseAutoHandledRef.current = false
-    setShowPauseMessage(true)
-    pauseTimer(gameConfig.timer.wrongAnswerPauseSeconds)
-
     clearTimeoutRef(wrongAnswerTimeoutRef)
     clearTimeoutRef(correctAnswerTimeoutRef)
 
-    wrongAnswerTimeoutRef.current = window.setTimeout(() => {
-      handleSkipPause()
-    }, gameConfig.timer.wrongAnswerPauseSeconds * 1000)
+    if (!timerEndedFromPenalty) {
+      setShowPauseMessage(true)
+      pauseTimer(gameConfig.timer.wrongAnswerPauseSeconds)
+
+      wrongAnswerTimeoutRef.current = window.setTimeout(() => {
+        handleSkipPause()
+      }, gameConfig.timer.wrongAnswerPauseSeconds * 1000)
+    } else {
+      setShowPauseMessage(false)
+      setIsSubmitting(false)
+      if (pauseAnimationFrameRef.current) {
+        window.cancelAnimationFrame(pauseAnimationFrameRef.current)
+      }
+      pauseAnimationFrameRef.current = null
+    }
   }, [
     session,
     currentQuestion,
     isSubmitting,
     timerState,
     timeLeft,
+    deductTime,
     hearts,
     setHearts,
     setGameOverReason,

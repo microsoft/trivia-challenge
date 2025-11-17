@@ -22,6 +22,7 @@ export const gameConfig = {
     maxStreaks: 5, // Maximum number of streaks that award bonus time
     maxTotalSeconds: 120, // Cap the total game duration
     wrongAnswerPauseSeconds: 5, // Time to display wrong answer modal
+    wrongAnswerPenaltySeconds: 0.25, // Time deducted for each incorrect answer
     lowTimeThreshold: 5, // Seconds remaining to trigger red timer warning
   },
 
