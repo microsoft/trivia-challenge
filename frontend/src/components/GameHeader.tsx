@@ -28,9 +28,6 @@ export default function GameHeader({
   isLowTime = false,
   currentProgress,
   streaksCompleted,
-  questionsAnswered,
-  totalQuestions,
-  correctAnswers,
   heartsRemaining,
   maxHearts,
 }: GameHeaderProps) {
@@ -68,10 +65,6 @@ export default function GameHeader({
   }
 
   const displayTime = formatTime(timeLeft)
-
-  const incorrectAnswers = questionsAnswered - correctAnswers
-  const correctRatio = questionsAnswered > 0 ? (correctAnswers / questionsAnswered) * 100 : 0
-  const incorrectRatio = questionsAnswered > 0 ? (incorrectAnswers / questionsAnswered) * 100 : 0
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-4 bg-slate-900/50 rounded-2xl border border-slate-800">

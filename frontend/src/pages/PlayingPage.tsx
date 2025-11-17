@@ -212,13 +212,6 @@ export default function PlayingPage() {
       setLoading(false)
       setError(lockdownMessage)
       setIsPlaying(false)
-      analytics.track(
-        'game.lockdownblocked',
-        {},
-        {
-          page: 'playing',
-        }
-      )
       return
     }
 

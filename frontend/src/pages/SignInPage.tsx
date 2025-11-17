@@ -13,9 +13,9 @@ export default function SignInPage() {
   const isLockdownActive = isStationLockdownActive()
   const lockdownMessage = getStationLockdownMessage()
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
+    playerName: '',
+    playerEmail: '',
+    playerPhone: '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
