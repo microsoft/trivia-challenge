@@ -26,6 +26,7 @@ interface UseGameTimerReturn {
   pauseTimer: (duration?: number) => void
   resumeTimer: () => void
   addBonusTime: (streaksCompleted: number) => void
+  deductTime: (seconds: number) => boolean
   resetTimer: () => void
   formatTime: (seconds: number) => string
 }
@@ -158,6 +159,42 @@ export function useGameTimer({
     }
   }, [onBonusAwarded])
 
+  // Deduct time for penalties (e.g., wrong answers). Returns true if timer ended.
+  const deductTime = useCallback((seconds: number): boolean => {
+    if (seconds <= 0) {
+      return false
+    }
+
+    let shouldEnd = false
+
+    setTimeLeft(prev => {
+      if (prev <= 0) {
+        return 0
+      }
+
+      const next = Math.max(0, prev - seconds)
+      if (next === 0) {
+        shouldEnd = true
+      }
+      return next
+    })
+
+    if (shouldEnd) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+      if (pauseTimeoutRef.current) {
+        clearTimeout(pauseTimeoutRef.current)
+        pauseTimeoutRef.current = null
+      }
+      setTimerState('ended')
+      onTimeUp?.()
+    }
+
+    return shouldEnd
+  }, [onTimeUp])
+
   // Reset timer to initial state
   const resetTimer = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current)
@@ -181,6 +218,7 @@ export function useGameTimer({
     pauseTimer,
     resumeTimer,
     addBonusTime,
+    deductTime,
     resetTimer,
     formatTime,
   }
