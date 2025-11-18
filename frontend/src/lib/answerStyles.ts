@@ -7,10 +7,10 @@ export interface AnswerChoiceStyle {
 }
 
 export const ANSWER_CHOICE_STYLES: AnswerChoiceStyle[] = [
-  { bg: '#dc2626', fg: '#ffffff', key: 'A' },
-  { bg: '#facc15', fg: '#111827', key: 'K' },
-  { bg: '#16a34a', fg: '#ffffff', key: 'S' },
-  { bg: '#2563eb', fg: '#ffffff', key: 'L' },
+  { bg: '#B8303E', fg: '#ffffff', key: 'A' },
+  { bg: '#1A553B', fg: '#ffffff', key: 'K' },
+  { bg: '#1D61BD', fg: '#ffffff', key: 'S' },
+  { bg: '#E16D40', fg: '#ffffff', key: 'L' },
 ]
 
 export const HALO_BOX_SHADOWS: Record<HaloVariant, string> = {
