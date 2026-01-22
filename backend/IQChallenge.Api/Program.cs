@@ -136,6 +136,8 @@ builder.Services.AddSingleton<CosmosClient>(serviceProvider =>
         {
             PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
         },
+        RequestTimeout = TimeSpan.FromSeconds(30),
+        ConnectionMode = ConnectionMode.Gateway,
         MaxRetryAttemptsOnRateLimitedRequests = settings.MaxRetryAttempts,
         MaxRetryWaitTimeOnRateLimitedRequests = TimeSpan.FromSeconds(settings.MaxRetryWaitTimeSeconds)
     };
