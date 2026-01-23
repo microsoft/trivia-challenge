@@ -284,6 +284,8 @@ app.UseResponseCompression();
 app.UseCors();
 app.UseRateLimiter();
 
+app.MapDebugEndpoints();
+
 // Health check endpoints
 app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
