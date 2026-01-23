@@ -2,7 +2,7 @@ services:
   # Cosmos DB Emulator for local testing
   cosmosdb:
     image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
-    container_name: iq-challenge-cosmosdb-local
+    container_name: iq-challenge
     ports:
       - "8081:8081"
       - "10250-10255:10250-10255"
