@@ -13,11 +13,16 @@ public class TelemetrySettings
     public bool Enabled { get; set; }
 
     /// <summary>
-    /// Azure Event Hub connection string
+    /// Azure Event Hub connection string (for key-based authentication).
+    /// When provided, key authentication will be used.
     /// </summary>
-    [Required]
-    [MinLength(1)]
     public string? ConnectionString { get; set; }
+
+    /// <summary>
+    /// Azure Event Hub fully qualified namespace (e.g., "mynamespace.servicebus.windows.net").
+    /// Used for Managed Identity authentication when ConnectionString is not provided.
+    /// </summary>
+    public string? FullyQualifiedNamespace { get; set; }
 
     /// <summary>
     /// Azure Event Hub name
@@ -25,6 +30,11 @@ public class TelemetrySettings
     [Required]
     [MinLength(1)]
     public string? EventHubName { get; set; }
+
+    /// <summary>
+    /// Returns true if key-based authentication should be used (ConnectionString is provided)
+    /// </summary>
+    public bool UseKeyAuthentication => !string.IsNullOrWhiteSpace(ConnectionString);
 
     /// <summary>
     /// Validates the telemetry configuration
@@ -36,17 +46,16 @@ public class TelemetrySettings
             return;
         }
 
-        var validationContext = new ValidationContext(this);
-        Validator.ValidateObject(this, validationContext, validateAllProperties: true);
-
-        if (string.IsNullOrWhiteSpace(ConnectionString))
-        {
-            throw new ValidationException("Telemetry:ConnectionString cannot be empty when telemetry is enabled.");
-        }
-
         if (string.IsNullOrWhiteSpace(EventHubName))
         {
             throw new ValidationException("Telemetry:EventHubName cannot be empty when telemetry is enabled.");
+        }
+
+        // Either ConnectionString or FullyQualifiedNamespace must be provided
+        if (string.IsNullOrWhiteSpace(ConnectionString) && string.IsNullOrWhiteSpace(FullyQualifiedNamespace))
+        {
+            throw new ValidationException(
+                "Either Telemetry:ConnectionString (for key authentication) or Telemetry:FullyQualifiedNamespace (for Managed Identity) must be provided when telemetry is enabled.");
         }
     }
 }
