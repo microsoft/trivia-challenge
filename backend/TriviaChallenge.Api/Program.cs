@@ -109,11 +109,23 @@ if (telemetrySettings.Enabled)
     builder.Services.AddSingleton<EventHubProducerClient>(serviceProvider =>
     {
         var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogInformation("Telemetry forwarding enabled - initializing Event Hub producer client.");
-
-        return new EventHubProducerClient(
-            telemetrySettings.ConnectionString!,
-            telemetrySettings.EventHubName!);
+        
+        if (telemetrySettings.UseKeyAuthentication)
+        {
+            logger.LogInformation("Telemetry forwarding enabled - initializing Event Hub producer client with key authentication.");
+            return new EventHubProducerClient(
+                telemetrySettings.ConnectionString!,
+                telemetrySettings.EventHubName!);
+        }
+        else
+        {
+            logger.LogInformation("Telemetry forwarding enabled - initializing Event Hub producer client with Managed Identity.");
+            var credential = new DefaultAzureCredential();
+            return new EventHubProducerClient(
+                telemetrySettings.FullyQualifiedNamespace!,
+                telemetrySettings.EventHubName!,
+                credential);
+        }
     });
 
     builder.Services.AddSingleton<ITelemetryService, EventHubTelemetryService>();
