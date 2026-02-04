@@ -153,7 +153,7 @@ builder.Services.AddSingleton<CosmosClient>(serviceProvider =>
     }
     else
     {
-        clientOptions.ConnectionMode = ConnectionMode.Direct;
+        clientOptions.ConnectionMode = ConnectionMode.Gateway;
     }
 
     // Use PrimaryKey if provided, otherwise use Managed Identity
