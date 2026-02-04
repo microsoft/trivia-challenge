@@ -32,6 +32,18 @@ public class User
     public required string PhoneNumber { get; set; }
 
     /// <summary>
+    /// User's country
+    /// </summary>
+    [JsonPropertyName("country")]
+    public string? Country { get; set; }
+
+    /// <summary>
+    /// User's state (for United States users)
+    /// </summary>
+    [JsonPropertyName("state")]
+    public string? State { get; set; }
+
+    /// <summary>
     /// Timestamp when the user registered
     /// </summary>
     [JsonPropertyName("createdAt")]

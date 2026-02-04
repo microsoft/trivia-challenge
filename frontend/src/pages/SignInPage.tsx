@@ -5,6 +5,7 @@ import { useGame } from '../context/GameContext'
 import { userService } from '../services/userService'
 import { analytics } from '../services/analyticsService'
 import { getStationLockdownMessage, isStationLockdownActive } from '../lib/stationLockdown'
+import countriesData from '../config/countries.json'
 
 export default function SignInPage() {
   const navigate = useNavigate()
@@ -16,6 +17,8 @@ export default function SignInPage() {
     playerName: '',
     playerEmail: '',
     playerPhone: '',
+    country: '',
+    state: '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -41,9 +44,21 @@ export default function SignInPage() {
     const name = formData.playerName.trim()
     const email = formData.playerEmail.trim()
     const phone = formData.playerPhone.trim()
+    const country = formData.country.trim()
+    const state = formData.state.trim()
 
     if (!name || !email) {
       setError('Please provide both your name and email to continue.')
+      return
+    }
+
+    if (!country) {
+      setError('Please select your country to continue.')
+      return
+    }
+
+    if (country === 'United States' && !state) {
+      setError('Please select your state to continue.')
       return
     }
 
@@ -54,6 +69,7 @@ export default function SignInPage() {
         name,
         email,
         ...(phone ? { phoneNumber: phone } : {}),
+        ...(country === 'United States' ? { state } : { country }),
       })
 
       analytics.identify(user)
@@ -79,12 +95,23 @@ export default function SignInPage() {
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }))
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => {
+      const next = {
+        ...prev,
+        [name]: value,
+      }
+
+      if (name === 'country' && value !== 'United States') {
+        next.state = ''
+      }
+
+      return next
+    })
   }
+
+  const { countries, states } = countriesData
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#040406]">
@@ -177,6 +204,56 @@ export default function SignInPage() {
                     autoComplete="new-password"
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="country" className="block text-sm font-semibold uppercase tracking-[0.2em] text-white/60">
+                    Country *
+                  </label>
+                  <select
+                    id="country"
+                    name="country"
+                    required
+                    value={formData.country}
+                    onChange={handleChange}
+                    disabled={isLockdownActive}
+                    className="w-full appearance-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition focus:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/40"
+                  >
+                    <option value="" className="bg-neutral-950 text-white/60">
+                      Select your country
+                    </option>
+                    {countries.map(countryOption => (
+                      <option key={countryOption} value={countryOption} className="bg-neutral-950 text-white">
+                        {countryOption}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {formData.country === 'United States' && (
+                  <div className="space-y-2">
+                    <label htmlFor="state" className="block text-sm font-semibold uppercase tracking-[0.2em] text-white/60">
+                      State *
+                    </label>
+                    <select
+                      id="state"
+                      name="state"
+                      required
+                      value={formData.state}
+                      onChange={handleChange}
+                      disabled={isLockdownActive}
+                      className="w-full appearance-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition focus:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/40"
+                    >
+                      <option value="" className="bg-neutral-950 text-white/60">
+                        Select your state
+                      </option>
+                      {states.map(stateOption => (
+                        <option key={stateOption} value={stateOption} className="bg-neutral-950 text-white">
+                          {stateOption}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <button
                   type="submit"

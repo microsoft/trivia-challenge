@@ -9,6 +9,8 @@ export interface User {
   email: string
   name: string
   phoneNumber?: string
+  country?: string
+  state?: string
   createdAt: string
 }
 
@@ -16,6 +18,8 @@ export interface RegisterUserRequest {
   email: string
   name: string
   phoneNumber?: string
+  country?: string
+  state?: string
 }
 
 export type SessionStatus = 'active' | 'completed' | 'abandoned'
