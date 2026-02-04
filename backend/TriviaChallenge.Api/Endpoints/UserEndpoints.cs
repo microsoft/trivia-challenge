@@ -38,7 +38,9 @@ public static class UserEndpoints
             {
                 Email = request.Email,
                 Name = request.Name,
-                PhoneNumber = request.PhoneNumber
+                PhoneNumber = request.PhoneNumber,
+                Country = string.IsNullOrWhiteSpace(request.Country) ? null : request.Country.Trim(),
+                State = string.IsNullOrWhiteSpace(request.State) ? null : request.State.Trim()
             };
 
             var createdUser = await userRepository.CreateOrGetAsync(user);
@@ -49,6 +51,8 @@ public static class UserEndpoints
                 Email = createdUser.Email,
                 Name = createdUser.Name,
                 PhoneNumber = createdUser.PhoneNumber,
+                Country = createdUser.Country,
+                State = createdUser.State,
                 CreatedAt = createdUser.CreatedAt
             };
 
@@ -81,6 +85,8 @@ public static class UserEndpoints
                 Email = user.Email,
                 Name = user.Name,
                 PhoneNumber = user.PhoneNumber,
+                Country = user.Country,
+                State = user.State,
                 CreatedAt = user.CreatedAt
             };
 
