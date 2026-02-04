@@ -1,6 +1,6 @@
 # 01: .NET API with Session Management and Question Serving
 
-Create a .NET 10 Minimal API that serves as the backend foundation for the Microsoft Fabric IQ Challenge. This API will handle user session management, serve randomized questions from Cosmos DB, and provide an endpoint for uploading question sets via www-urlencoded form data.
+Create a .NET 10 Minimal API that serves as the backend foundation for the Microsoft Fabric Trivia Challenge. This API will handle user session management, serve randomized questions from Cosmos DB, and provide an endpoint for uploading question sets via www-urlencoded form data.
 
 ## Functional Requirements
 

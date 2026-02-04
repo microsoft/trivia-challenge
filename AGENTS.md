@@ -1,6 +1,6 @@
 # Microsoft Fabric Trivia Challenge
 
-> Note: the game was originally named "IQ Challenge" during development, but has been rebranded to "Microsoft Fabric Trivia Challenge" for clarity and marketing purposes.
+> Note: the game was originally named differently during development, but has been rebranded to "Microsoft Fabric Trivia Challenge" for clarity and marketing purposes.
 
 A Kahoot/Duolingo-inspired quiz web app where players have a base 1 minute to answer randomized Microsoft Fabric questions, with the ability to earn up to 1 additional minute through completed streaks (maximum 2 minutes total). Difficulty is controlled by time pressure and number of answer choices. Features forgiving streak system and comprehensive telemetry including all user interactions.
 
@@ -62,7 +62,7 @@ A Kahoot/Duolingo-inspired quiz web app where players have a base 1 minute to an
 ## Development Workflow
 
 - **Frontend Dev Server**: `npm run dev` (from frontend/ directory - React with Vite on port 5173)
-- **Backend Dev Server**: `dotnet run` (from backend/IQChallenge.Api/ directory - .NET API on port 5000)
+- **Backend Dev Server**: `dotnet run` (from backend/TriviaChallenge.Api/ directory - .NET API on port 5000)
 - **Database**: Azure Cosmos DB (local emulator at https://localhost:8081 for development)
 - **Testing**: Jest for frontend, xUnit for backend
 - **Build**: `npm run build` for frontend, `dotnet publish` for backend

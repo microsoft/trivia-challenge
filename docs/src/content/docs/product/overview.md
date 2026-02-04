@@ -1,15 +1,15 @@
 ---
 title: Product Overview
-description: Overview of the IQ Challenge product
+description: Overview of the Trivia Challenge product
 ---
 
 # Product Overview
 
-Welcome to the IQ Challenge product documentation. This section contains comprehensive information about the product features, capabilities, and usage.
+Welcome to the Trivia Challenge product documentation. This section contains comprehensive information about the product features, capabilities, and usage.
 
-## What is IQ Challenge?
+## What is Trivia Challenge?
 
-IQ Challenge is [add description here].
+Trivia Challenge is [add description here].
 
 ## Key Features
 
@@ -19,7 +19,7 @@ IQ Challenge is [add description here].
 
 ## Getting Started
 
-To get started with IQ Challenge, check out the following resources:
+To get started with Trivia Challenge, check out the following resources:
 
 - Installation Guide
 - Quick Start Tutorial

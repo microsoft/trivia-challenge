@@ -92,7 +92,7 @@
 ### Daily Usage
 1. VS Code automatically starts containers
 2. Check Cosmos DB status: `.devcontainer/check-cosmos.sh`
-3. Start API: `cd backend/IQChallenge.Api && dotnet run`
+3. Start API: `cd backend/TriviaChallenge.Api && dotnet run`
 4. Start frontend: `npm run dev`
 
 ### Rebuilding Container
@@ -125,7 +125,7 @@ To start using the new dev container:
 
 4. **Start the API**:
    ```bash
-   cd backend/IQChallenge.Api
+   cd backend/TriviaChallenge.Api
    dotnet run
    ```
 

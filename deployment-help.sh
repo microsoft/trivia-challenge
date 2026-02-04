@@ -1,13 +1,13 @@
 #!/bin/bash
 
 ##################################################
-# IQ Challenge - Deployment Scripts Overview
+# Trivia Challenge - Deployment Scripts Overview
 ##################################################
 
 cat << 'EOF'
 
 ╔══════════════════════════════════════════════════════════════╗
-║        IQ Challenge - Deployment Scripts Overview           ║
+║        Trivia Challenge - Deployment Scripts Overview       ║
 ╚══════════════════════════════════════════════════════════════╝
 
 📦 AVAILABLE DEPLOYMENT SCRIPTS
@@ -57,7 +57,7 @@ cat << 'EOF'
 Step 1: Deploy Infrastructure (One-time)
   cd infra
   az deployment group create \
-    --resource-group rg-iqchallenge-bicep \
+    --resource-group rg-triviachallenge-bicep \
     --parameters main.dev.bicepparam
 
 Step 2: Configure Quick Deploy (One-time)

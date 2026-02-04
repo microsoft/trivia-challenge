@@ -1,6 +1,6 @@
 # Docker Deployment Guide
 
-This document describes how to build and run the IQ Challenge application using Docker.
+This document describes how to build and run the Trivia Challenge application using Docker.
 
 ## Overview
 
@@ -78,27 +78,27 @@ Access:
 
 ```bash
 # Build the multi-stage production image
-docker build -t iq-challenge:latest .
+docker build -t trivia-challenge:latest .
 
 # Run the production container
 docker run -p 8080:8080 \
   -e CosmosDb__EndpointUri="YOUR_COSMOS_URI" \
   -e CosmosDb__PrimaryKey="YOUR_COSMOS_KEY" \
-  iq-challenge:latest
+  trivia-challenge:latest
 ```
 
 ### Development Image
 
 ```bash
 # Build the development image (backend only)
-docker build -f Dockerfile.dev -t iq-challenge-dev:latest .
+docker build -f Dockerfile.dev -t trivia-challenge-dev:latest .
 
 # Run with volume mount for live reload
 docker run -p 5000:5000 \
   -v $(pwd)/backend:/src/backend:ro \
   -e CosmosDb__EndpointUri="YOUR_COSMOS_URI" \
   -e CosmosDb__PrimaryKey="YOUR_COSMOS_KEY" \
-  iq-challenge-dev:latest
+  trivia-challenge-dev:latest
 ```
 
 ## Architecture
@@ -156,7 +156,7 @@ Edit `.env` with your Azure Cosmos DB credentials:
 ```env
 COSMOS_DB_ENDPOINT_URI=https://your-account.documents.azure.com:443/
 COSMOS_DB_PRIMARY_KEY=your-primary-key-here
-COSMOS_DB_DATABASE_NAME=IQChallengeDb
+COSMOS_DB_DATABASE_NAME=TriviaChallengeDb
 CORS_ALLOWED_ORIGIN=https://your-domain.com
 ```
 
@@ -169,7 +169,7 @@ CORS_ALLOWED_ORIGIN=https://your-domain.com
 
 - `ASPNETCORE_ENVIRONMENT` - `Development` or `Production` (default: `Production`)
 - `ASPNETCORE_URLS` - Listening URLs (default: `http://+:8080`)
-- `COSMOS_DB_DATABASE_NAME` - Database name (default: `IQChallengeDb`)
+- `COSMOS_DB_DATABASE_NAME` - Database name (default: `TriviaChallengeDb`)
 - `CORS_ALLOWED_ORIGIN` - Allowed CORS origin in production
 
 ### Local Testing
@@ -238,17 +238,17 @@ docker-compose -f docker-compose.dev.yml down
 
 1. Check if static files are in the container:
    ```bash
-   docker exec -it iq-challenge-app ls -la /app/wwwroot
+  docker exec -it trivia-challenge-app ls -la /app/wwwroot
    ```
 
 2. Verify environment is set to Production:
    ```bash
-   docker exec -it iq-challenge-app env | grep ASPNETCORE_ENVIRONMENT
+  docker exec -it trivia-challenge-app env | grep ASPNETCORE_ENVIRONMENT
    ```
 
 3. Check API logs:
    ```bash
-   docker logs iq-challenge-app
+  docker logs trivia-challenge-app
    ```
 
 ### Build Failures
@@ -270,18 +270,18 @@ docker-compose up --build
 az acr login --name yourregistry
 
 # Build and push
-docker build -t yourregistry.azurecr.io/iq-challenge:latest .
-docker push yourregistry.azurecr.io/iq-challenge:latest
+docker build -t yourregistry.azurecr.io/trivia-challenge:latest .
+docker push yourregistry.azurecr.io/trivia-challenge:latest
 ```
 
 ### Azure Container Apps
 
 ```bash
 az containerapp create \
-  --name iq-challenge \
+  --name trivia-challenge \
   --resource-group your-rg \
   --environment your-env \
-  --image yourregistry.azurecr.io/iq-challenge:latest \
+  --image yourregistry.azurecr.io/trivia-challenge:latest \
   --target-port 8080 \
   --ingress external \
   --env-vars \
@@ -294,13 +294,13 @@ az containerapp create \
 
 ```bash
 az webapp create \
-  --name iq-challenge \
+  --name trivia-challenge \
   --resource-group your-rg \
   --plan your-plan \
-  --deployment-container-image-name yourregistry.azurecr.io/iq-challenge:latest
+  --deployment-container-image-name yourregistry.azurecr.io/trivia-challenge:latest
 
 az webapp config appsettings set \
-  --name iq-challenge \
+  --name trivia-challenge \
   --resource-group your-rg \
   --settings \
     ASPNETCORE_ENVIRONMENT=Production \

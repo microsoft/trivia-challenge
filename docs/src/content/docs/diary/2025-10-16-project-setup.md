@@ -7,7 +7,7 @@ description: Initial documentation site setup
 
 ## Context
 
-Setting up the documentation infrastructure for the IQ Challenge project using Astro with Starlight template.
+Setting up the documentation infrastructure for the Trivia Challenge project using Astro with Starlight template.
 
 ## Goals
 

@@ -2,7 +2,7 @@
 # This configuration does NOT deploy Cosmos DB
 # Uses higher-tier resources for production workloads
 
-namePrefix: iqchallenge
+namePrefix: triviachallenge
 environment: staging
 deployCosmosDb: false
 

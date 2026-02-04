@@ -134,7 +134,7 @@ The changes are backward compatible and will:
 **Deploy with:**
 ```bash
 az deployment group create \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --parameters infra/main.dev.bicepparam
 ```
 

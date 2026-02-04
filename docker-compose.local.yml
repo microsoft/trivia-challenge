@@ -2,7 +2,7 @@ services:
   # Cosmos DB Emulator for local testing
   cosmosdb:
     image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
-    container_name: iq-challenge
+    container_name: trivia-challenge
     ports:
       - "8081:8081"
       - "10250-10255:10250-10255"
@@ -13,14 +13,14 @@ services:
     volumes:
       - cosmosdb-local-data:/data
     networks:
-      - iq-challenge-local-network
+      - trivia-challenge-local-network
 
   # Application with Cosmos DB Emulator (for local testing only)
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: iq-challenge-app-local
+    container_name: trivia-challenge-app-local
     ports:
       - "8080:8080"
     environment:
@@ -28,12 +28,12 @@ services:
       # Cosmos DB Emulator connection (local testing only)
       - CosmosDb__EndpointUri=https://cosmosdb:8081
       - CosmosDb__PrimaryKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==
-      - CosmosDb__DatabaseName=IQChallengeDb
+      - CosmosDb__DatabaseName=TriviaChallengeDb
       - Cors__AllowedOrigins__0=http://localhost:8080
     depends_on:
       - cosmosdb
     networks:
-      - iq-challenge-local-network
+      - trivia-challenge-local-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -45,5 +45,5 @@ volumes:
   cosmosdb-local-data:
 
 networks:
-  iq-challenge-local-network:
+  trivia-challenge-local-network:
     driver: bridge

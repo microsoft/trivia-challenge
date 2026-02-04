@@ -5,7 +5,7 @@ description: Introduction to the developer diary
 
 # Developer Diary
 
-Welcome to the developer diary for the IQ Challenge project. This section documents the development journey, technical decisions, challenges faced, and lessons learned.
+Welcome to the developer diary for the Trivia Challenge project. This section documents the development journey, technical decisions, challenges faced, and lessons learned.
 
 ## Purpose
 

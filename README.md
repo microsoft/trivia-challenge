@@ -1,4 +1,4 @@
-# Microsoft Fabric IQ Challenge
+# Microsoft Fabric Trivia Challenge
 
 A quiz web application where players assess their Microsoft Fabric knowledge through an engaging, time-pressured quiz game.
 
@@ -26,8 +26,8 @@ Run the complete application with Cosmos DB Emulator:
 
 ```bash
 # Clone and start
-git clone https://github.com/microsoft/iq-challenge.git
-cd iq-challenge
+git clone https://github.com/microsoft/trivia-challenge.git
+cd trivia-challenge
 ./docker.sh local:up
 
 # Access at http://localhost:8080
@@ -45,8 +45,8 @@ See [DOCKER-QUICKSTART.md](DOCKER-QUICKSTART.md) for quick start guide.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/microsoft/iq-challenge.git
-   cd iq-challenge
+   git clone https://github.com/microsoft/trivia-challenge.git
+   cd trivia-challenge
    ```
 
 2. Open in VS Code:
@@ -61,7 +61,7 @@ See [DOCKER-QUICKSTART.md](DOCKER-QUICKSTART.md) for quick start guide.
 5. Once ready, start the services:
    ```bash
    # Terminal 1: Start the .NET API
-   cd backend/IQChallenge.Api
+   cd backend/TriviaChallenge.Api
    dotnet run
 
    # Terminal 2: Start the frontend
@@ -86,14 +86,14 @@ See [.devcontainer/README.md](.devcontainer/README.md) for detailed devcontainer
 ## 📁 Project Structure
 
 ```
-iq-challenge/
+trivia-challenge/
 ├── .devcontainer/          # Dev container configuration
 │   ├── devcontainer.json   # VS Code dev container config
 │   ├── docker-compose.yml  # Docker Compose setup
 │   ├── Dockerfile          # Custom dev container image
 │   └── post-create.sh      # Setup script
 ├── backend/                # .NET 10 API
-│   └── IQChallenge.Api/    # Main API project
+│   └── TriviaChallenge.Api/    # Main API project
 ├── docs/                   # Documentation (Astro)
 ├── frontend/               # React + TypeScript frontend
 └── infrastructure/         # Azure deployment
@@ -132,7 +132,7 @@ iq-challenge/
 #### Manual Development Mode
 ```bash
 # Terminal 1: Backend
-cd backend/IQChallenge.Api
+cd backend/TriviaChallenge.Api
 dotnet run
 
 # Terminal 2: Frontend
@@ -161,7 +161,7 @@ See API documentation at http://localhost:5000/swagger when running.
 
 ```bash
 # Backend tests
-cd backend/IQChallenge.Api.Tests
+cd backend/TriviaChallenge.Api.Tests
 dotnet test
 
 # Frontend tests

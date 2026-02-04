@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: iq-challenge-app
+    container_name: trivia-challenge-app
     ports:
       - "8080:8080"
     environment:
@@ -13,7 +13,7 @@ services:
       # DO NOT commit real credentials to version control
       - CosmosDb__EndpointUri=${COSMOS_DB_ENDPOINT_URI}
       - CosmosDb__PrimaryKey=${COSMOS_DB_PRIMARY_KEY}
-      - CosmosDb__DatabaseName=${COSMOS_DB_DATABASE_NAME:-IQChallengeDb}
+      - CosmosDb__DatabaseName=${COSMOS_DB_DATABASE_NAME:-TriviaChallengeDb}
       - Cors__AllowedOrigins__0=${CORS_ALLOWED_ORIGIN:-http://localhost:8080}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
@@ -24,5 +24,5 @@ services:
     restart: unless-stopped
 
 networks:
-  iq-challenge-network:
+  trivia-challenge-network:
     driver: bridge

@@ -1,7 +1,7 @@
 # Development Configuration (without Cosmos DB)
 # This configuration does NOT deploy Cosmos DB
 
-namePrefix: iqchallenge
+namePrefix: triviachallenge
 environment: dev
 deployCosmosDb: false
 

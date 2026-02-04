@@ -6,16 +6,16 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS backend-build
 WORKDIR /src
 
 # Copy solution and project files (exclude tests)
-COPY backend/IQChallenge.Api/IQChallenge.Api.csproj ./backend/IQChallenge.Api/
+COPY backend/TriviaChallenge.Api/TriviaChallenge.Api.csproj ./backend/TriviaChallenge.Api/
 
 # Restore dependencies
-RUN dotnet restore backend/IQChallenge.Api/IQChallenge.Api.csproj
+RUN dotnet restore backend/TriviaChallenge.Api/TriviaChallenge.Api.csproj
 
 # Copy only the API project source code (exclude tests)
-COPY backend/IQChallenge.Api/ ./backend/IQChallenge.Api/
+COPY backend/TriviaChallenge.Api/ ./backend/TriviaChallenge.Api/
 
 # Build and publish the API
-WORKDIR /src/backend/IQChallenge.Api
+WORKDIR /src/backend/TriviaChallenge.Api
 RUN dotnet publish -c Release -o /app/publish --no-restore
 
 ##################################################
@@ -76,4 +76,4 @@ ENV ASPNETCORE_ENVIRONMENT=Production
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
 
-ENTRYPOINT ["dotnet", "IQChallenge.Api.dll"]
+ENTRYPOINT ["dotnet", "TriviaChallenge.Api.dll"]

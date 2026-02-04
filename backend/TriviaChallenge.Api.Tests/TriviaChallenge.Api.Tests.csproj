@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\IQChallenge.Api\IQChallenge.Api.csproj" />
+    <ProjectReference Include="..\TriviaChallenge.Api\TriviaChallenge.Api.csproj" />
   </ItemGroup>
 
 </Project>

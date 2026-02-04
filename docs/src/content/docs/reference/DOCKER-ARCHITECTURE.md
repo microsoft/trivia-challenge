@@ -12,13 +12,13 @@
 │ ┌─────────────────────────────────────────────────────────────────┐ │
 │ │ Base: mcr.microsoft.com/dotnet/sdk:10.0-alpine                  │ │
 │ │                                                                   │ │
-│ │ 1. Copy iq-challenge.sln                                         │ │
+│ │ 1. Copy trivia-challenge.sln                                     │ │
 │ │ 2. Copy .csproj files                                            │ │
 │ │ 3. dotnet restore                                                │ │
 │ │ 4. Copy backend/ source code                                     │ │
 │ │ 5. dotnet publish -c Release                                     │ │
 │ │                                                                   │ │
-│ │ Output: /app/publish/IQChallenge.Api.dll + dependencies          │ │
+│ │ Output: /app/publish/TriviaChallenge.Api.dll + dependencies      │ │
 │ └─────────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────┘
                                     ↓
@@ -46,11 +46,11 @@
 │ │ 3. Create non-root user (appuser:1000)                          │ │
 │ │ 4. Configure health check                                        │ │
 │ │ 5. EXPOSE 8080                                                   │ │
-│ │ 6. ENTRYPOINT ["dotnet", "IQChallenge.Api.dll"]                 │ │
+│ │ 6. ENTRYPOINT ["dotnet", "TriviaChallenge.Api.dll"]             │ │
 │ │                                                                   │ │
 │ │ Final Structure:                                                 │ │
 │ │   /app/                                                          │ │
-│ │   ├── IQChallenge.Api.dll      ← Backend                        │ │
+│ │   ├── TriviaChallenge.Api.dll  ← Backend                        │ │
 │ │   ├── (dependencies)                                             │ │
 │ │   └── wwwroot/                 ← Frontend                        │ │
 │ │       ├── index.html                                             │ │
@@ -66,7 +66,7 @@
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│                     Container: iq-challenge-app                     │
+│                     Container: trivia-challenge-app                 │
 │                         Port: 8080                                  │
 │                                                                      │
 │  ┌────────────────────────────────────────────────────────────┐   │
@@ -182,7 +182,7 @@ Commands:
 
 ```
 ┌──────────────────────────────────────┐
-│  Docker Network: iq-challenge-network│
+│  Docker Network: trivia-challenge-network│
 │                                       │
 │  ┌────────────────┐                  │
 │  │   cosmosdb     │                  │
@@ -210,7 +210,7 @@ Access:
 
 ```
 ┌──────────────────────────────────────────┐
-│  Docker Network: iq-challenge-dev-network│
+│  Docker Network: trivia-challenge-dev-network│
 │                                           │
 │  ┌────────────────┐                      │
 │  │   cosmosdb     │                      │
@@ -315,7 +315,7 @@ Build Stages:
 ```
                     ┌─────────────────────┐
                     │  Docker Image       │
-                    │  (iq-challenge)     │
+                    │  (trivia-challenge)     │
                     └──────────┬──────────┘
                                │
            ┌───────────────────┼───────────────────┐
@@ -365,9 +365,9 @@ All targets support:
          ┌────────────────────────────┐
          │  Push to GHCR              │
          │  ghcr.io/microsoft/        │
-         │    iq-challenge:latest     │
-         │    iq-challenge:v1.0.0     │
-         │    iq-challenge:sha-abc123 │
+         │    trivia-challenge:latest     │
+         │    trivia-challenge:v1.0.0     │
+         │    trivia-challenge:sha-abc123 │
          └────────────┬───────────────┘
                       ↓
       ┌───────────────────────────────┐

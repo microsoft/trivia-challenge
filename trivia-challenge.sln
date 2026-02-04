@@ -4,9 +4,9 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backend", "backend", "{1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IQChallenge.Api", "backend\IQChallenge.Api\IQChallenge.Api.csproj", "{BDA17A0D-7A4B-B891-3443-1D2E36DB28C9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TriviaChallenge.Api", "backend\TriviaChallenge.Api\TriviaChallenge.Api.csproj", "{BDA17A0D-7A4B-B891-3443-1D2E36DB28C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IQChallenge.Api.Tests", "backend\IQChallenge.Api.Tests\IQChallenge.Api.Tests.csproj", "{AACD96FF-7709-D5FF-646D-4EAA4D9D1A88}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TriviaChallenge.Api.Tests", "backend\TriviaChallenge.Api.Tests\TriviaChallenge.Api.Tests.csproj", "{AACD96FF-7709-D5FF-646D-4EAA4D9D1A88}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

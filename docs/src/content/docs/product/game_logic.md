@@ -1,8 +1,8 @@
-# Microsoft Fabric IQ Challenge - Technical Specifications
+# Microsoft Fabric Trivia Challenge - Technical Specifications
 
 ## Game Overview
 
-The Microsoft Fabric IQ Challenge is a React-based trivia game built with TypeScript, Vite, and modern UI libraries. The game features a fantasy/magical theme with a default 60-second time limit and streak-based bonus mechanics.
+The Microsoft Fabric Trivia Challenge is a React-based trivia game built with TypeScript, Vite, and modern UI libraries. The game features a fantasy/magical theme with a default 60-second time limit and streak-based bonus mechanics.
 
 ## Game mechanics
 

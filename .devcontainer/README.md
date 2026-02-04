@@ -38,7 +38,7 @@ This project uses a Docker Compose-based development container with the Azure Co
 
 ### Start the .NET API
 ```bash
-cd backend/IQChallenge.Api
+cd backend/TriviaChallenge.Api
 dotnet run
 ```
 
@@ -72,7 +72,7 @@ sudo update-ca-certificates
 Data is stored in the `cosmos-data` Docker volume. To reset the database:
 
 ```bash
-docker volume rm iq-challenge_cosmos-data
+docker volume rm trivia-challenge_cosmos-data
 ```
 
 ## Troubleshooting
