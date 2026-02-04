@@ -14,7 +14,7 @@ Ensure Docker Desktop is installed and running on your host machine:
 
 ```bash
 # Navigate to the project directory
-cd /path/to/iq-challenge
+cd /path/to/trivia-challenge
 
 # Local testing mode (complete app + Cosmos Emulator)
 ./docker.sh local:up         # Start application with emulator
@@ -99,7 +99,7 @@ cp .env.example .env
 From **devcontainer** only:
 ```bash
 # Terminal 1: Backend
-cd backend/IQChallenge.Api
+cd backend/TriviaChallenge.Api
 dotnet run
 
 # Terminal 2: Frontend
@@ -122,7 +122,7 @@ Note: Requires Cosmos DB Emulator running on host or in devcontainer.
    ```env
    COSMOS_DB_ENDPOINT_URI=https://your-account.documents.azure.com:443/
    COSMOS_DB_PRIMARY_KEY=your-primary-key-here
-   COSMOS_DB_DATABASE_NAME=IQChallengeDb
+   COSMOS_DB_DATABASE_NAME=TriviaChallengeDb
    CORS_ALLOWED_ORIGIN=http://localhost:8080
    ```
 
@@ -137,17 +137,17 @@ No `.env` file needed - `./docker.sh local:up` uses the Cosmos DB Emulator autom
 From **host machine**:
 ```bash
 # Build production image
-docker build -t iq-challenge:latest .
+docker build -t trivia-challenge:latest .
 
 # Test the image
 docker run -p 8080:8080 \
   -e CosmosDb__EndpointUri="https://your-cosmos.documents.azure.com:443/" \
   -e CosmosDb__PrimaryKey="your-key" \
-  iq-challenge:latest
+   trivia-challenge:latest
 
 # Push to registry (if needed)
-docker tag iq-challenge:latest yourregistry.azurecr.io/iq-challenge:latest
-docker push yourregistry.azurecr.io/iq-challenge:latest
+docker tag trivia-challenge:latest yourregistry.azurecr.io/trivia-challenge:latest
+docker push yourregistry.azurecr.io/trivia-challenge:latest
 ```
 
 ## Troubleshooting
@@ -182,17 +182,17 @@ lsof -i :8080  # or :5000, :5173
 ### View Container Logs
 ```bash
 # Production
-docker logs -f iq-challenge-app
+docker logs -f trivia-challenge-app
 
 # Development
-docker logs -f iq-challenge-api-dev
-docker logs -f iq-challenge-cosmosdb-dev
+docker logs -f trivia-challenge-api-dev
+docker logs -f trivia-challenge-cosmosdb-dev
 ```
 
 ## File Structure
 
 ```
-iq-challenge/
+trivia-challenge/
 ├── Dockerfile                  # Multi-stage production build
 ├── Dockerfile.dev              # Development backend build
 ├── docker-compose.yml          # Production: app + cosmos
@@ -211,7 +211,7 @@ iq-challenge/
 | Production (Azure) | `./docker.sh prod:up` | Host (needs .env) |
 | Start development | `./docker.sh dev:up` | Host |
 | Start frontend dev | `npm run dev` | Devcontainer |
-| Build image | `docker build -t iq-challenge .` | Host |
+| Build image | `docker build -t trivia-challenge .` | Host |
 | View logs | `./docker.sh local:logs` | Host |
 | Stop services | `./docker.sh local:down` | Host |
 | Clean everything | `./docker.sh clean` | Host |

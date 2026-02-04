@@ -1,6 +1,6 @@
 # Docker Image Deployment Script
 
-This script automates the process of building, pushing, and deploying the IQ Challenge application to Azure.
+This script automates the process of building, pushing, and deploying the Trivia Challenge application to Azure.
 
 ## Quick Start
 
@@ -58,7 +58,7 @@ Arguments:
   acr-name              Name of the Azure Container Registry (required)
 
 Options:
-  --resource-group, -g  Resource group name (default: rg-iqchallenge-bicep)
+  --resource-group, -g  Resource group name (default: rg-triviachallenge-bicep)
   --app-name, -a        App Service name (if not provided, will be discovered)
   --image-tag, -t       Image tag (default: latest)
   --no-cache            Build without Docker cache
@@ -69,19 +69,19 @@ Options:
 
 ### Deploy to default resource group
 ```bash
-./deploy-image.sh demoiqchallengeacr123
+./deploy-image.sh demotriviachallengeacr123
 ```
 
 ### Deploy with custom resource group and app name
 ```bash
-./deploy-image.sh demoiqchallengeacr123 \
-  -g rg-iqchallenge-prod \
-  -a demo-iqchallenge-api-prod
+./deploy-image.sh demotriviachallengeacr123 \
+  -g rg-triviachallenge-prod \
+  -a demo-triviachallenge-api-prod
 ```
 
 ### Deploy specific version without cache
 ```bash
-./deploy-image.sh demoiqchallengeacr123 \
+./deploy-image.sh demotriviachallengeacr123 \
   --image-tag v2.1.0 \
   --no-cache
 ```
@@ -89,13 +89,13 @@ Options:
 ### Deploy to different environment
 ```bash
 # Development
-./deploy-image.sh myacr -g rg-iqchallenge-dev -a myapp-api-dev -t dev-latest
+./deploy-image.sh myacr -g rg-triviachallenge-dev -a myapp-api-dev -t dev-latest
 
 # Staging
-./deploy-image.sh myacr -g rg-iqchallenge-staging -a myapp-api-staging -t staging-latest
+./deploy-image.sh myacr -g rg-triviachallenge-staging -a myapp-api-staging -t staging-latest
 
 # Production
-./deploy-image.sh myacr -g rg-iqchallenge-prod -a myapp-api-prod -t v1.0.0
+./deploy-image.sh myacr -g rg-triviachallenge-prod -a myapp-api-prod -t v1.0.0
 ```
 
 ## Getting Your ACR Name
@@ -104,11 +104,11 @@ If you don't know your ACR name, you can find it using:
 
 ```bash
 # List all ACRs in a resource group
-az acr list --resource-group rg-iqchallenge-bicep --query "[].{Name:name, LoginServer:loginServer}" -o table
+az acr list --resource-group rg-triviachallenge-bicep --query "[].{Name:name, LoginServer:loginServer}" -o table
 
 # Or from Bicep deployment outputs
 az deployment group show \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --name acrDeployment \
   --query properties.outputs.acrName.value -o tsv
 ```
@@ -119,11 +119,11 @@ If auto-discovery fails, you can find your App Service name using:
 
 ```bash
 # List all App Services in a resource group
-az webapp list --resource-group rg-iqchallenge-bicep --query "[].name" -o table
+az webapp list --resource-group rg-triviachallenge-bicep --query "[].name" -o table
 
 # Or from Bicep deployment outputs
 az deployment group show \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --name appServiceDeployment \
   --query properties.outputs.appServiceName.value -o tsv
 ```
@@ -204,7 +204,7 @@ az login --service-principal -u <app-id> -p <password> --tenant <tenant-id>
 
 3. **Retry the push:**
    ```bash
-   docker push <acr-login-server>/iqchallenge:<tag>
+  docker push <acr-login-server>/triviachallenge:<tag>
    ```
 
 ### Issue: Authentication error when pushing to ACR
@@ -218,7 +218,7 @@ az acr login --name <acr-name>
 **Solution**: 
 1. Check if the image was pushed successfully:
    ```bash
-   az acr repository show-tags --name <acr-name> --repository iqchallenge
+  az acr repository show-tags --name <acr-name> --repository triviachallenge
    ```
 2. Manually restart the web app:
    ```bash

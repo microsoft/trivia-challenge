@@ -1,6 +1,6 @@
-# Microsoft Fabric IQ Challenge - Frontend
+# Microsoft Fabric Trivia Challenge - Frontend
 
-React + TypeScript + Vite frontend application with Tailwind CSS and shadcn/ui for the Microsoft Fabric IQ Challenge quiz game.
+React + TypeScript + Vite frontend application with Tailwind CSS and shadcn/ui for the Microsoft Fabric Trivia Challenge quiz game.
 
 ## 🚀 Quick Start
 
@@ -201,4 +201,4 @@ MIT License - See LICENSE file for details
 
 ## 🤝 Contributing
 
-This project is part of the Microsoft Fabric IQ Challenge demonstration at Microsoft Ignite.
+This project is part of the Microsoft Fabric Trivia Challenge demonstration at Microsoft Ignite.

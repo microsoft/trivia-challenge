@@ -6,16 +6,16 @@ WORKDIR /src
 RUN apk add --no-cache curl
 
 # Copy project file (exclude tests)
-COPY backend/IQChallenge.Api/IQChallenge.Api.csproj ./backend/IQChallenge.Api/
+COPY backend/TriviaChallenge.Api/TriviaChallenge.Api.csproj ./backend/TriviaChallenge.Api/
 
 # Restore dependencies
-RUN dotnet restore backend/IQChallenge.Api/IQChallenge.Api.csproj
+RUN dotnet restore backend/TriviaChallenge.Api/TriviaChallenge.Api.csproj
 
 # Copy only the API project source (exclude tests)
-COPY backend/IQChallenge.Api/ ./backend/IQChallenge.Api/
+COPY backend/TriviaChallenge.Api/ ./backend/TriviaChallenge.Api/
 
 # Set working directory to the API project
-WORKDIR /src/backend/IQChallenge.Api
+WORKDIR /src/backend/TriviaChallenge.Api
 
 # Expose port
 EXPOSE 5000

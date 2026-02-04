@@ -24,7 +24,7 @@ Three bash scripts have been created to streamline the Docker image build, push,
 ./deploy-image.sh <acr-name> [options]
 
 Options:
-  -g, --resource-group    Resource group (default: rg-iqchallenge-bicep)
+  -g, --resource-group    Resource group (default: rg-triviachallenge-bicep)
   -a, --app-name         App Service name (auto-discovered if not provided)
   -t, --image-tag        Image tag (default: latest)
   --no-cache             Build without Docker cache
@@ -124,7 +124,7 @@ Shows:
                             │   │  ├─ Stage 1: Build .NET backend
                             │   │  ├─ Stage 2: Build React frontend
                             │   │  └─ Stage 3: Combine in runtime image
-                            │   └─ Tag: <acr>.azurecr.io/iqchallenge:<tag>
+                            │   └─ Tag: <acr>.azurecr.io/triviachallenge:<tag>
                             │
                             ├─► 4. Login to ACR
                             │   └─ az acr login --name <acr>
@@ -133,7 +133,7 @@ Shows:
                             │   └─ docker push <image>
                             │
                             ├─► 6. Discover App Service (if needed)
-                            │   └─ az webapp list --query "[?tags.project=='iq-challenge']"
+                            │   └─ az webapp list --query "[?tags.project=='trivia-challenge']"
                             │
                             ├─► 7. Update Container Configuration
                             │   └─ az webapp config container set
@@ -148,19 +148,19 @@ The scripts work seamlessly with the Bicep-deployed infrastructure:
 
 1. **Container Registry**: Uses ACR deployed via `infra/main.bicep`
 2. **Managed Identity**: Web App uses system-assigned MI for ACR pull
-3. **Automatic Discovery**: Finds resources using Bicep tags (`project: iq-challenge`)
+3. **Automatic Discovery**: Finds resources using Bicep tags (`project: trivia-challenge`)
 4. **CI/CD Ready**: Webhook-enabled for automatic deployments
 
 ### Key Implementation Details
 
 #### Image Naming Convention
 ```
-<acr-login-server>/iqchallenge:<tag>
+<acr-login-server>/triviachallenge:<tag>
 
 Examples:
-  demoiqchallengeacr123.azurecr.io/iqchallenge:latest
-  demoiqchallengeacr123.azurecr.io/iqchallenge:v1.0.0
-  demoiqchallengeacr123.azurecr.io/iqchallenge:dev-20250131-143022
+  demotriviachallengeacr123.azurecr.io/triviachallenge:latest
+  demotriviachallengeacr123.azurecr.io/triviachallenge:v1.0.0
+  demotriviachallengeacr123.azurecr.io/triviachallenge:dev-20250131-143022
 ```
 
 #### App Service Update Process
@@ -171,10 +171,10 @@ Examples:
 
 #### Auto-Discovery Logic
 ```bash
-# Discovers first app tagged with project=iq-challenge
+# Discovers first app tagged with project=trivia-challenge
 az webapp list \
   --resource-group <rg> \
-  --query "[?tags.project=='iq-challenge'].name | [0]"
+  --query "[?tags.project=='trivia-challenge'].name | [0]"
 ```
 
 ## Usage Patterns
@@ -217,7 +217,7 @@ See `.github/workflows/deploy-azure.yml.example` for GitHub Actions example
 ## Files Created
 
 ```
-/workspaces/iq-challenge/
+/workspaces/trivia-challenge/
 ├── deploy-image.sh                        # Main deployment script
 ├── quick-deploy.sh                        # Simplified wrapper
 ├── deployment-help.sh                     # Help/documentation

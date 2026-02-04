@@ -35,7 +35,7 @@ param appServicePlanSkuTier string = 'Basic'
 param deployCosmosDb bool = false
 
 @description('Cosmos DB database name')
-param cosmosDbDatabaseName string = 'iqchallenge'
+param cosmosDbDatabaseName string = 'triviachallenge'
 
 @description('Cosmos DB containers configuration')
 param cosmosDbContainers array = [
@@ -87,7 +87,7 @@ module acr 'br/public:avm/res/container-registry/registry:0.1.1' = {
     zoneRedundancy: 'Disabled'
     tags: {
       environment: environment
-      project: 'iq-challenge'
+      project: 'trivia-challenge'
       managedBy: 'bicep'
     }
   }
@@ -108,7 +108,7 @@ module appServicePlan 'br/public:avm/res/web/serverfarm:0.1.0' = {
     reserved: true
     tags: {
       environment: environment
-      project: 'iq-challenge'
+      project: 'trivia-challenge'
       managedBy: 'bicep'
     }
   }
@@ -141,7 +141,7 @@ module cosmosDb 'br/public:avm/res/document-db/database-account:0.8.1' = if (dep
     }
     tags: {
       environment: environment
-      project: 'iq-challenge'
+      project: 'trivia-challenge'
       managedBy: 'bicep'
     }
   }
@@ -201,7 +201,7 @@ module appService 'br/public:avm/res/web/site:0.3.9' = {
     }
     tags: {
       environment: environment
-      project: 'iq-challenge'
+      project: 'trivia-challenge'
       managedBy: 'bicep'
     }
   }

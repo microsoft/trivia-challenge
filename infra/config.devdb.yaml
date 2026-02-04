@@ -1,7 +1,7 @@
 # Development with Database Configuration
 # This configuration deploys Cosmos DB along with other resources
 
-namePrefix: iqchallenge
+namePrefix: triviachallenge
 environment: dev
 deployCosmosDb: true
 
@@ -16,7 +16,7 @@ appServicePlanSkuTier: Basic
 containerImage: mcr.microsoft.com/dotnet/samples:aspnetapp
 
 # Cosmos DB Configuration
-cosmosDbDatabaseName: iqchallenge
+cosmosDbDatabaseName: triviachallenge
 cosmosDbContainers:
   - name: users
     paths:

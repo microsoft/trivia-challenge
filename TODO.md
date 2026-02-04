@@ -1,4 +1,4 @@
-# Microsoft Fabric IQ Challenge - TODO
+# Microsoft Fabric Trivia Challenge - TODO
 
 ## MVP Features
 

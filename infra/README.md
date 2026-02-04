@@ -34,7 +34,7 @@ Infrastructure configuration is managed through YAML files and Bicep parameter f
 
 ```bash
 az group create \
-  --name rg-iqchallenge-bicep \
+  --name rg-triviachallenge-bicep \
   --location eastus
 ```
 
@@ -43,21 +43,21 @@ az group create \
 **Option A: Development without Cosmos DB**
 ```bash
 az deployment group create \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --parameters infra/main.dev.bicepparam
 ```
 
 **Option B: Development with Cosmos DB**
 ```bash
 az deployment group create \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --parameters infra/main.devdb.bicepparam
 ```
 
 **Option C: Production (no Cosmos DB)**
 ```bash
 az deployment group create \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --parameters infra/main.prod.bicepparam
 ```
 
@@ -65,7 +65,7 @@ az deployment group create \
 
 ```bash
 az deployment group create \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --template-file infra/main.bicep \
   --parameters namePrefix=myapp \
                environment=prod \
@@ -88,7 +88,7 @@ az deployment group create \
 | `appServicePlanSkuName` | string | `B1` | App Service Plan SKU name (B1, B2, B3, S1, S2, S3, P1v2, P2v2, P3v2) |
 | `appServicePlanSkuTier` | string | `Basic` | App Service Plan SKU tier (Basic, Standard, PremiumV2) |
 | `deployCosmosDb` | bool | `false` | Whether to deploy Cosmos DB serverless instance |
-| `cosmosDbDatabaseName` | string | `iqchallenge` | Name of the Cosmos DB database |
+| `cosmosDbDatabaseName` | string | `triviachallenge` | Name of the Cosmos DB database |
 | `cosmosDbContainers` | array | See below | Array of containers with partition key paths |
 
 ## Default Cosmos DB Containers
@@ -123,24 +123,24 @@ Preview changes before deployment:
 ```bash
 # Dev without DB
 az deployment group what-if \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --parameters infra/main.dev.bicepparam
 
 # Dev with DB
 az deployment group what-if \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --parameters infra/main.devdb.bicepparam
 
 # Production
 az deployment group what-if \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --parameters infra/main.prod.bicepparam
 ```
 
 **Using inline parameters:**
 ```bash
 az deployment group what-if \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --template-file infra/main.bicep \
   --parameters namePrefix=demo containerImage=repo/demo:latest deployCosmosDb=true
 ```
@@ -207,7 +207,7 @@ When Cosmos DB is deployed (`deployCosmosDb=true`):
 - ✅ **Cosmos DB Data Contributor role** is automatically assigned to App Service identity
 - ✅ Environment variables are automatically configured:
   - `CosmosDb__AccountEndpoint`: Cosmos DB endpoint URL
-  - `CosmosDb__DatabaseName`: Database name (default: `iqchallenge`)
+  - `CosmosDb__DatabaseName`: Database name (default: `triviachallenge`)
   - `CosmosDb__UseIdentity`: Set to `true` to use managed identity
 
 **No manual role assignment needed!** The infrastructure automatically:
@@ -228,7 +228,7 @@ When Cosmos DB is deployed (`deployCosmosDb=true`):
    ```bash
    az webapp config container set \
      --name <appServiceName> \
-     --resource-group rg-iqchallenge-bicep \
+    --resource-group rg-triviachallenge-bicep \
      --docker-custom-image-name <acrLoginServer>/myapp:latest
    ```
 
@@ -236,7 +236,7 @@ When Cosmos DB is deployed (`deployCosmosDb=true`):
    ```bash
    az webapp config container set \
      --name <appServiceName> \
-     --resource-group rg-iqchallenge-bicep \
+    --resource-group rg-triviachallenge-bicep \
      --docker-registry-server-url https://<acrLoginServer> \
      --docker-registry-server-user <acrName> \
      --docker-registry-server-password $(az acr credential show --name <acrName> --query passwords[0].value -o tsv)
@@ -247,7 +247,7 @@ When Cosmos DB is deployed (`deployCosmosDb=true`):
 ### View Deployment Errors
 ```bash
 az deployment group show \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --name <deployment-name> \
   --query properties.error
 ```
@@ -256,7 +256,7 @@ az deployment group show \
 ```bash
 az webapp log tail \
   --name <appServiceName> \
-  --resource-group rg-iqchallenge-bicep
+  --resource-group rg-triviachallenge-bicep
 ```
 
 ### Validate Bicep Syntax
@@ -269,5 +269,5 @@ az bicep build --file infra/main.bicep
 To delete all resources:
 
 ```bash
-az group delete --name rg-iqchallenge-bicep --yes --no-wait
+az group delete --name rg-triviachallenge-bicep --yes --no-wait
 ```

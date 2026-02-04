@@ -2,7 +2,7 @@ services:
   # Cosmos DB Emulator for local development
   cosmosdb:
     image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
-    container_name: iq-challenge-cosmosdb-dev
+    container_name: trivia-challenge-cosmosdb-dev
     ports:
       - "8081:8081"
       - "10250-10255:10250-10255"
@@ -13,14 +13,14 @@ services:
     volumes:
       - cosmosdb-dev-data:/data
     networks:
-      - iq-challenge-dev-network
+      - trivia-challenge-dev-network
 
   # Backend API only (frontend runs separately with npm run dev)
   api:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: iq-challenge-api-dev
+    container_name: trivia-challenge-api-dev
     ports:
       - "5000:5000"
     environment:
@@ -28,17 +28,17 @@ services:
       - ASPNETCORE_URLS=http://+:5000
       - CosmosDb__EndpointUri=https://cosmosdb:8081
       - CosmosDb__PrimaryKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==
-      - CosmosDb__DatabaseName=IQChallengeDb
+      - CosmosDb__DatabaseName=TriviaChallengeDb
     volumes:
       - ./backend:/src/backend:ro
     depends_on:
       - cosmosdb
     networks:
-      - iq-challenge-dev-network
+      - trivia-challenge-dev-network
 
 volumes:
   cosmosdb-dev-data:
 
 networks:
-  iq-challenge-dev-network:
+  trivia-challenge-dev-network:
     driver: bridge

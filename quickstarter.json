@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "idea": "An 'IQ Challenge' quiz web app that serves three purposes: 1) Help people assess their knowledge about Microsoft Fabric, 2) Demonstrate Azure and Microsoft Fabric technologies, 3) Serve as a booth animation during Microsoft Ignite event. Based on Fabric Flashcards, with Kahoot/Duolingo-inspired UX. Game includes waiting screen, registration, timed quiz gameplay with dynamic difficulty, and results/leaderboard. Features comprehensive telemetry capture sent to Microsoft Fabric for analysis.",
+  "idea": "A 'Trivia Challenge' quiz web app that serves three purposes: 1) Help people assess their knowledge about Microsoft Fabric, 2) Demonstrate Azure and Microsoft Fabric technologies, 3) Serve as a booth animation during Microsoft Ignite event. Based on Fabric Flashcards, with Kahoot/Duolingo-inspired UX. Game includes waiting screen, registration, timed quiz gameplay with dynamic difficulty, and results/leaderboard. Features comprehensive telemetry capture sent to Microsoft Fabric for analysis.",
   "project": {
-    "name": "Microsoft Fabric IQ Challenge",
+    "name": "Microsoft Fabric Trivia Challenge",
     "mission": "Create an engaging quiz game that helps people assess their Microsoft Fabric knowledge while demonstrating Azure and Fabric technologies at Microsoft Ignite",
     "audience": "Microsoft Ignite attendees and Microsoft Fabric learners",
     "summary": "A Kahoot/Duolingo-inspired quiz web app where players have a base 1 minute to answer randomized Microsoft Fabric questions, with the ability to earn up to 1 additional minute through completed streaks (maximum 2 minutes total). Difficulty is controlled by time pressure and number of answer choices. Features forgiving streak system and comprehensive telemetry including all user interactions.",

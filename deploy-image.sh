@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ##################################################
-# IQ Challenge - Docker Build & Deploy Script
+# Trivia Challenge - Docker Build & Deploy Script
 ##################################################
 # 
 # This script builds the Docker image, pushes it to Azure Container Registry,
@@ -13,7 +13,7 @@
 #   acr-name              Name of the Azure Container Registry (required)
 #
 # Options:
-#   --resource-group, -g  Resource group name (default: rg-iqchallenge-bicep)
+#   --resource-group, -g  Resource group name (default: rg-triviachallenge-bicep)
 #   --app-name, -a        App Service name (if not provided, will be discovered)
 #   --image-tag, -t       Additional image tag to apply (default: latest)
 #   --no-cache            Build without Docker cache
@@ -38,7 +38,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Default values
-RESOURCE_GROUP="rg-iqchallenge-bicep"
+RESOURCE_GROUP="rg-triviachallenge-bicep"
 IMAGE_TAG="latest"
 APP_NAME=""
 NO_CACHE=false
@@ -318,7 +318,7 @@ fi
 
 echo ""
 log_info "========================================"
-log_info "IQ Challenge - Docker Build & Deploy"
+log_info "Trivia Challenge - Docker Build & Deploy"
 log_info "========================================"
 echo ""
 
@@ -334,7 +334,7 @@ ACR_LOGIN_SERVER=$(az acr show --name "$ACR_NAME" --resource-group "$RESOURCE_GR
 log_success "ACR Login Server: $ACR_LOGIN_SERVER"
 
 # Build image coordinates
-IMAGE_REPO="$ACR_LOGIN_SERVER/iqchallenge"
+IMAGE_REPO="$ACR_LOGIN_SERVER/triviachallenge"
 
 log_info "Retrieving Git commit SHA..."
 if ! command -v git >/dev/null 2>&1; then
@@ -444,7 +444,7 @@ echo ""
 # Discover App Service name if not provided
 if [ -z "$APP_NAME" ]; then
     log_info "Discovering App Service name..."
-    APP_NAME=$(az webapp list --resource-group "$RESOURCE_GROUP" --query "[?tags.project=='iq-challenge'].name | [0]" --output tsv 2>/dev/null || true)
+    APP_NAME=$(az webapp list --resource-group "$RESOURCE_GROUP" --query "[?tags.project=='trivia-challenge'].name | [0]" --output tsv 2>/dev/null || true)
     
     if [ -z "$APP_NAME" ]; then
         log_warning "Could not automatically discover App Service name."

@@ -2,7 +2,7 @@
 
 ## What Was Created
 
-This Docker setup enables the IQ Challenge application to run in production with the frontend served by the backend API.
+This Docker setup enables the Trivia Challenge application to run in production with the frontend served by the backend API.
 
 ### Files Created
 
@@ -50,7 +50,7 @@ This Docker setup enables the IQ Challenge application to run in production with
 
 ### Backend Changes
 
-**`backend/IQChallenge.Api/Program.cs`** - Updated to serve static files in production:
+**`backend/TriviaChallenge.Api/Program.cs`** - Updated to serve static files in production:
 
 ```csharp
 // Added after Swagger configuration
@@ -84,7 +84,7 @@ else
    
    Final Container:
    /app/
-   ├── IQChallenge.Api.dll    (backend)
+   ├── TriviaChallenge.Api.dll    (backend)
    ├── wwwroot/               (frontend)
    │   ├── index.html
    │   ├── assets/
@@ -139,17 +139,17 @@ else
 ### Build for Deployment
 ```bash
 # Build production image
-docker build -t iq-challenge:latest .
+docker build -t trivia-challenge:latest .
 
 # Run with Azure Cosmos DB
 docker run -p 8080:8080 \
   -e CosmosDb__EndpointUri="https://your-account.documents.azure.com:443/" \
   -e CosmosDb__PrimaryKey="your-key" \
-  iq-challenge:latest
+   trivia-challenge:latest
 ```
 
 ### CI/CD
-GitHub Actions automatically builds and pushes to `ghcr.io/microsoft/iq-challenge:latest` on push to main.
+GitHub Actions automatically builds and pushes to `ghcr.io/microsoft/trivia-challenge:latest` on push to main.
 
 ## Benefits
 
@@ -219,26 +219,26 @@ curl http://localhost:5173/
 ### Frontend not loading in production
 ```bash
 # Check if files are in container
-docker exec -it iq-challenge-app ls -la /app/wwwroot
+docker exec -it trivia-challenge-app ls -la /app/wwwroot
 
 # Check environment
-docker exec -it iq-challenge-app env | grep ASPNETCORE_ENVIRONMENT
+docker exec -it trivia-challenge-app env | grep ASPNETCORE_ENVIRONMENT
 # Should be "Production"
 
 # Check logs
-docker logs iq-challenge-app
+docker logs trivia-challenge-app
 ```
 
 ### API not responding
 ```bash
 # Check if container is running
-docker ps | grep iq-challenge
+docker ps | grep trivia-challenge
 
 # Check health
 curl http://localhost:8080/health
 
 # View detailed logs
-docker logs -f iq-challenge-app
+docker logs -f trivia-challenge-app
 ```
 
 ### Cosmos DB connection issues
@@ -247,10 +247,10 @@ docker logs -f iq-challenge-app
 docker ps | grep cosmos
 
 # Check connection string
-docker exec -it iq-challenge-app env | grep CosmosDb
+docker exec -it trivia-challenge-app env | grep CosmosDb
 
 # Check API logs for connection errors
-docker logs iq-challenge-app | grep -i cosmos
+docker logs trivia-challenge-app | grep -i cosmos
 ```
 
 ## Next Steps

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# IQ Challenge Docker Helper Script
+# Trivia Challenge Docker Helper Script
 # Usage: ./docker.sh [command]
 
 set -e
@@ -10,7 +10,7 @@ cd "$SCRIPT_DIR"
 
 show_help() {
     cat << EOF
-IQ Challenge Docker Helper
+Trivia Challenge Docker Helper
 
 Usage: ./docker.sh [command]
 
@@ -156,8 +156,8 @@ case "$1" in
     
     build)
         echo "🏗️  Building production Docker image..."
-        docker build -t iq-challenge:latest .
-        echo "✅ Docker image built: iq-challenge:latest"
+        docker build -t trivia-challenge:latest .
+        echo "✅ Docker image built: trivia-challenge:latest"
         ;;
     
     clean)
@@ -169,8 +169,8 @@ case "$1" in
             docker-compose down -v
             docker-compose -f docker-compose.local.yml down -v
             docker-compose -f docker-compose.dev.yml down -v
-            docker rmi iq-challenge:latest 2>/dev/null || true
-            docker rmi iq-challenge-dev:latest 2>/dev/null || true
+            docker rmi trivia-challenge:latest 2>/dev/null || true
+            docker rmi trivia-challenge-dev:latest 2>/dev/null || true
             echo "✅ Cleanup complete"
         else
             echo "❌ Cleanup cancelled"
@@ -201,7 +201,7 @@ case "$1" in
     
     shell)
         echo "🐚 Opening shell in production container..."
-        docker exec -it iq-challenge-app /bin/sh
+        docker exec -it trivia-challenge-app /bin/sh
         ;;
     
     help|--help|-h|"")

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Setting up IQ Challenge development environment..."
+echo "🚀 Setting up Trivia Challenge development environment..."
 
 # Install Node.js dependencies if package.json exists
 if [ -f "package.json" ]; then
@@ -43,9 +43,9 @@ else
 fi
 
 # Restore .NET dependencies
-if [ -d "backend/IQChallenge.Api" ]; then
+if [ -d "backend/TriviaChallenge.Api" ]; then
     echo "📦 Restoring .NET dependencies..."
-    cd backend/IQChallenge.Api
+    cd backend/TriviaChallenge.Api
     dotnet restore
     cd ../..
 fi
@@ -54,6 +54,6 @@ echo "✅ Development environment setup complete!"
 echo ""
 echo "📋 Quick Start:"
 echo "   - Cosmos DB Emulator: https://localhost:8081/_explorer/index.html"
-echo "   - Start .NET API: cd backend/IQChallenge.Api && dotnet run"
+echo "   - Start .NET API: cd backend/TriviaChallenge.Api && dotnet run"
 echo "   - Start Frontend: npm run dev"
 echo ""

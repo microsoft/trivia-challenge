@@ -210,7 +210,7 @@ $ ./deploy-image.sh wrongacr
 ℹ Checking prerequisites...
 ✓ All prerequisites met
 ℹ Verifying ACR access...
-✗ Cannot access ACR 'wrongacr' in resource group 'rg-iqchallenge-bicep'
+✗ Cannot access ACR 'wrongacr' in resource group 'rg-triviachallenge-bicep'
 
 Possible issues:
   1. ACR doesn't exist - verify the name

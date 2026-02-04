@@ -9,16 +9,16 @@ Successfully created Azure infrastructure using **Azure Verified Modules (AVM)**
 
 ## Files Created
 
-### `/workspaces/iq-challenge/infra/main.bicep`
+### `/workspaces/trivia-challenge/infra/main.bicep`
 Main Bicep template using Azure Verified Modules:
 - `br/public:avm/res/container-registry/registry:0.1.1` - Container Registry
 - `br/public:avm/res/web/serverfarm:0.1.0` - App Service Plan
 - `br/public:avm/res/web/site:0.3.9` - App Service (Web App)
 
-### `/workspaces/iq-challenge/infra/main.parameters.json`
+### `/workspaces/trivia-challenge/infra/main.parameters.json`
 Default parameters file for easy deployment with sensible defaults.
 
-### `/workspaces/iq-challenge/infra/README.md`
+### `/workspaces/trivia-challenge/infra/README.md`
 Comprehensive documentation including:
 - Deployment instructions
 - Parameter descriptions
@@ -30,18 +30,18 @@ Comprehensive documentation including:
 
 Based on the what-if analysis:
 
-1. **Container Registry**: `iqchallengeacr{uniquestring}`
+1. **Container Registry**: `triviachallengeacr{uniquestring}`
    - SKU: Basic
    - Admin user enabled for easy access
    - Public network access enabled
    - Soft delete policy (7 days retention)
 
-2. **App Service Plan**: `iqchallenge-asp-dev`
+2. **App Service Plan**: `triviachallenge-asp-dev`
    - SKU: B1 (Basic tier)
    - OS: Linux
    - Reserved for Linux containers
 
-3. **App Service**: `iqchallenge-api-dev`
+3. **App Service**: `triviachallenge-api-dev`
    - Type: Linux container app
    - HTTPS only
    - System-assigned managed identity
@@ -74,7 +74,7 @@ Based on the what-if analysis:
 ### Basic Deployment
 ```bash
 az deployment group create \
-  --resource-group rg-iqchallenge-bicep \
+   --resource-group rg-triviachallenge-bicep \
   --template-file infra/main.bicep \
   --parameters infra/main.parameters.json
 ```
@@ -82,9 +82,9 @@ az deployment group create \
 ### Custom Deployment
 ```bash
 az deployment group create \
-  --resource-group rg-iqchallenge-bicep \
+   --resource-group rg-triviachallenge-bicep \
   --template-file infra/main.bicep \
-  --parameters namePrefix=iqchallenge \
+   --parameters namePrefix=triviachallenge \
                containerImage=mcr.microsoft.com/dotnet/samples:aspnetapp \
                environment=dev
 ```
@@ -94,7 +94,7 @@ az deployment group create \
 1. **Deploy the infrastructure**:
    ```bash
    az deployment group create \
-     --resource-group rg-iqchallenge-bicep \
+   --resource-group rg-triviachallenge-bicep \
      --template-file infra/main.bicep \
      --parameters infra/main.parameters.json
    ```
@@ -102,20 +102,20 @@ az deployment group create \
 2. **Build and push your Docker image**:
    ```bash
    # Login to ACR
-   az acr login --name $(az deployment group show -g rg-iqchallenge-bicep -n <deployment-name> --query properties.outputs.acrName.value -o tsv)
+   az acr login --name $(az deployment group show -g rg-triviachallenge-bicep -n <deployment-name> --query properties.outputs.acrName.value -o tsv)
    
    # Build and push
-   docker build -t iqchallenge-api:latest .
-   docker tag iqchallenge-api:latest <acrLoginServer>/iqchallenge-api:latest
-   docker push <acrLoginServer>/iqchallenge-api:latest
+   docker build -t triviachallenge-api:latest .
+   docker tag triviachallenge-api:latest <acrLoginServer>/triviachallenge-api:latest
+   docker push <acrLoginServer>/triviachallenge-api:latest
    ```
 
 3. **Update App Service to use your image**:
    ```bash
    az webapp config container set \
-     --name iqchallenge-api-dev \
-     --resource-group rg-iqchallenge-bicep \
-     --docker-custom-image-name <acrLoginServer>/iqchallenge-api:latest
+   --name triviachallenge-api-dev \
+   --resource-group rg-triviachallenge-bicep \
+   --docker-custom-image-name <acrLoginServer>/triviachallenge-api:latest
    ```
 
 ## Environment Variables

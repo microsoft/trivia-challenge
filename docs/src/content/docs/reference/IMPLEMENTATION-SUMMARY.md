@@ -65,7 +65,7 @@ infra/
 ### Optional Resources (Conditional)
 4. **Cosmos DB Serverless** (when `deployCosmosDb: true`)
    - Serverless capacity mode
-   - Database: `iqchallenge`
+  - Database: `triviachallenge`
    - Containers:
      - `users` (partitioned by `/id`)
      - `sessions` (partitioned by `/userId`)
@@ -77,7 +77,7 @@ infra/
 ### Development Without Database
 ```bash
 az deployment group create \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --parameters infra/main.dev.bicepparam
 ```
 
@@ -86,7 +86,7 @@ az deployment group create \
 ### Development With Database
 ```bash
 az deployment group create \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --parameters infra/main.devdb.bicepparam
 ```
 
@@ -95,7 +95,7 @@ az deployment group create \
 ### Production
 ```bash
 az deployment group create \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --parameters infra/main.prod.bicepparam
 ```
 
@@ -175,23 +175,23 @@ All configurations validated successfully:
 1. **Deploy Infrastructure**
    ```bash
    az deployment group create \
-     --resource-group rg-iqchallenge-bicep \
+    --resource-group rg-triviachallenge-bicep \
      --parameters infra/main.devdb.bicepparam
    ```
 
 2. **Configure Cosmos DB Role Assignment** (if deployed)
    ```bash
    # Get outputs
-   PRINCIPAL_ID=$(az deployment group show -g rg-iqchallenge-bicep -n <deployment-name> \
+  PRINCIPAL_ID=$(az deployment group show -g rg-triviachallenge-bicep -n <deployment-name> \
      --query properties.outputs.appServicePrincipalId.value -o tsv)
    
-   COSMOS_NAME=$(az deployment group show -g rg-iqchallenge-bicep -n <deployment-name> \
+  COSMOS_NAME=$(az deployment group show -g rg-triviachallenge-bicep -n <deployment-name> \
      --query properties.outputs.cosmosDbAccountName.value -o tsv)
    
    # Assign role
    az cosmosdb sql role assignment create \
      --account-name $COSMOS_NAME \
-     --resource-group rg-iqchallenge-bicep \
+    --resource-group rg-triviachallenge-bicep \
      --scope "/" \
      --principal-id $PRINCIPAL_ID \
      --role-definition-id "00000000-0000-0000-0000-000000000002"
@@ -199,20 +199,20 @@ All configurations validated successfully:
 
 3. **Build and Push Container**
    ```bash
-   ACR_LOGIN=$(az deployment group show -g rg-iqchallenge-bicep -n <deployment-name> \
+  ACR_LOGIN=$(az deployment group show -g rg-triviachallenge-bicep -n <deployment-name> \
      --query properties.outputs.acrLoginServer.value -o tsv)
    
    az acr login --name <acrName>
-   docker build -t $ACR_LOGIN/iqchallenge-api:latest .
-   docker push $ACR_LOGIN/iqchallenge-api:latest
+  docker build -t $ACR_LOGIN/triviachallenge-api:latest .
+  docker push $ACR_LOGIN/triviachallenge-api:latest
    ```
 
 4. **Update App Service**
    ```bash
    az webapp config container set \
      --name <appServiceName> \
-     --resource-group rg-iqchallenge-bicep \
-     --docker-custom-image-name $ACR_LOGIN/iqchallenge-api:latest
+    --resource-group rg-triviachallenge-bicep \
+    --docker-custom-image-name $ACR_LOGIN/triviachallenge-api:latest
    ```
 
 ## 📚 Documentation

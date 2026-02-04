@@ -81,7 +81,7 @@ This placeholder is replaced at runtime with the actual version (v1.0) based on 
 
 1. **Start the API**:
    ```bash
-   cd backend/IQChallenge.Api
+    cd backend/TriviaChallenge.Api
    dotnet run
    ```
 
@@ -103,7 +103,7 @@ This placeholder is replaced at runtime with the actual version (v1.0) based on 
 
 ## Files Modified
 
-- `/workspaces/iq-challenge/backend/IQChallenge.Api/Program.cs`
+- `/workspaces/trivia-challenge/backend/TriviaChallenge.Api/Program.cs`
   - Added SSL bypass for Cosmos DB Emulator
   - Updated CORS configuration
   - Cleaned up file structure

@@ -20,28 +20,28 @@ infra/
 ### Deploy Development (No Database)
 ```bash
 az deployment group create \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --parameters infra/main.dev.bicepparam
 ```
 
 ### Deploy Development (With Database)
 ```bash
 az deployment group create \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --parameters infra/main.devdb.bicepparam
 ```
 
 ### Deploy Production
 ```bash
 az deployment group create \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --parameters infra/main.prod.bicepparam
 ```
 
 ### Preview Changes (What-If)
 ```bash
 az deployment group what-if \
-  --resource-group rg-iqchallenge-bicep \
+  --resource-group rg-triviachallenge-bicep \
   --parameters infra/main.devdb.bicepparam
 ```
 
@@ -54,14 +54,14 @@ az deployment group what-if \
 
 ### Conditionally Deployed
 - ⚡ Cosmos DB Serverless (when `deployCosmosDb: true`)
-  - Database: `iqchallenge`
+  - Database: `triviachallenge`
   - Containers: `users`, `sessions`, `questions`, `telemetry`
 
 ## Configuration Examples
 
 ### YAML Configuration File
 ```yaml
-namePrefix: iqchallenge
+namePrefix: triviachallenge
 environment: dev
 deployCosmosDb: true
 acrSku: Basic
@@ -106,7 +106,7 @@ param deployCosmosDb = config.deployCosmosDb
 ### Get Deployment Outputs
 ```bash
 az deployment group show \
-  -g rg-iqchallenge-bicep \
+  -g rg-triviachallenge-bicep \
   -n <deployment-name> \
   --query properties.outputs
 ```
@@ -114,7 +114,7 @@ az deployment group show \
 ### Get ACR Login Server
 ```bash
 az deployment group show \
-  -g rg-iqchallenge-bicep \
+  -g rg-triviachallenge-bicep \
   -n <deployment-name> \
   --query properties.outputs.acrLoginServer.value -o tsv
 ```
@@ -122,7 +122,7 @@ az deployment group show \
 ### Get App Service URL
 ```bash
 az deployment group show \
-  -g rg-iqchallenge-bicep \
+  -g rg-triviachallenge-bicep \
   -n <deployment-name> \
   --query properties.outputs.appServiceHostname.value -o tsv
 ```
@@ -130,7 +130,7 @@ az deployment group show \
 ### Get Cosmos DB Endpoint
 ```bash
 az deployment group show \
-  -g rg-iqchallenge-bicep \
+  -g rg-triviachallenge-bicep \
   -n <deployment-name> \
   --query properties.outputs.cosmosDbEndpoint.value -o tsv
 ```
@@ -146,14 +146,14 @@ az deployment group show \
 2. Run what-if analysis:
    ```bash
    az deployment group what-if \
-     --resource-group rg-iqchallenge-bicep \
+    --resource-group rg-triviachallenge-bicep \
      --parameters infra/main.dev.bicepparam
    ```
 
 3. Check deployment errors:
    ```bash
    az deployment group show \
-     -g rg-iqchallenge-bicep \
+    -g rg-triviachallenge-bicep \
      -n <deployment-name> \
      --query properties.error
    ```
@@ -163,14 +163,14 @@ az deployment group show \
    ```bash
    az webapp log tail \
      --name <appServiceName> \
-     --resource-group rg-iqchallenge-bicep
+    --resource-group rg-triviachallenge-bicep
    ```
 
 2. Verify container image:
    ```bash
    az webapp config container show \
      --name <appServiceName> \
-     --resource-group rg-iqchallenge-bicep
+    --resource-group rg-triviachallenge-bicep
    ```
 
 ### Cosmos DB Access Issues
@@ -178,7 +178,7 @@ az deployment group show \
    ```bash
    az webapp config appsettings list \
      --name <appServiceName> \
-     --resource-group rg-iqchallenge-bicep \
+    --resource-group rg-triviachallenge-bicep \
      --query "[?name=='CosmosDb__AccountEndpoint']"
    ```
 
@@ -186,7 +186,7 @@ az deployment group show \
    ```bash
    az cosmosdb sql role assignment list \
      --account-name <cosmosDbAccountName> \
-     --resource-group rg-iqchallenge-bicep
+    --resource-group rg-triviachallenge-bicep
    ```
 
 ## Cost Optimization
