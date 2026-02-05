@@ -61,6 +61,33 @@ public class QuestionRepository : IQuestionRepository
         }
     }
 
+    public async Task<List<Question>> GetByPoolAsync(string poolId)
+    {
+        try
+        {
+            var normalizedPoolId = poolId.ToLowerInvariant().Trim();
+            var query = new QueryDefinition("SELECT * FROM c WHERE ARRAY_CONTAINS(c.pools, @poolId)")
+                .WithParameter("@poolId", normalizedPoolId);
+            
+            var iterator = _container.GetItemQueryIterator<Question>(query);
+            var questions = new List<Question>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                questions.AddRange(response);
+            }
+
+            _logger.LogInformation("Retrieved {Count} questions for pool {PoolId}", questions.Count, poolId);
+            return questions;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving questions for pool {PoolId}", poolId);
+            throw;
+        }
+    }
+
     public async Task<Question> CreateAsync(Question question)
     {
         try

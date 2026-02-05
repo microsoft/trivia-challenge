@@ -78,7 +78,8 @@ public static class QuestionEndpoints
                     CorrectAnswerKey = r.CorrectAnswerKey,
                     Metadata = string.IsNullOrWhiteSpace(r.Metadata) 
                         ? null 
-                        : new Dictionary<string, string> { { "raw", r.Metadata } }
+                        : new Dictionary<string, string> { { "raw", r.Metadata } },
+                    Pools = ParsePools(r.Pools)
                 }).ToList();
             }
             catch (Exception ex)
@@ -145,5 +146,30 @@ public static class QuestionEndpoints
         public string Answer4 { get; set; } = string.Empty;
         public int CorrectAnswerKey { get; set; }
         public string? Metadata { get; set; }
+        /// <summary>
+        /// Comma-separated pool slugs (e.g., "default,ignite-2026"). Defaults to "default" if empty.
+        /// </summary>
+        public string? Pools { get; set; }
+    }
+
+    /// <summary>
+    /// Parses a comma-separated pools string into a list of pool slugs.
+    /// Returns ["default"] if the input is null, empty, or whitespace.
+    /// </summary>
+    private static List<string> ParsePools(string? poolsString)
+    {
+        if (string.IsNullOrWhiteSpace(poolsString))
+        {
+            return new List<string> { "default" };
+        }
+
+        var pools = poolsString
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .Select(p => p.ToLowerInvariant())
+            .Distinct()
+            .ToList();
+
+        return pools.Count > 0 ? pools : new List<string> { "default" };
     }
 }

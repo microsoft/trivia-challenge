@@ -8,7 +8,7 @@ import {
   type ReactNode,
   type SetStateAction,
 } from 'react'
-import type { User, GameSession, SessionQuestion } from '../types/api'
+import type { User, GameSession, SessionQuestion, QuestionPool } from '../types/api'
 import { gameConfig } from '../config/gameConfig'
 import { analytics } from '../services/analyticsService'
 
@@ -25,6 +25,10 @@ interface GameState {
   // Player data
   player: User | null
   setPlayer: Dispatch<SetStateAction<User | null>>
+
+  // Selected question pool
+  selectedPool: QuestionPool | null
+  setSelectedPool: Dispatch<SetStateAction<QuestionPool | null>>
 
   // Session data
   session: GameSession | null
@@ -80,6 +84,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
   // Player state
   const [player, setPlayer] = useState<User | null>(null)
 
+  // Selected pool state
+  const [selectedPool, setSelectedPool] = useState<QuestionPool | null>(null)
+
   // Session state
   const [session, setSession] = useState<GameSession | null>(null)
 
@@ -124,6 +131,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setQuestionsAnswered(0)
     setCorrectAnswers(0)
     setMissedQuestions([])
+    setSelectedPool(null)
     analytics.resetTrackedEventCount()
   }, [])
 
@@ -138,6 +146,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const value: GameState = {
     player,
     setPlayer,
+    selectedPool,
+    setSelectedPool,
     session,
     setSession,
     questions,

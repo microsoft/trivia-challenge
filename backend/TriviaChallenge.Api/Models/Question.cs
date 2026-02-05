@@ -44,6 +44,12 @@ public class Question
     public Dictionary<string, string>? Metadata { get; set; }
 
     /// <summary>
+    /// Question pools this question belongs to (e.g., "default", "ignite-2026")
+    /// </summary>
+    [JsonPropertyName("pools")]
+    public List<string> Pools { get; set; } = new List<string> { "default" };
+
+    /// <summary>
     /// Timestamp when the question was created
     /// </summary>
     [JsonPropertyName("createdAt")]

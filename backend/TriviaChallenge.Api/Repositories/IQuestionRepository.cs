@@ -18,6 +18,12 @@ public interface IQuestionRepository
     Task<List<Question>> GetAllAsync();
 
     /// <summary>
+    /// Gets all questions belonging to a specific pool
+    /// </summary>
+    /// <param name="poolId">The pool slug to filter by</param>
+    Task<List<Question>> GetByPoolAsync(string poolId);
+
+    /// <summary>
     /// Creates a new question
     /// </summary>
     Task<Question> CreateAsync(Question question);

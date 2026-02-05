@@ -8,6 +8,7 @@ public class StartSessionResponse
     public required string SessionId { get; set; }
     public required string UserId { get; set; }
     public required int Seed { get; set; }
+    public required string PoolId { get; set; }
     public required string QuestionsUrl { get; set; }
     public required DateTime StartTime { get; set; }
     public required string Status { get; set; }

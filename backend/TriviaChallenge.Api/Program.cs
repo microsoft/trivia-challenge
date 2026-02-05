@@ -194,6 +194,7 @@ builder.Services.AddSingleton<CosmosDbService>(serviceProvider =>
         settings.DatabaseName,
         settings.UsersContainerName,
         settings.QuestionsContainerName,
+        settings.QuestionPoolsContainerName,
         settings.QuestionDrawsContainerName,
         settings.GameSessionsContainerName,
         settings.GameSessionAnswersContainerName,
@@ -203,6 +204,7 @@ builder.Services.AddSingleton<CosmosDbService>(serviceProvider =>
 // Register repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+builder.Services.AddScoped<IQuestionPoolRepository, QuestionPoolRepository>();
 builder.Services.AddScoped<IQuestionDrawRepository, QuestionDrawRepository>();
 builder.Services.AddScoped<IGameSessionRepository, GameSessionRepository>();
 builder.Services.AddScoped<IGameSessionAnswerRepository, GameSessionAnswerRepository>();
@@ -331,6 +333,7 @@ var versionedApi = app.NewVersionedApi();
 versionedApi.MapUserEndpoints();
 versionedApi.MapSessionEndpoints();
 versionedApi.MapQuestionEndpoints();
+versionedApi.MapPoolEndpoints();
 versionedApi.MapTelemetryEndpoints();
 
 // Root endpoint - API info in development, SPA fallback in production

@@ -12,4 +12,9 @@ public class StartSessionRequest
     /// </summary>
     [Required(ErrorMessage = "UserId is required")]
     public required string UserId { get; set; }
+
+    /// <summary>
+    /// Optional question pool ID (slug) to use for the session. Defaults to "default" if not provided.
+    /// </summary>
+    public string? PoolId { get; set; }
 }

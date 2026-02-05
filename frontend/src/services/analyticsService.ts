@@ -20,6 +20,8 @@ import type { User } from '../types/api'
 
 const EVENT_TYPE_MAP: Record<AnalyticsEventName, AnalyticsEventType> = {
   'pageview.home': 'pageview',
+  'pageview.select-pool': 'pageview',
+  'pool.selected': 'user',
   'user.register': 'user',
   'game.start': 'game',
   'game.answerquestion': 'game',

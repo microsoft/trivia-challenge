@@ -60,6 +60,7 @@ export default function PlayingPage() {
   const navigate = useNavigate()
   const {
     player,
+    selectedPool,
     session,
     setSession,
     questions,
@@ -222,7 +223,7 @@ export default function PlayingPage() {
     countdownStartedRef.current = false
 
     try {
-      const newSession = await sessionService.start(player.userId)
+      const newSession = await sessionService.start(player.userId, selectedPool?.id)
       setSession(newSession)
 
       const fetchedQuestions = await sessionService.getQuestions(newSession.sessionId)

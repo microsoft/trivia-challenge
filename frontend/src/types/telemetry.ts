@@ -1,5 +1,7 @@
 export type AnalyticsEventName =
   | 'pageview.home'
+  | 'pageview.select-pool'
+  | 'pool.selected'
   | 'user.register'
   | 'game.start'
   | 'game.answerquestion'

@@ -94,6 +94,7 @@ export const gameConfig = {
       sessions: '/api/v1.0/sessions',
       questions: '/api/v1.0/questions',
       users: '/api/v1.0/users',
+      pools: '/api/v1.0/pools',
     },
     timeout: 10000, // Request timeout in milliseconds
   },

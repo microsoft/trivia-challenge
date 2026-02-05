@@ -86,7 +86,7 @@ export default function SignInPage() {
       )
 
       setPlayer(user)
-      navigate('/instructions')
+      navigate('/select-pool')
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Registration failed. Please try again.'
       setError(message)
