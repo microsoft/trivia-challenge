@@ -41,6 +41,13 @@ public class CosmosDbSettings
     public required string QuestionsContainerName { get; set; }
 
     /// <summary>
+    /// Name of the QuestionPools container
+    /// </summary>
+    [Required]
+    [MinLength(1)]
+    public required string QuestionPoolsContainerName { get; set; }
+
+    /// <summary>
     /// Name of the QuestionDraws container
     /// </summary>
     [Required]

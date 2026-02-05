@@ -26,6 +26,12 @@ public class GameSession
     public required int Seed { get; set; }
 
     /// <summary>
+    /// Question pool ID (slug) used for this session
+    /// </summary>
+    [JsonPropertyName("poolId")]
+    public string PoolId { get; set; } = "default";
+
+    /// <summary>
     /// Current game status: active, completed, abandoned
     /// </summary>
     [JsonPropertyName("status")]

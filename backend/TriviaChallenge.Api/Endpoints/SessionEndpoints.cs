@@ -57,21 +57,25 @@ public static class SessionEndpoints
         try
         {
             var seed = Random.Shared.Next();
-            var allQuestions = await questionRepository.GetAllAsync();
+            var poolId = string.IsNullOrWhiteSpace(request.PoolId) ? "default" : request.PoolId.ToLowerInvariant().Trim();
             
-            if (allQuestions == null || allQuestions.Count == 0)
+            // Get questions from the specified pool
+            var poolQuestions = await questionRepository.GetByPoolAsync(poolId);
+            
+            if (poolQuestions == null || poolQuestions.Count == 0)
             {
-                return Results.BadRequest(ApiResponse<StartSessionResponse>.BadRequest("No questions available"));
+                return Results.BadRequest(ApiResponse<StartSessionResponse>.BadRequest($"No questions available in pool '{poolId}'"));
             }
 
             var sessionId = Guid.NewGuid().ToString();
-            var draw = await drawRepository.CreateDrawFromQuestionsAsync(sessionId, request.UserId, seed, allQuestions);
+            var draw = await drawRepository.CreateDrawFromQuestionsAsync(sessionId, request.UserId, seed, poolQuestions);
 
             var session = new GameSession
             {
                 Id = sessionId,
                 UserId = request.UserId,
                 Seed = seed,
+                PoolId = poolId,
                 Status = "active",
                 StartTime = DateTime.UtcNow,
                 TotalScore = 0,
@@ -89,13 +93,14 @@ public static class SessionEndpoints
                 SessionId = createdSession.Id,
                 UserId = createdSession.UserId,
                 Seed = createdSession.Seed,
+                PoolId = createdSession.PoolId,
                 QuestionsUrl = $"/api/v1.0/sessions/{createdSession.Id}/questions",
                 StartTime = createdSession.StartTime,
                 Status = createdSession.Status
             };
 
-            logger.LogInformation("Created session {SessionId} for user {UserId} with seed {Seed}", 
-                createdSession.Id, createdSession.UserId, createdSession.Seed);
+            logger.LogInformation("Created session {SessionId} for user {UserId} with seed {Seed} using pool {PoolId}", 
+                createdSession.Id, createdSession.UserId, createdSession.Seed, createdSession.PoolId);
 
             return Results.Created($"/api/v1.0/sessions/{createdSession.Id}", ApiResponse<StartSessionResponse>.Created(response));
         }

@@ -24,10 +24,25 @@ export interface RegisterUserRequest {
 
 export type SessionStatus = 'active' | 'completed' | 'abandoned'
 
+/**
+ * Represents a question pool for organizing questions
+ */
+export interface QuestionPool {
+  id: string
+  name: string
+  iconPath: string
+  description?: string
+  isActive: boolean
+  displayOrder: number
+  createdAt: string
+  updatedAt: string
+}
+
 export interface GameSession {
   sessionId: string
   userId: string
   seed: number
+  poolId: string
   questionsUrl: string
   startTime: string
   status: SessionStatus
@@ -59,6 +74,7 @@ export interface StartSessionResponse {
   sessionId: string
   userId: string
   seed: number
+  poolId: string
   questionsUrl: string
   startTime: string
   status: SessionStatus

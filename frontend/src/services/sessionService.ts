@@ -18,6 +18,7 @@ import type {
   SubmitAnswerResponse,
   EndSessionRequest,
   EndSessionResponse,
+  QuestionPool,
 } from '../types/api'
 
 const { endpoints } = gameConfig.api
@@ -34,6 +35,7 @@ function mapSession(response: StartSessionResponse): GameSession {
     sessionId: response.sessionId,
     userId: response.userId,
     seed: response.seed,
+    poolId: response.poolId,
     questionsUrl: response.questionsUrl,
     startTime: response.startTime,
     status: response.status,
@@ -63,12 +65,29 @@ async function handleRequest<T>(fn: () => Promise<ApiResponse<T>>): Promise<T> {
 
 export const sessionService = {
   /**
-   * Start a new session for the specified user
+   * Get all available question pools
    */
-  async start(userId: string): Promise<GameSession> {
+  async getPools(): Promise<QuestionPool[]> {
     ensureStationAccess()
     const data = await handleRequest(() =>
-      apiClient.post<ApiResponse<StartSessionResponse>>(`${endpoints.sessions}/start`, { userId })
+      apiClient.get<ApiResponse<QuestionPool[]>>(`${endpoints.pools}`)
+    )
+    return data
+  },
+
+  /**
+   * Start a new session for the specified user
+   * @param userId The user ID
+   * @param poolId Optional pool ID (defaults to "default" if not provided)
+   */
+  async start(userId: string, poolId?: string): Promise<GameSession> {
+    ensureStationAccess()
+    const payload: { userId: string; poolId?: string } = { userId }
+    if (poolId) {
+      payload.poolId = poolId
+    }
+    const data = await handleRequest(() =>
+      apiClient.post<ApiResponse<StartSessionResponse>>(`${endpoints.sessions}/start`, payload)
     )
     return mapSession(data)
   },

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="basicsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60a5fa"/>
+      <stop offset="100%" style="stop-color:#3b82f6"/>
+    </linearGradient>
+  </defs>
+  <!-- Book background -->
+  <rect x="12" y="16" width="40" height="36" rx="4" fill="url(#basicsGrad)" opacity="0.3"/>
+  <!-- Book cover -->
+  <path d="M14 18h36v32a2 2 0 01-2 2H16a2 2 0 01-2-2V18z" fill="url(#basicsGrad)"/>
+  <!-- Book spine -->
+  <rect x="14" y="18" width="4" height="34" fill="#2563eb"/>
+  <!-- Pages -->
+  <rect x="20" y="22" width="26" height="2" rx="1" fill="#ffffff" opacity="0.6"/>
+  <rect x="20" y="28" width="26" height="2" rx="1" fill="#ffffff" opacity="0.6"/>
+  <rect x="20" y="34" width="20" height="2" rx="1" fill="#ffffff" opacity="0.6"/>
+  <rect x="20" y="40" width="24" height="2" rx="1" fill="#ffffff" opacity="0.6"/>
+  <!-- Star badge -->
+  <circle cx="48" cy="16" r="10" fill="#fbbf24"/>
+  <path d="M48 9l2 4 4.5 0.5-3.25 3 0.75 4.5-4-2-4 2 0.75-4.5-3.25-3 4.5-0.5z" fill="#ffffff"/>
+</svg>

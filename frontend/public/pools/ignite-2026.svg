@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="igniteGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b35"/>
+      <stop offset="50%" style="stop-color:#f7931a"/>
+      <stop offset="100%" style="stop-color:#ffd93d"/>
+    </linearGradient>
+  </defs>
+  <!-- Flame background glow -->
+  <ellipse cx="32" cy="48" rx="16" ry="6" fill="#ff6b35" opacity="0.2"/>
+  <!-- Main flame -->
+  <path d="M32 8c0 0-16 12-16 28 0 10 7.163 16 16 16s16-6 16-16c0-16-16-28-16-28z" fill="url(#igniteGrad)" opacity="0.9"/>
+  <!-- Inner flame -->
+  <path d="M32 20c0 0-10 8-10 18 0 6.627 4.477 10 10 10s10-3.373 10-10c0-10-10-18-10-18z" fill="#ffd93d" opacity="0.8"/>
+  <!-- Core -->
+  <ellipse cx="32" cy="42" rx="4" ry="6" fill="#ffffff" opacity="0.7"/>
+  <!-- Sparkles -->
+  <circle cx="22" cy="24" r="1.5" fill="#ffd93d"/>
+  <circle cx="42" cy="22" r="1" fill="#ffd93d"/>
+  <circle cx="26" cy="18" r="1" fill="#ff6b35"/>
+</svg>

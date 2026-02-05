@@ -27,13 +27,14 @@
 # Answer4             | string  | Yes      | Fourth answer option
 # CorrectAnswerKey    | int     | Yes      | Index of correct answer (0-3: 0=Answer1, 1=Answer2, 2=Answer3, 3=Answer4)
 # Metadata            | string  | No       | Optional metadata (e.g., '{"difficulty":"easy"}' or 'difficulty:easy')
+# Pools               | string  | No       | Comma-separated pool slugs (e.g., "default,ignite-2026"). Defaults to "default" if empty.
 #
 # EXAMPLE CSV CONTENT:
 # --------------------
-# Category,Question,Answer1,Answer2,Answer3,Answer4,CorrectAnswerKey,Metadata
-# Basics,What is Microsoft Fabric?,A cloud platform,A physical material,A design tool,A database,0,difficulty:easy
-# Data Engineering,What is a Lakehouse?,Unified analytics,A storage container,A query engine,A visualization tool,0,difficulty:medium
-# Advanced,What protocol does Fabric use for real-time?,Event Streams,HTTP,FTP,SMTP,0,difficulty:hard
+# Category,Question,Answer1,Answer2,Answer3,Answer4,CorrectAnswerKey,Metadata,Pools
+# Basics,What is Microsoft Fabric?,A cloud platform,A physical material,A design tool,A database,0,difficulty:easy,default
+# Data Engineering,What is a Lakehouse?,Unified analytics,A storage container,A query engine,A visualization tool,0,difficulty:medium,"default,ignite-2026"
+# Advanced,What protocol does Fabric use for real-time?,Event Streams,HTTP,FTP,SMTP,0,difficulty:hard,ignite-2026
 #
 # VALIDATION RULES:
 # -----------------
@@ -84,6 +85,58 @@ Fabric Fundamentals,How does Fabric ensure data security and governance?,Through
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
 ###############################################################################
+# 0.5. QUESTION POOLS MANAGEMENT
+###############################################################################
+
+### Create the "default" pool (required for default game behavior)
+# @name createDefaultPool
+POST {{baseUrl}}/api/v{{apiVersion}}/pools
+Content-Type: application/json
+
+{
+  "id": "default",
+  "name": "Default",
+  "iconPath": "/pools/default.svg",
+  "description": "Default question pool for Microsoft Fabric Trivia Challenge",
+  "isActive": true,
+  "displayOrder": 0
+}
+
+### Create an "Ignite 2026" event pool
+# @name createIgnitePool
+POST {{baseUrl}}/api/v{{apiVersion}}/pools
+Content-Type: application/json
+
+{
+  "id": "ignite-2026",
+  "name": "Ignite 2026",
+  "iconPath": "/pools/ignite-2026.svg",
+  "description": "Special question pool for Microsoft Ignite 2026",
+  "isActive": true,
+  "displayOrder": 1
+}
+
+### Create a "Fabric Basics" pool
+# @name createBasicsPool
+POST {{baseUrl}}/api/v{{apiVersion}}/pools
+Content-Type: application/json
+
+{
+  "id": "fabric-basics",
+  "name": "Fabric Basics",
+  "iconPath": "/pools/fabric-basics.svg",
+  "description": "Beginner-friendly questions about Microsoft Fabric fundamentals",
+  "isActive": true,
+  "displayOrder": 2
+}
+
+### Get all active question pools
+GET {{baseUrl}}/api/v{{apiVersion}}/pools
+
+### Get a specific pool by ID
+GET {{baseUrl}}/api/v{{apiVersion}}/pools/default
+
+###############################################################################
 # 1. USER REGISTRATION
 ###############################################################################
 
@@ -105,13 +158,23 @@ Content-Type: application/json
 # 2. SESSION MANAGEMENT
 ###############################################################################
 
-### Start a new game session
+### Start a new game session (using default pool)
 # @name startSession
 POST {{baseUrl}}/api/v{{apiVersion}}/sessions/start
 Content-Type: application/json
 
 {
   "userId": "{{userId}}"
+}
+
+### Start a session with a specific pool (e.g., Ignite 2026)
+# @name startSessionWithPool
+POST {{baseUrl}}/api/v{{apiVersion}}/sessions/start
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "poolId": "ignite-2026"
 }
 
 ### Extract sessionId from session response
