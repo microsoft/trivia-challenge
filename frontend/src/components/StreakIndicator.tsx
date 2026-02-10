@@ -2,6 +2,7 @@
  * Streak Indicator Component
  * 
  * Displays the player's current streak progress using Microsoft Fabric icons
+ * (or the current question pool icon if a non-default pool is selected)
  * and shows the count of fully completed streaks.
  */
 
@@ -11,6 +12,7 @@ import {
   Fabric32Filled
 } from '@fabric-msft/svg-icons'
 import { gameConfig } from '../config/gameConfig'
+import { useGame } from '../context/GameContext'
 
 interface StreakIndicatorProps {
   /**
@@ -66,12 +68,17 @@ export default function StreakIndicator({
   currentProgress,
   streaksCompleted,
 }: StreakIndicatorProps) {
+  const { selectedPool } = useGame()
   const flaskCount = gameConfig.streak.visualIndicators
   const clampedProgress = Math.max(0, Math.min(currentProgress, flaskCount))
   const cappedCompleted = Math.max(
     0,
     Math.min(streaksCompleted, gameConfig.timer.maxStreaks)
   )
+
+  // Use pool icon if a non-default pool is selected
+  const usePoolIcon = selectedPool && selectedPool.id !== 'default'
+  const poolIconPath = selectedPool?.iconPath
 
   const [isCelebrating, setIsCelebrating] = useState(false)
   const [confettiPieces, setConfettiPieces] = useState<ConfettiPiece[]>([])
@@ -135,8 +142,35 @@ export default function StreakIndicator({
         <div className="flex gap-2 relative z-10">
           {iconSlots.map(({ Color, Filled, name, index }) => {
             const isFilled = isCelebrating ? true : index < clampedProgress
-            const IconComponent = isFilled ? Color : Filled
             const isJustActivated = justActivatedIndex === index
+
+            // Use pool icon for non-default pools, otherwise use Fabric icons
+            if (usePoolIcon && poolIconPath) {
+              return (
+                <div
+                  key={index}
+                  className={`
+                    transition-all duration-300
+                    ${!isFilled ? 'opacity-30 grayscale' : 'opacity-100'}
+                    ${isJustActivated && !isCelebrating ? 'animate-bounce' : ''}
+                    ${isCelebrating ? 'animate-pulse scale-110' : 'scale-100'}
+                  `}
+                  title={name}
+                >
+                  <img
+                    src={poolIconPath}
+                    alt=""
+                    className="w-8 h-8 object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.src = '/pools/default.svg'
+                    }}
+                  />
+                </div>
+              )
+            }
+
+            const IconComponent = isFilled ? Color : Filled
 
             return (
               <div
