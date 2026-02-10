@@ -26,6 +26,7 @@ Three bash scripts have been created to streamline the Docker image build, push,
 Options:
   -g, --resource-group    Resource group (default: rg-triviachallenge-bicep)
   -a, --app-name         App Service name (auto-discovered if not provided)
+  -s, --slot             Deployment slot (optional)
   -t, --image-tag        Image tag (default: latest)
   --no-cache             Build without Docker cache
   --help                 Show help message

@@ -60,6 +60,7 @@ Arguments:
 Options:
   --resource-group, -g  Resource group name (default: rg-triviachallenge-bicep)
   --app-name, -a        App Service name (if not provided, will be discovered)
+  --slot, -s            App Service deployment slot (optional, deploys to production slot if not specified)
   --image-tag, -t       Image tag (default: latest)
   --no-cache            Build without Docker cache
   --help, -h            Show this help message
@@ -84,6 +85,11 @@ Options:
 ./deploy-image.sh demotriviachallengeacr123 \
   --image-tag v2.1.0 \
   --no-cache
+```
+
+### Deploy to a specific deployment slot
+```bash
+./deploy-image.sh demotriviachallengeacr123 --slot staging
 ```
 
 ### Deploy to different environment

@@ -15,6 +15,7 @@
 # Options:
 #   --resource-group, -g  Resource group name (default: rg-triviachallenge-bicep)
 #   --app-name, -a        App Service name (if not provided, will be discovered)
+#   --slot, -s            App Service deployment slot (optional, deploys to production slot if not specified)
 #   --image-tag, -t       Additional image tag to apply (default: latest)
 #   --no-cache            Build without Docker cache
 #   --station-lockdown    Enable station lockdown build mode (default: disabled)
@@ -23,6 +24,7 @@
 # Examples:
 #   ./deploy-image.sh myacrname
 #   ./deploy-image.sh myacrname -g my-resource-group -a my-webapp
+#   ./deploy-image.sh myacrname --slot staging
 #   ./deploy-image.sh myacrname --image-tag v1.2.3 --no-cache
 #
 ##################################################
@@ -41,6 +43,7 @@ NC='\033[0m' # No Color
 RESOURCE_GROUP="rg-triviachallenge-bicep"
 IMAGE_TAG="latest"
 APP_NAME=""
+SLOT=""
 NO_CACHE=false
 ENABLE_STATION_LOCKDOWN=false
 
@@ -68,7 +71,7 @@ log_error() {
 }
 
 show_help() {
-    head -n 25 "$0" | tail -n +3 | sed 's/^# //' | sed 's/^#//'
+    head -n 29 "$0" | tail -n +3 | sed 's/^# //' | sed 's/^#//'
     exit 0
 }
 
@@ -187,9 +190,15 @@ check_acr_access() {
 
 check_webapp_managed_identity() {
     local app_name=$1
+    local slot=$2
     
     if [ -z "$app_name" ]; then
         return 0  # Skip check if app name not yet discovered
+    fi
+    
+    local slot_args=()
+    if [ -n "$slot" ]; then
+        slot_args=(--slot "$slot")
     fi
     
     log_info "Checking Web App managed identity configuration..."
@@ -198,6 +207,7 @@ check_webapp_managed_identity() {
     local mi_enabled=$(az webapp identity show \
         --name "$app_name" \
         --resource-group "$RESOURCE_GROUP" \
+        "${slot_args[@]}" \
         --query principalId -o tsv 2>/dev/null || echo "")
     
     if [ -z "$mi_enabled" ]; then
@@ -277,6 +287,10 @@ while [ $# -gt 0 ]; do
             ;;
         -a|--app-name)
             APP_NAME="$2"
+            shift 2
+            ;;
+        -s|--slot)
+            SLOT="$2"
             shift 2
             ;;
         -t|--image-tag)
@@ -441,6 +455,13 @@ log_info "Step 3: Updating Web App..."
 log_info "========================================"
 echo ""
 
+# Build slot arguments if a deployment slot was specified
+SLOT_ARGS=()
+if [ -n "$SLOT" ]; then
+    SLOT_ARGS=(--slot "$SLOT")
+    log_info "Deployment slot: $SLOT"
+fi
+
 # Discover App Service name if not provided
 if [ -z "$APP_NAME" ]; then
     log_info "Discovering App Service name..."
@@ -459,13 +480,14 @@ if [ -z "$APP_NAME" ]; then
 fi
 
 # Check Web App managed identity configuration
-check_webapp_managed_identity "$APP_NAME"
+check_webapp_managed_identity "$APP_NAME" "$SLOT"
 
 # Update the container image configuration
 log_info "Updating container image configuration..."
 az webapp config container set \
     --name "$APP_NAME" \
     --resource-group "$RESOURCE_GROUP" \
+    "${SLOT_ARGS[@]}" \
     --docker-custom-image-name "$IMAGE_REPO:$GIT_SHA" \
     --docker-registry-server-url "https://$ACR_LOGIN_SERVER"
 
@@ -473,7 +495,7 @@ log_success "Container configuration updated"
 
 # Restart the Web App to pull the latest image
 log_info "Restarting Web App to pull latest image..."
-az webapp restart --name "$APP_NAME" --resource-group "$RESOURCE_GROUP"
+az webapp restart --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" "${SLOT_ARGS[@]}"
 
 log_success "Web App restarted successfully"
 echo ""
@@ -483,7 +505,7 @@ log_info "Waiting for restart to initialize..."
 sleep 5
 
 # Get the Web App URL
-APP_URL=$(az webapp show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" --query defaultHostName --output tsv)
+APP_URL=$(az webapp show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" "${SLOT_ARGS[@]}" --query defaultHostName --output tsv)
 
 log_info "========================================"
 log_success "Deployment Complete!"
@@ -493,13 +515,16 @@ log_info "Image repository: $IMAGE_REPO"
 log_info "Tags pushed: ${TAGS_TO_PUSH[*]}"
 log_info "Web App image: $IMAGE_REPO:$GIT_SHA"
 log_info "App Service: $APP_NAME"
+if [ -n "$SLOT" ]; then
+    log_info "Deployment slot: $SLOT"
+fi
 log_info "URL: https://$APP_URL"
 echo ""
 log_info "Monitor deployment status:"
-echo "  az webapp log tail --name $APP_NAME --resource-group $RESOURCE_GROUP"
+echo "  az webapp log tail --name $APP_NAME --resource-group $RESOURCE_GROUP ${SLOT_ARGS[*]}"
 echo ""
 log_info "Check container logs:"
-echo "  az webapp log tail --name $APP_NAME --resource-group $RESOURCE_GROUP"
+echo "  az webapp log tail --name $APP_NAME --resource-group $RESOURCE_GROUP ${SLOT_ARGS[*]}"
 echo ""
 log_success "Done! 🎉"
 echo ""
