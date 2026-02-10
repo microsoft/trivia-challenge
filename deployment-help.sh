@@ -34,6 +34,7 @@ cat << 'EOF'
    Options:
      -g, --resource-group    Resource group name
      -a, --app-name         App Service name
+     -s, --slot             Deployment slot (optional)
      -t, --image-tag        Image tag (default: latest)
      --no-cache             Build without cache
    
