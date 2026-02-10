@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useGame } from '../context/GameContext'
 import { getStationLockdownMessage, isStationLockdownActive } from '../lib/stationLockdown'
 
-const instructionCards = [
+const instructionItems = [
   {
     icon: '🕒',
     title: '60 Second Quest',
@@ -12,18 +12,18 @@ const instructionCards = [
   {
     icon: '✨',
     title: 'Magical Streak Bonus',
-    description: 'Gather 5 correct answers in a row to summon +10 bonus seconds.'
+    description: 'Gather 5 correct answers in a row to summon +10 bonus seconds.',
   },
   {
     icon: '🎯',
     title: 'Choose Wisely',
-    description: 'Wrong answers chip away at your streak. Get 10 wrong and your quest is history!'
+    description: 'Wrong answers chip away at your streak. Get 10 wrong and your quest is history!',
   },
   {
     icon: '⚡',
     title: 'Instant Revelation',
-    description: 'Incorrect answers pause the timer so you can study the facts for next time.'
-  }
+    description: 'Incorrect answers pause the timer so you can study the facts for next time.',
+  },
 ]
 
 export default function InstructionsPage() {
@@ -71,44 +71,33 @@ export default function InstructionsPage() {
                   className="mb-6 h-16 w-16 drop-shadow-[0_20px_45px_rgba(255,184,0,0.4)]"
                 />
                 <h1 className="text-2xl font-semibold text-white md:text-3xl">
-                  The Ancient Scrolls of Knowledge
+                  How to Play
                 </h1>
                 <p className="mt-2 text-base text-white/70 md:text-lg">
-                  Master these secrets before you begin your quest
+                  Master these rules before you begin
                 </p>
               </div>
 
-              <div className="relative mt-10 grid gap-y-10 gap-x-7 sm:grid-cols-2 sm:gap-x-9 lg:gap-x-12">
-                {instructionCards.map(card => (
-                  <article
-                    key={card.title}
-                    className="relative flex h-full cursor-default flex-col rounded-4xl border border-amber-200/45 bg-linear-to-b from-[#fff0c2]/95 via-[#f3dcb0]/90 to-[#debc81]/90 px-7 pb-8 pt-10 text-left text-[#2f1809] shadow-[0_26px_60px_rgba(0,0,0,0.32)]"
-                  >
-                    <div
-                      className="pointer-events-none absolute left-1/2 top-0 h-9 w-[82%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#fff7d6] opacity-90 shadow-[0_14px_28px_rgba(0,0,0,0.28)]"
-                      aria-hidden="true"
-                    />
-                    <div
-                      className="pointer-events-none absolute bottom-0 left-1/2 h-9 w-[82%] -translate-x-1/2 translate-y-1/2 rounded-full bg-[#e6c790] opacity-80 shadow-[0_-12px_24px_rgba(0,0,0,0.22)]"
-                      aria-hidden="true"
-                    />
-                    <div className="flex items-start gap-4">
-                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#2f1809]/10 text-2xl shadow-inner" aria-hidden="true">
-                        {card.icon}
+              <div className="relative mt-10 space-y-0">
+                {instructionItems.map((item, index) => (
+                  <div key={item.title}>
+                    <div className="flex items-start gap-4 py-5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-xl" aria-hidden="true">
+                        {item.icon}
                       </span>
-                      <div>
-                        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.28em] text-[#7c5517]/70">
-                          Adventurer Tip
-                        </p>
-                        <h2 className="mt-1 text-xl font-semibold text-[#2f1809] md:text-[1.35rem]">
-                          {card.title}
+                      <div className="min-w-0">
+                        <h2 className="text-base font-semibold text-white md:text-lg">
+                          {item.title}
                         </h2>
+                        <p className="mt-1 text-sm leading-relaxed text-white/60 md:text-base">
+                          {item.description}
+                        </p>
                       </div>
                     </div>
-                    <p className="mt-6 text-base leading-7 text-[#3c2812]/80 md:text-lg">
-                      {card.description}
-                    </p>
-                  </article>
+                    {index < instructionItems.length - 1 && (
+                      <div className="border-t border-white/5" aria-hidden="true" />
+                    )}
+                  </div>
                 ))}
               </div>
 
