@@ -47,6 +47,8 @@ function describeElement(target: EventTarget | null): string {
   return `${target.tagName.toLowerCase()}${id}${cls}`
 }
 
+type EventSubscriber = (event: AnalyticsQueueItem) => void
+
 class AnalyticsService {
   private readonly config = gameConfig.telemetry
   private readonly queue: AnalyticsQueueItem[] = []
@@ -59,6 +61,8 @@ class AnalyticsService {
   private currentPoolName?: string
   private lastPointerEventTimestamp = 0
   private trackedEventCount = 0
+  private debugMode = false
+  private subscribers: EventSubscriber[] = []
 
   initialize(): void {
     if (this.initialized || !this.config.enabled || typeof window === 'undefined') {
@@ -94,6 +98,17 @@ class AnalyticsService {
     this.currentPoolName = pool?.name ?? undefined
   }
 
+  setDebugMode(enabled: boolean): void {
+    this.debugMode = enabled
+  }
+
+  subscribe(subscriber: EventSubscriber): () => void {
+    this.subscribers.push(subscriber)
+    return () => {
+      this.subscribers = this.subscribers.filter(s => s !== subscriber)
+    }
+  }
+
   track(eventName: AnalyticsEventName, properties: AnalyticsEventProperties = {}, context: AnalyticsEventContext = {}): void {
     if (!this.config.enabled || typeof window === 'undefined') {
       return
@@ -101,6 +116,10 @@ class AnalyticsService {
 
     const sanitizedProperties = this.sanitize(properties)
     const enrichedContext = this.enrichContext(context)
+
+    if (this.debugMode) {
+      sanitizedProperties.debug = true
+    }
 
     const queueItem: AnalyticsQueueItem = {
       event: eventName,
@@ -114,6 +133,15 @@ class AnalyticsService {
 
     this.queue.push(queueItem)
     this.trackedEventCount += 1
+
+    // Notify subscribers (e.g., debug panel)
+    for (const subscriber of this.subscribers) {
+      try {
+        subscriber(queueItem)
+      } catch {
+        // Subscriber errors should not block telemetry
+      }
+    }
 
     if (this.config.logToConsole) {
       console.log('[Telemetry]', queueItem)
