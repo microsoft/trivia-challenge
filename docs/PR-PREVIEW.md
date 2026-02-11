@@ -135,9 +135,40 @@ az container delete \
 - Environments are temporary and automatically cleaned up
 - The Cosmos DB emulator uses well-known public test credentials (safe for ephemeral environments)
 
+### SSL/TLS and HTTPS
+
+**Important:** Azure Container Instances do not provide built-in SSL/TLS termination. Preview environments are accessible via HTTP only (`http://`), not HTTPS.
+
+**For HTTPS support, you have these options:**
+
+1. **Accept HTTP for preview environments** (simplest)
+   - Preview environments are temporary and used for testing
+   - No production data or sensitive information
+   - Access can be restricted via network policies if needed
+
+2. **Use Azure Application Gateway** (production-grade)
+   - Add Application Gateway with SSL termination in front of ACI
+   - Requires additional Azure resources and configuration
+   - Increases cost (~$0.05/hour for Gateway + $0.10/hour for ACI)
+   - See [Application Gateway with ACI](https://docs.microsoft.com/azure/container-instances/container-instances-application-gateway)
+
+3. **Migrate to Azure Container Apps** (recommended for production)
+   - Container Apps provide built-in SSL/TLS termination
+   - Automatic HTTPS with managed certificates
+   - Better for production-like environments
+   - Slightly higher complexity in deployment
+
+4. **Use a reverse proxy container** (intermediate)
+   - Add an nginx or Caddy container with SSL in the container group
+   - Use Let's Encrypt for certificates (requires domain validation)
+   - More complex setup but keeps everything in ACI
+
+**Recommendation:** For PR previews, HTTP is generally acceptable since these are temporary testing environments without sensitive data. If HTTPS is required, consider migrating to Azure Container Apps for a better long-term solution.
+
 ## Limitations
 
 - Preview deployments use Azure Container Instances (not Azure Container Apps or Kubernetes)
+- **No built-in SSL/TLS termination** - Preview URLs use HTTP only (see Security Considerations above)
 - No custom domain support (uses Azure-provided FQDN)
 - Limited to single-region deployment
 - Cosmos DB emulator limitations apply (no replication, limited throughput)

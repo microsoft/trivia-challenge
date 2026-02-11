@@ -253,3 +253,4 @@ Preview environments are automatically deleted when PRs close to minimize costs.
 - Environments are isolated per PR
 - Clean up happens automatically
 - The Cosmos DB emulator key is public (designed for testing only)
+- **Preview URLs use HTTP only** - Azure Container Instances don't provide SSL/TLS termination by default. For HTTPS support, see SSL/TLS section in [PR-PREVIEW.md](PR-PREVIEW.md)

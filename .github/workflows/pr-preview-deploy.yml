@@ -149,6 +149,8 @@ jobs:
             
             **Note:** It may take a few minutes for the application to fully start. The Cosmos DB emulator needs time to initialize.
             
+            ⚠️ **Preview uses HTTP only** - Azure Container Instances don't support SSL/TLS termination. For HTTPS options, see [docs/PR-PREVIEW.md](../blob/main/docs/PR-PREVIEW.md#ssltls-and-https).
+            
             ---
             *This preview environment will be automatically deleted when the PR is closed.*`;
             
