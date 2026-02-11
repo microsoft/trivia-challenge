@@ -88,8 +88,8 @@ export default function PoolSelectionPage() {
       <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col items-center justify-center px-4 py-16">
         <div className="w-full max-w-4xl">
           <div className="relative overflow-hidden rounded-[34px] border border-amber-200/20 bg-white/5 p-[1.5px] shadow-[0_32px_64px_rgba(0,0,0,0.65)] backdrop-blur-sm">
-            <div className="relative rounded-4xl bg-neutral-950/80 px-10 pb-12 pt-14">
-              <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top,rgba(255,215,128,0.35)_0%,rgba(17,17,17,0)_70%)]" aria-hidden="true" />
+            <div className="relative overflow-hidden rounded-4xl bg-neutral-950/80 px-10 pb-12 pt-14">
+              <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(ellipse_at_top,rgba(255,215,128,0.35)_0%,rgba(17,17,17,0)_70%)]" aria-hidden="true" />
 
               <div className="relative flex flex-col items-center text-center">
                 <img
@@ -123,14 +123,14 @@ export default function PoolSelectionPage() {
                   </button>
                 </div>
               ) : (
-                <div className="relative mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="relative mt-10 flex flex-wrap justify-center gap-6">
                   {pools.map(pool => (
                     <button
                       key={pool.id}
                       type="button"
                       onClick={() => handlePoolSelect(pool)}
                       disabled={isLockdownActive}
-                      className="group relative flex flex-col items-center rounded-3xl border border-amber-200/30 bg-gradient-to-b from-amber-900/20 via-amber-800/10 to-transparent p-6 text-center transition hover:border-amber-400/50 hover:bg-amber-900/30 hover:shadow-[0_18px_40px_rgba(245,158,11,0.25)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="group relative flex w-full max-w-[280px] flex-col items-center rounded-3xl border border-amber-200/30 bg-gradient-to-b from-amber-900/20 via-amber-800/10 to-transparent p-6 text-center transition hover:border-amber-400/50 hover:bg-amber-900/30 hover:shadow-[0_18px_40px_rgba(245,158,11,0.25)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-b from-amber-400/20 to-amber-600/10 shadow-inner">
                         <img
