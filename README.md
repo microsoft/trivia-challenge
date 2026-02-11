@@ -35,13 +35,7 @@ cd trivia-challenge
 
 This builds and runs both frontend and backend with a local Cosmos DB Emulator.
 
-For production with Azure Cosmos DB, see [DOCKER.md](DOCKER.md).
-
-See [DOCKER-QUICKSTART.md](DOCKER-QUICKSTART.md) for quick start guide.
-
 ### Option 2: Dev Container (Recommended for Development)
-
-### Quick Start with Dev Container
 
 1. Clone the repository:
    ```bash
@@ -81,7 +75,7 @@ See [DOCKER-QUICKSTART.md](DOCKER-QUICKSTART.md) for quick start guide.
 - ✅ Azure Cosmos DB Emulator (with auto-configuration)
 - ✅ All required VS Code extensions
 
-See [.devcontainer/README.md](.devcontainer/README.md) for detailed devcontainer documentation.
+For a detailed walkthrough, see the [Development Setup Guide](docs/development-setup.md).
 
 ## 📁 Project Structure
 
@@ -94,9 +88,9 @@ trivia-challenge/
 │   └── post-create.sh      # Setup script
 ├── backend/                # .NET 10 API
 │   └── TriviaChallenge.Api/    # Main API project
-├── docs/                   # Documentation (Astro)
+├── docs/                   # Documentation
 ├── frontend/               # React + TypeScript frontend
-└── infrastructure/         # Azure deployment
+└── infra/                  # Azure Bicep infrastructure templates
 ```
 
 ## 🏗️ Architecture
@@ -172,13 +166,6 @@ npm test
 
 ### Docker Development & Testing
 
-See [DOCKER.md](DOCKER.md) for comprehensive Docker documentation including:
-- Multi-stage production builds
-- Development vs Production modes
-- Docker Compose setup
-- Azure deployment guides
-- Troubleshooting tips
-
 Quick commands:
 ```bash
 ./docker.sh help           # Show all commands
@@ -188,37 +175,40 @@ Quick commands:
 ./docker.sh clean          # Clean up Docker resources
 ```
 
+See the [Docker reference](docs/src/content/docs/reference/DOCKER.md) for comprehensive documentation including multi-stage production builds, Docker Compose setups, and troubleshooting tips.
+
 ### Azure Deployment
 
 Deploy the application to Azure Container Registry and Azure Web Apps:
 
 ```bash
-# Quick deployment (saves configuration for reuse)
-./quick-deploy.sh dev              # Deploy to development
-./quick-deploy.sh staging          # Deploy to staging
-./quick-deploy.sh prod --tag v1.0.0  # Deploy to production with version
-
-# Manual deployment with full control
+# Deploy with full control
 ./deploy-image.sh <acr-name> \
   --resource-group <resource-group> \
   --app-name <app-service-name> \
   --image-tag latest
 ```
 
-The deployment scripts will:
+The deployment script will:
 1. Build the Docker image from the Dockerfile
 2. Push the image to your Azure Container Registry
 3. Update and restart the Azure Web App to pull the latest image
 
-See [DEPLOY-IMAGE.md](DEPLOY-IMAGE.md) for detailed deployment documentation.
+See the [Infrastructure Deployment Guide](docs/deploying-infrastructure.md) and [Code Deployment Guide](docs/deploying-code.md) for details.
 
 ## 📚 Documentation
 
-- [Docker Deployment Guide](DOCKER.md)
-- [Dev Container Setup](.devcontainer/README.md)
-- [Station ID Tracking](docs/STATION_ID_TRACKING.md)
-- [API Specifications](docs/specs/)
-- [Architecture Overview](docs/src/content/docs/product/overview.md)
+| Guide | Description |
+|-------|-------------|
+| [Development Setup](docs/development-setup.md) | Set up your dev environment with Docker and Dev Containers |
+| [Deploying Infrastructure](docs/deploying-infrastructure.md) | Deploy Azure resources with Bicep templates |
+| [Deploying Code](docs/deploying-code.md) | Build, push, and deploy the application |
+| [Telemetry Events Reference](docs/telemetry-events.md) | Complete list of analytics events and properties |
+| [Dev Container Setup](.devcontainer/README.md) | Detailed devcontainer documentation |
+| [Infrastructure Reference](infra/README.md) | Bicep template parameters and configuration |
+| [Station ID Tracking](docs/STATION_ID_TRACKING.md) | Station-based telemetry for kiosk deployments |
+| [API Specifications](docs/specs/) | Detailed API spec documents |
+| [Game Logic](docs/src/content/docs/product/game_logic.md) | Game mechanics and timer system |
 
 ## Contributing
 

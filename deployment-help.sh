@@ -13,19 +13,7 @@ cat << 'EOF'
 📦 AVAILABLE DEPLOYMENT SCRIPTS
 ────────────────────────────────────────────────────────────────
 
-1. quick-deploy.sh (⭐ Recommended)
-   Simple deployment with saved configurations
-   
-   Usage:
-     ./quick-deploy.sh dev                    # Deploy to dev
-     ./quick-deploy.sh staging                # Deploy to staging
-     ./quick-deploy.sh prod --tag v1.0.0      # Deploy to prod
-     ./quick-deploy.sh config                 # Edit config
-
-   Perfect for: Regular deployments, team collaboration
-
-
-2. deploy-image.sh (Advanced)
+1. deploy-image.sh (⭐ Recommended)
    Full-featured deployment with all options
    
    Usage:
@@ -36,11 +24,12 @@ cat << 'EOF'
      -a, --app-name         App Service name
      -t, --image-tag        Image tag (default: latest)
      --no-cache             Build without cache
+     --station-lockdown     Enable station lockdown build mode
    
-   Perfect for: CI/CD pipelines, custom workflows
+   Perfect for: All deployments, CI/CD pipelines, custom workflows
 
 
-3. docker.sh (Local Development)
+2. docker.sh (Local Development)
    Local testing and development
    
    Usage:
@@ -60,26 +49,24 @@ Step 1: Deploy Infrastructure (One-time)
     --resource-group rg-triviachallenge-bicep \
     --parameters main.dev.bicepparam
 
-Step 2: Configure Quick Deploy (One-time)
-  ./quick-deploy.sh dev
-  # Enter your ACR name and resource group when prompted
+Step 2: Deploy Application
+  ./deploy-image.sh <acr-name>
 
-Step 3: Deploy Application
-  ./quick-deploy.sh dev
-
-Step 4: For subsequent deployments
-  ./quick-deploy.sh dev              # Development
-  ./quick-deploy.sh staging          # Staging
-  ./quick-deploy.sh prod -t v1.0.0   # Production
+Step 3: For subsequent deployments
+  ./deploy-image.sh <acr-name>                       # Default
+  ./deploy-image.sh <acr-name> -t v1.0.0             # With version tag
+  ./deploy-image.sh <acr-name> -g <rg> -a <app>      # Custom targets
 
 ────────────────────────────────────────────────────────────────
 📚 DOCUMENTATION
 ────────────────────────────────────────────────────────────────
 
-  DEPLOY-IMAGE.md       Detailed deployment documentation
-  DOCKER.md             Docker development guide
-  infra/README.md       Infrastructure deployment guide
-  README.md             General project documentation
+  docs/deploying-infrastructure.md   Infrastructure deployment guide
+  docs/deploying-code.md             Code deployment guide
+  docs/development-setup.md          Development environment setup
+  docs/telemetry-events.md           Analytics events reference
+  infra/README.md                    Bicep template reference
+  README.md                          General project documentation
 
 ────────────────────────────────────────────────────────────────
 🔧 COMMON WORKFLOWS
@@ -88,21 +75,15 @@ Step 4: For subsequent deployments
 Development Workflow:
   1. Make code changes
   2. Test locally: ./docker.sh local:up
-  3. Deploy to dev: ./quick-deploy.sh dev
+  3. Deploy to dev: ./deploy-image.sh <acr-name>
   4. Verify: az webapp log tail --name <app-name> -g <rg>
 
 Release Workflow:
   1. Test in dev environment
-  2. Deploy to staging: ./quick-deploy.sh staging
+  2. Deploy to staging: ./deploy-image.sh <acr-name> -g <rg-staging> -a <app-staging>
   3. Run integration tests
-  4. Deploy to prod: ./quick-deploy.sh prod --tag v1.0.0
+  4. Deploy to prod: ./deploy-image.sh <acr-name> -g <rg-prod> -a <app-prod> -t v1.0.0
   5. Tag git release: git tag v1.0.0 && git push --tags
-
-Hotfix Workflow:
-  1. Create hotfix branch
-  2. Make urgent fix
-  3. Test locally: ./docker.sh local:up
-  4. Deploy directly to prod: ./quick-deploy.sh prod --tag v1.0.1-hotfix
 
 ────────────────────────────────────────────────────────────────
 💡 TIPS & TRICKS
@@ -110,7 +91,6 @@ Hotfix Workflow:
 
 • Use --no-cache when dependencies change
 • Tag production releases with semantic versioning (v1.0.0)
-• Use environment-specific tags for dev/staging (dev-latest)
 • Monitor deployments with: az webapp log tail
 • Check deployment status: az webapp show --query state
 • Rollback by deploying a previous tag
@@ -127,11 +107,7 @@ Can't find App Service name?
 
 Deployment failed?
   Check logs: az webapp log tail -n <app-name> -g <rg>
-  Retry with: ./quick-deploy.sh <env> --no-cache
-
-Configuration issues?
-  Edit config: ./quick-deploy.sh config
-  Or delete: rm .deploy-config
+  Retry with: ./deploy-image.sh <acr-name> --no-cache
 
 ────────────────────────────────────────────────────────────────
 
@@ -139,7 +115,6 @@ For detailed help on any script, run: <script-name> --help
 
 Example:
   ./deploy-image.sh --help
-  ./quick-deploy.sh --help
   ./docker.sh help
 
 ────────────────────────────────────────────────────────────────
