@@ -1,4 +1,4 @@
-# Microsoft Fabric Trivia Challenge - TODO
+# Microsoft Trivia Challenge - TODO
 
 ## MVP Features
 
@@ -10,30 +10,17 @@
 
 ### Game Mechanics
 - [x] Implement 1-minute base timer with 15-second streak bonuses (up to 2 minutes total, max 4 streaks)
-- [ ] Build forgiving streak system (wrong answer steps back one level)
 - [x] Implement simplified scoring (10 points per correct answer)
-- [ ] Create time pressure and varying answer choice counts for difficulty
 
 ### User Interface & Experience
-- [ ] Build waiting screen, registration, gameplay, and results screens
-- [ ] Implement touch, mouse, and keyboard controls (Z/C/B/M)
-- [ ] Design and implement real-time leaderboard updates (daily and cumulative)
+- [x] Build waiting screen, registration, gameplay, and results screens
+- [x] Implement touch, mouse, and keyboard controls (Z/C/B/M)
 
 ### Analytics & Telemetry
-- [ ] Implement comprehensive event tracking (clicks, mouse movements at 10 points/sec, game events)
-- [ ] Set up real-time telemetry streaming to Microsoft Fabric
+- [x] Implement comprehensive event tracking (clicks, mouse movements at 10 points/sec, game events)
+- [x] Set up real-time telemetry streaming to Microsoft Fabric
 
 ## Additional Features
-
-### Deployment & Infrastructure
-- [ ] Configure Azure Static Web Apps and App Service Container deployment
-- [ ] Set up GitHub Actions for automated testing and deployment
-- [ ] Implement proper scaling for 10-80K concurrent users
-
-### Performance & Monitoring
-- [ ] Add application performance and error tracking
-- [ ] Test the application under Microsoft Ignite booth conditions
-- [ ] UI/UX refinements and performance optimizations
 
 ## Technical Specifications
 
