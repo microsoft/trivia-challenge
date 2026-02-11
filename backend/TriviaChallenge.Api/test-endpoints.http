@@ -9,6 +9,46 @@
 @questionId = 
 
 ###############################################################################
+# QUESTION POOLS MANAGEMENT
+###############################################################################
+
+### Create the "default" pool (required for default game behavior)
+# @name createDefaultPool
+POST {{baseUrl}}/api/v{{apiVersion}}/pools
+Content-Type: application/json
+
+{
+  "id": "default",
+  "name": "Default",
+  "iconPath": "/pools/default.svg",
+  "description": "Default question pool for Microsoft Fabric Trivia Challenge",
+  "isActive": true,
+  "displayOrder": 0
+}
+
+### Create a "fabric" event pool
+# @name createFabricPool
+POST {{baseUrl}}/api/v{{apiVersion}}/pools
+Content-Type: application/json
+
+{
+  "id": "fabric",
+  "name": "Fabric",
+  "iconPath": "/pools/fabric.png",
+  "description": "Ready to Unify your data?",
+  "isActive": true,
+  "displayOrder": 1
+}
+
+
+### Get all active question pools
+GET {{baseUrl}}/api/v{{apiVersion}}/pools
+
+### Get a specific pool by ID
+GET {{baseUrl}}/api/v{{apiVersion}}/pools/default
+
+
+###############################################################################
 # 0. QUESTION UPLOAD (CSV FORMAT DOCUMENTATION)
 ###############################################################################
 
@@ -64,6 +104,8 @@
 # curl -X POST http://localhost:5109/api/v1.0/questions/upload \
 #   -F "file=@questions.csv"
 #
+
+### Upload Fabric questions (pool: fabric)
 POST {{baseUrl}}/api/v{{apiVersion}}/questions/upload
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
@@ -71,70 +113,39 @@ Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0g
 Content-Disposition: form-data; name="file"; filename="questions.csv"
 Content-Type: text/csv
 
-Category,Question,Answer1,Answer2,Answer3,Answer4,CorrectAnswerKey,Metadata
-Fabric Fundamentals,What is Microsoft Fabric?,**A unified analytics platform for data collaboration and AI-powered insights**,Answer2,A database management system with integrated business intelligence features,A comprehensive data warehousing platform with built-in visualization tools,0,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/3-data-team.md
-Fabric Fundamentals,Who can enable Microsoft Fabric for an organization?,Power BI service administrators only,Any user in the organization,"**Fabric, Power Platform, or Microsoft 365 administrators**",System administrators or IT support professionals,2,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/4-use-fabric.md
-Fabric Fundamentals,What are workspaces used for in Microsoft Fabric?,Storage containers for archived data and backup systems,Personal user folders for individual data projects,Network security zones for access control management,**Collaborative environments for creating and managing analytics items**,3,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/4-use-fabric.md
-Fabric Fundamentals,What does the OneLake data hub help users do?,Manage user permissions and access controls across workspaces,Create automated backup copies of critical data,**Find and access various data sources within the organization**,Monitor system performance metrics and usage statistics,2,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/4-use-fabric.md
-Fabric Fundamentals,What role do analytics engineers play in Microsoft Fabric?,They manage network infrastructure and system configurations,They provide customer support and user training services,They handle financial planning and budget management,**They bridge data engineering and analysis by ensuring data quality**,3,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/3-data-team.md
-Fabric Fundamentals,What are some services included in Microsoft Fabric?,Storage and network infrastructure management,Disaster recovery and business continuity,"**Data integration, data engineering, and real-time intelligence**","Chatbot creation, management, and distribution",2,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/1-introduction.md
-Fabric Fundamentals,How does Microsoft Fabric streamline data analytics?,By providing separate specialized tools for each analytics task,By requiring multiple vendor licenses for comprehensive coverage,**By unifying analytics and business intelligence services in one platform**,By focusing exclusively on data storage and retrieval operations,2,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/2-explore-analytics-fabric.md
-Fabric Fundamentals,What is OneLake in Microsoft Fabric?,A traditional relational database with standard SQL capabilities,**A lake-centric architecture providing a unified data collaboration environment**,A backup storage system for enterprise data archival,A user interface component for data visualization,1,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/2-explore-analytics-fabric.md
-Fabric Fundamentals,How does OneLake help save time for data professionals?,By automating all data analysis tasks and report generation,By providing pre-built reports and dashboard templates,By automatically generating advanced analytics models without configuration,**By eliminating the need to move and copy data between systems**,3,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/2-explore-analytics-fabric.md
-Fabric Fundamentals,How does Fabric ensure data security and governance?,Through individual user passwords and basic authentication processes,By encrypting only sensitive data while leaving others unprotected,Through manual approval processes for all data access requests,**By centralizing governance and simplifying access management**,3,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/2-explore-analytics-fabric.md
+Category,Question,Answer1,Answer2,Answer3,Answer4,CorrectAnswerKey,Metadata,Pools
+Fabric Fundamentals,What is Microsoft Fabric?,**A unified analytics platform for data collaboration and AI-powered insights**,Answer2,A database management system with integrated business intelligence features,A comprehensive data warehousing platform with built-in visualization tools,0,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/3-data-team.md,fabric
+Fabric Fundamentals,Who can enable Microsoft Fabric for an organization?,Power BI service administrators only,Any user in the organization,"**Fabric, Power Platform, or Microsoft 365 administrators**",System administrators or IT support professionals,2,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/4-use-fabric.md,fabric
+Fabric Fundamentals,What are workspaces used for in Microsoft Fabric?,Storage containers for archived data and backup systems,Personal user folders for individual data projects,Network security zones for access control management,**Collaborative environments for creating and managing analytics items**,3,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/4-use-fabric.md,fabric
+Fabric Fundamentals,What does the OneLake data hub help users do?,Manage user permissions and access controls across workspaces,Create automated backup copies of critical data,**Find and access various data sources within the organization**,Monitor system performance metrics and usage statistics,2,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/4-use-fabric.md,fabric
+Fabric Fundamentals,What role do analytics engineers play in Microsoft Fabric?,They manage network infrastructure and system configurations,They provide customer support and user training services,They handle financial planning and budget management,**They bridge data engineering and analysis by ensuring data quality**,3,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/3-data-team.md,fabric
+Fabric Fundamentals,What are some services included in Microsoft Fabric?,Storage and network infrastructure management,Disaster recovery and business continuity,"**Data integration, data engineering, and real-time intelligence**","Chatbot creation, management, and distribution",2,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/1-introduction.md,fabric
+Fabric Fundamentals,How does Microsoft Fabric streamline data analytics?,By providing separate specialized tools for each analytics task,By requiring multiple vendor licenses for comprehensive coverage,**By unifying analytics and business intelligence services in one platform**,By focusing exclusively on data storage and retrieval operations,2,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/2-explore-analytics-fabric.md,fabric
+Fabric Fundamentals,What is OneLake in Microsoft Fabric?,A traditional relational database with standard SQL capabilities,**A lake-centric architecture providing a unified data collaboration environment**,A backup storage system for enterprise data archival,A user interface component for data visualization,1,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/2-explore-analytics-fabric.md,fabric
+Fabric Fundamentals,How does OneLake help save time for data professionals?,By automating all data analysis tasks and report generation,By providing pre-built reports and dashboard templates,By automatically generating advanced analytics models without configuration,**By eliminating the need to move and copy data between systems**,3,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/2-explore-analytics-fabric.md,fabric
+Fabric Fundamentals,How does Fabric ensure data security and governance?,Through individual user passwords and basic authentication processes,By encrypting only sensitive data while leaving others unprotected,Through manual approval processes for all data access requests,**By centralizing governance and simplifying access management**,3,learnmodule:learn-pr/wwl/introduction-end-analytics-use-microsoft-fabric/includes/2-explore-analytics-fabric.md,fabric
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
-###############################################################################
-# 0.5. QUESTION POOLS MANAGEMENT
-###############################################################################
+### Upload SQL Server & Azure SQL questions (pool: sql)
+POST {{baseUrl}}/api/v{{apiVersion}}/questions/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundarySQLQuestions
 
-### Create the "default" pool (required for default game behavior)
-# @name createDefaultPool
-POST {{baseUrl}}/api/v{{apiVersion}}/pools
-Content-Type: application/json
+------WebKitFormBoundarySQLQuestions
+Content-Disposition: form-data; name="file"; filename="sql-questions.csv"
+Content-Type: text/csv
 
-{
-  "id": "default",
-  "name": "Default",
-  "iconPath": "/pools/default.svg",
-  "description": "Default question pool for Microsoft Fabric Trivia Challenge",
-  "isActive": true,
-  "displayOrder": 0
-}
-
-### Create an "Ignite 2026" event pool
-# @name createIgnitePool
-POST {{baseUrl}}/api/v{{apiVersion}}/pools
-Content-Type: application/json
-
-{
-  "id": "ignite-2026",
-  "name": "Ignite 2026",
-  "iconPath": "/pools/ignite-2026.svg",
-  "description": "Special question pool for Microsoft Ignite 2026",
-  "isActive": true,
-  "displayOrder": 1
-}
-
-### Create a "Fabric Basics" pool
-# @name createBasicsPool
-POST {{baseUrl}}/api/v{{apiVersion}}/pools
-Content-Type: application/json
-
-{
-  "id": "fabric-basics",
-  "name": "Fabric Basics",
-  "iconPath": "/pools/fabric-basics.svg",
-  "description": "Beginner-friendly questions about Microsoft Fabric fundamentals",
-  "isActive": true,
-  "displayOrder": 2
-}
-
-### Get all active question pools
-GET {{baseUrl}}/api/v{{apiVersion}}/pools
-
-### Get a specific pool by ID
-GET {{baseUrl}}/api/v{{apiVersion}}/pools/default
+Category,Question,Answer1,Answer2,Answer3,Answer4,CorrectAnswerKey,Metadata,Pools
+SQL Server,What is the default port number for SQL Server?,1521,**1433**,3306,5432,1,sql-server-fundamentals,sql
+SQL Server,"What does the COALESCE function do in T-SQL?",Converts a value to a different data type,Concatenates two or more strings together,**Returns the first non-NULL expression among its arguments**,Rounds a numeric value to the nearest integer,2,t-sql-functions,sql
+Azure SQL,"What is Azure SQL Database?",An on-premises SQL Server installation managed by Microsoft,A NoSQL document database hosted on Azure,A virtual machine running SQL Server on Azure,**A fully managed relational database service built on SQL Server engine**,3,azure-sql-overview,sql
+SQL Server,"Which T-SQL statement is used to handle errors in stored procedures?",IF...ELSE,CASE...WHEN,WHILE...BREAK,**TRY...CATCH**,3,t-sql-error-handling,sql
+Azure SQL,"What is the purpose of Azure SQL Managed Instance?",**To provide near 100% compatibility with on-premises SQL Server for easy migration**,To run SQL queries on unstructured data in Azure Blob Storage,To provide a free tier of Azure SQL Database for testing,To manage multiple Azure SQL Databases from a single dashboard,0,azure-sql-managed-instance,sql
+SQL Server,"What type of index organizes data rows in the table based on key values?",Non-clustered index,Full-text index,Columnstore index,**Clustered index**,3,sql-server-indexing,sql
+Azure SQL,"Which purchasing model in Azure SQL Database lets you choose vCores and storage independently?",DTU-based purchasing model,Serverless compute tier,**vCore-based purchasing model**,Hyperscale service tier,2,azure-sql-purchasing-models,sql
+SQL Server,"What does the MERGE statement do in T-SQL?",Combines two result sets into one using UNION rules,"**Performs INSERT, UPDATE, or DELETE operations in a single statement based on source data**",Merges two databases into a single database,Joins two tables permanently into a new table,1,t-sql-merge,sql
+Azure SQL,"What is the purpose of Active Geo-Replication in Azure SQL Database?",To replicate data to on-premises SQL Server instances,To synchronize schema changes across development environments,To create local backups of your database,**To create readable secondary databases in different Azure regions for disaster recovery**,3,azure-sql-geo-replication,sql
+SQL Server,"What is a Common Table Expression (CTE) in T-SQL?",A permanent view stored in the database for reuse,A system table that stores query execution plans,"**A temporary named result set defined within a SELECT, INSERT, UPDATE, or DELETE statement**",A special index type for improving recursive query performance,2,t-sql-cte,sql
+------WebKitFormBoundarySQLQuestions--
 
 ###############################################################################
 # 1. USER REGISTRATION
