@@ -34,8 +34,6 @@ export interface QuestionPool {
   description?: string
   isActive: boolean
   displayOrder: number
-  createdAt: string
-  updatedAt: string
 }
 
 export interface GameSession {
