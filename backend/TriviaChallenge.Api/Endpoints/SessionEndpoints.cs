@@ -68,7 +68,7 @@ public static class SessionEndpoints
             }
 
             var sessionId = Guid.NewGuid().ToString();
-            var draw = await drawRepository.CreateDrawFromQuestionsAsync(sessionId, request.UserId, seed, poolQuestions);
+            await drawRepository.CreateDrawFromQuestionsAsync(sessionId, request.UserId, seed, poolQuestions);
 
             var session = new GameSession
             {
