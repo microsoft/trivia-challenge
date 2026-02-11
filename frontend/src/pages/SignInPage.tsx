@@ -79,6 +79,8 @@ export default function SignInPage() {
           userId: user.userId,
           name: user.name,
           hasPhoneNumber: Boolean(phone),
+          country: user.country,
+          state: user.state
         },
         {
           page: 'signin',
@@ -207,7 +209,7 @@ export default function SignInPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="country" className="block text-sm font-semibold uppercase tracking-[0.2em] text-white/60">
-                    Country *
+                    Country/region *
                   </label>
                   <select
                     id="country"
@@ -219,7 +221,7 @@ export default function SignInPage() {
                     className="w-full appearance-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition focus:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/40"
                   >
                     <option value="" className="bg-neutral-950 text-white/60">
-                      Select your country
+                      Select your country/region
                     </option>
                     {countries.map(countryOption => (
                       <option key={countryOption} value={countryOption} className="bg-neutral-950 text-white">
