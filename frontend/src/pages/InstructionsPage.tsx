@@ -50,8 +50,8 @@ export default function InstructionsPage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#040406]">
-      <div className="absolute inset-0">
+    <div className="relative min-h-screen bg-[#040406]">
+      <div className="absolute inset-0 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#1f2937_0%,#040406_70%)]" aria-hidden="true" />
         <div className="absolute -top-48 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-amber-400/25 blur-3xl" aria-hidden="true" />
         <div className="absolute -bottom-32 -left-24 h-72 w-72 rounded-full bg-sky-400/15 blur-3xl" aria-hidden="true" />
