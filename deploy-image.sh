@@ -161,7 +161,7 @@ check_acr_access() {
     # Try to login to ACR for Docker operations
     log_info "Authenticating with ACR for Docker push..."
     
-    if az acr login --name "$acr_name" --expose-token --output none 2>/dev/null; then
+    if az acr login --name "$acr_name" 2>/dev/null; then
         log_success "ACR authentication successful"
     else
         log_error "Failed to authenticate with ACR '$acr_name'"
@@ -365,10 +365,14 @@ fi
 
 log_success "Git SHA: $GIT_SHA"
 
-TAGS_TO_PUSH=("latest" "$GIT_SHA")
+TAGS_TO_PUSH=("$GIT_SHA")
 
 if [ "$IMAGE_TAG" != "latest" ] && [ "$IMAGE_TAG" != "$GIT_SHA" ]; then
+    # Custom tag provided — push custom tag + git SHA only (no "latest")
     TAGS_TO_PUSH+=("$IMAGE_TAG")
+else
+    # No custom tag — push latest + git SHA
+    TAGS_TO_PUSH+=("latest")
 fi
 
 log_info "Image repository: $IMAGE_REPO"
