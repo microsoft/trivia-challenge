@@ -131,7 +131,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setQuestionsAnswered(0)
     setCorrectAnswers(0)
     setMissedQuestions([])
-    setSelectedPool(null)
     analytics.resetTrackedEventCount()
   }, [])
 
@@ -142,6 +141,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     analytics.setSession(session?.sessionId ?? null)
   }, [session])
+
+  useEffect(() => {
+    analytics.setPool(selectedPool ? { id: selectedPool.id, name: selectedPool.name } : null)
+  }, [selectedPool])
 
   const value: GameState = {
     player,

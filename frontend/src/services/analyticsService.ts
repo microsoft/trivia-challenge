@@ -55,6 +55,8 @@ class AnalyticsService {
   private flushTimer: number | null = null
   private userId?: string
   private currentSessionId?: string
+  private currentPoolId?: string
+  private currentPoolName?: string
   private lastPointerEventTimestamp = 0
   private trackedEventCount = 0
 
@@ -85,6 +87,11 @@ class AnalyticsService {
 
   setSession(sessionId: string | null): void {
     this.currentSessionId = sessionId ?? undefined
+  }
+
+  setPool(pool: { id: string; name: string } | null): void {
+    this.currentPoolId = pool?.id ?? undefined
+    this.currentPoolName = pool?.name ?? undefined
   }
 
   track(eventName: AnalyticsEventName, properties: AnalyticsEventProperties = {}, context: AnalyticsEventContext = {}): void {
@@ -169,6 +176,13 @@ class AnalyticsService {
 
     if (this.currentSessionId) {
       baseContext.sessionId = this.currentSessionId
+    }
+
+    if (this.currentPoolId) {
+      baseContext.poolId = this.currentPoolId
+    }
+    if (this.currentPoolName) {
+      baseContext.poolName = this.currentPoolName
     }
 
     // Include stationId from cookie if present
