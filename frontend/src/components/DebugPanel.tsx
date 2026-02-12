@@ -106,11 +106,34 @@ export default function DebugPanel() {
     setHearts,
     questionsAnswered,
     setQuestionsAnswered,
+    setDebug,
+    debugActions,
   } = useGame()
 
   const logEndRef = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
   const [isMinimized, setIsMinimized] = useState(false)
+  const [panelHeight, setPanelHeight] = useState(0)
+
+  // Measure panel height so we can add a spacer to prevent content from being hidden
+  useEffect(() => {
+    if (!isDevMode || !panelRef.current) {
+      setPanelHeight(0)
+      return
+    }
+    const observer = new ResizeObserver(([entry]) => {
+      setPanelHeight(entry.contentRect.height + entry.target.getBoundingClientRect().height - entry.contentRect.height)
+    })
+    observer.observe(panelRef.current)
+    setPanelHeight(panelRef.current.getBoundingClientRect().height)
+    return () => observer.disconnect()
+  }, [isDevMode, isMinimized])
+
+  // Sync debug flag on GameContext when dev mode changes
+  useEffect(() => {
+    setDebug(isDevMode)
+  }, [isDevMode, setDebug])
 
   // Auto-scroll to the bottom when new events arrive
   useEffect(() => {
@@ -122,29 +145,52 @@ export default function DebugPanel() {
   if (!isDevMode) return null
 
   const handleAnswerCorrectly = () => {
-    setScore(prev => prev + gameConfig.scoring.pointsPerCorrectAnswer)
-    setCorrectAnswers(prev => prev + 1)
-    setQuestionsAnswered(prev => prev + 1)
-
-    const newStreak = currentStreak + 1
-    if (newStreak >= gameConfig.streak.threshold) {
-      setCurrentStreak(0)
-      setStreaksCompleted(prev => prev + 1)
+    if (debugActions) {
+      debugActions.answerCorrectly()
     } else {
-      setCurrentStreak(newStreak)
+      // Fallback when not on PlayingPage
+      setScore(prev => prev + gameConfig.scoring.pointsPerCorrectAnswer)
+      setCorrectAnswers(prev => prev + 1)
+      setQuestionsAnswered(prev => prev + 1)
+
+      const newStreak = currentStreak + 1
+      if (newStreak >= gameConfig.streak.threshold) {
+        setCurrentStreak(0)
+        setStreaksCompleted(prev => prev + 1)
+      } else {
+        setCurrentStreak(newStreak)
+      }
+    }
+  }
+
+  const handleAnswerIncorrectly = () => {
+    if (debugActions) {
+      debugActions.answerIncorrectly()
+    } else {
+      setQuestionsAnswered(prev => prev + 1)
+      setCurrentStreak(prev => Math.max(0, prev - gameConfig.streak.decrementOnWrong))
+      setHearts(prev => Math.max(0, Math.round((prev - gameConfig.hearts.decrementOnWrong) * 2) / 2))
     }
   }
 
   const handleSkipQuestion = () => {
-    setQuestionsAnswered(prev => prev + 1)
+    if (debugActions) {
+      debugActions.skipQuestion()
+    } else {
+      setQuestionsAnswered(prev => prev + 1)
+    }
   }
 
   const handleEarnTimeBonus = () => {
-    if (streaksCompleted < gameConfig.timer.maxStreaks) {
-      const bonus = gameConfig.timer.bonusSeconds
-      setTimeLeft(prev => Math.min(prev + bonus, maxTime + bonus))
-      setStreaksCompleted(prev => prev + 1)
-      setCurrentStreak(0)
+    if (debugActions) {
+      debugActions.earnTimeBonus()
+    } else {
+      if (streaksCompleted < gameConfig.timer.maxStreaks) {
+        const bonus = gameConfig.timer.bonusSeconds
+        setTimeLeft(prev => Math.min(prev + bonus, maxTime + bonus))
+        setStreaksCompleted(prev => prev + 1)
+        setCurrentStreak(0)
+      }
     }
   }
 
@@ -157,8 +203,11 @@ export default function DebugPanel() {
       {/* Debug mode border indicator */}
       <div className="pointer-events-none fixed inset-0 z-[9998] border-2 border-green-500/50" />
 
+      {/* Spacer to push page content above the fixed debug panel */}
+      <div style={{ height: panelHeight }} />
+
       {/* Debug panel */}
-      <div className="fixed right-0 bottom-0 left-0 z-[9999] flex flex-col border-t-2 border-green-500 bg-[#0a0f0a]/95 font-mono text-green-300 shadow-[0_-4px_20px_rgba(34,197,94,0.15)]">
+      <div ref={panelRef} className="fixed right-0 bottom-0 left-0 z-[9999] flex flex-col border-t-2 border-green-500 bg-[#0a0f0a]/95 font-mono text-green-300 shadow-[0_-4px_20px_rgba(34,197,94,0.15)]">
         {/* Header bar */}
         <div className="flex items-center justify-between border-b border-green-900/60 px-4 py-2">
           <div className="flex items-center gap-2">
@@ -200,6 +249,13 @@ export default function DebugPanel() {
                   className="cursor-pointer rounded border border-green-800/60 bg-green-950/50 px-3 py-2 text-xs text-green-300 hover:bg-green-900/50"
                 >
                   ✅ Answer Correctly
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAnswerIncorrectly}
+                  className="cursor-pointer rounded border border-green-800/60 bg-green-950/50 px-3 py-2 text-xs text-green-300 hover:bg-green-900/50"
+                >
+                  ❌ Answer Incorrectly
                 </button>
                 <button
                   type="button"

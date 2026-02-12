@@ -4,6 +4,7 @@ import {
   useState,
   useCallback,
   useEffect,
+  useRef,
   type Dispatch,
   type ReactNode,
   type SetStateAction,
@@ -11,6 +12,13 @@ import {
 import type { User, GameSession, SessionQuestion, QuestionPool } from '../types/api'
 import { gameConfig } from '../config/gameConfig'
 import { analytics } from '../services/analyticsService'
+
+export interface DebugActions {
+  answerCorrectly: () => void
+  answerIncorrectly: () => void
+  skipQuestion: () => void
+  earnTimeBonus: () => void
+}
 
 interface MissedQuestion {
   questionId: string
@@ -74,6 +82,14 @@ interface GameState {
   missedQuestions: MissedQuestion[]
   setMissedQuestions: Dispatch<SetStateAction<MissedQuestion[]>>
 
+  // Debug mode
+  debug: boolean
+  setDebug: Dispatch<SetStateAction<boolean>>
+
+  // Debug actions registered by PlayingPage
+  debugActions: DebugActions | null
+  registerDebugActions: (actions: DebugActions | null) => void
+
   // Reset game state
   resetGame: () => void
 }
@@ -114,6 +130,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [questionsAnswered, setQuestionsAnswered] = useState(0)
   const [correctAnswers, setCorrectAnswers] = useState(0)
   const [missedQuestions, setMissedQuestions] = useState<MissedQuestion[]>([])
+
+  // Debug mode
+  const [debug, setDebug] = useState(false)
+  const debugActionsRef = useRef<DebugActions | null>(null)
+  const [debugActions, setDebugActions] = useState<DebugActions | null>(null)
+
+  const registerDebugActions = useCallback((actions: DebugActions | null) => {
+    debugActionsRef.current = actions
+    setDebugActions(actions)
+  }, [])
 
   // Reset game state
   const resetGame = useCallback(() => {
@@ -179,6 +205,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setCorrectAnswers,
     missedQuestions,
     setMissedQuestions,
+    debug,
+    setDebug,
+    debugActions,
+    registerDebugActions,
     resetGame,
   }
 

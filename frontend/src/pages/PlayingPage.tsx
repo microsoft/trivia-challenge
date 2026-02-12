@@ -84,6 +84,7 @@ export default function PlayingPage() {
     setCorrectAnswers,
     setMissedQuestions,
     setGameOverReason,
+    registerDebugActions,
   } = useGame()
 
   const [loading, setLoading] = useState(true)
@@ -116,6 +117,19 @@ export default function PlayingPage() {
   const isMountedRef = useRef(true)
   const questionDisplayTimeRef = useRef<number>(0)
   const pauseAutoHandledRef = useRef(false)
+
+  // Refs for debug actions to avoid dependency-driven re-registration loops
+  const currentStreakRef = useRef(currentStreak)
+  const streaksCompletedRef = useRef(streaksCompleted)
+  const currentQuestionIndexRef = useRef(currentQuestionIndex)
+  const questionsLengthRef = useRef(questions.length)
+  const addBonusTimeRef = useRef<((streaksCompleted: number) => void) | null>(null)
+  const handleSessionEndRef = useRef<((overrides?: Record<string, unknown>) => void) | null>(null)
+
+  useEffect(() => { currentStreakRef.current = currentStreak }, [currentStreak])
+  useEffect(() => { streaksCompletedRef.current = streaksCompleted }, [streaksCompleted])
+  useEffect(() => { currentQuestionIndexRef.current = currentQuestionIndex }, [currentQuestionIndex])
+  useEffect(() => { questionsLengthRef.current = questions.length }, [questions.length])
 
   const clearTimeoutRef = useCallback((ref: MutableRefObject<number | null>) => {
     if (ref.current !== null) {
@@ -156,6 +170,9 @@ export default function PlayingPage() {
       setShowBonusNotification(true)
     },
   })
+
+  // Keep addBonusTime ref in sync (declared before hook, populated after)
+  useEffect(() => { addBonusTimeRef.current = addBonusTime }, [addBonusTime])
 
   const currentQuestion = questions[currentQuestionIndex]
 
@@ -343,6 +360,9 @@ export default function PlayingPage() {
     }
   }, [session, timeLeft, gameOverReason, setIsPlaying, navigate])
 
+  // Keep handleSessionEnd ref in sync for debug actions
+  useEffect(() => { handleSessionEndRef.current = handleSessionEnd }, [handleSessionEnd])
+
   useEffect(() => {
     onTimeUpRef.current = () => {
       handleSessionEnd()
@@ -363,6 +383,82 @@ export default function PlayingPage() {
     setCurrentQuestionIndex(nextIndex)
     // The questionDisplayTimeRef will be updated by the effect when the new question renders
   }, [currentQuestionIndex, questions.length, handleSessionEnd, setCurrentQuestionIndex, timeLeft])
+
+  // Register debug actions so the DebugPanel can invoke real game logic
+  useEffect(() => {
+    registerDebugActions({
+      answerCorrectly: () => {
+        setScore(prev => prev + gameConfig.scoring.pointsPerCorrectAnswer)
+        setCorrectAnswers(prev => prev + 1)
+        setQuestionsAnswered(prev => prev + 1)
+
+        const streak = currentStreakRef.current
+        const newStreak = streak + 1
+        if (newStreak >= gameConfig.streak.threshold) {
+          setCurrentStreak(0)
+          const nextCompleted = streaksCompletedRef.current + 1
+          setStreaksCompleted(nextCompleted)
+          if (nextCompleted <= gameConfig.timer.maxStreaks) {
+            addBonusTimeRef.current(nextCompleted)
+          }
+        } else {
+          setCurrentStreak(newStreak)
+        }
+
+        // Advance to next question or end session
+        const nextIndex = currentQuestionIndexRef.current + 1
+        if (nextIndex < questionsLengthRef.current) {
+          setCurrentQuestionIndex(nextIndex)
+        } else {
+          handleSessionEndRef.current?.()
+        }
+      },
+      answerIncorrectly: () => {
+        setQuestionsAnswered(prev => prev + 1)
+
+        // Decrement streak
+        const streak = currentStreakRef.current
+        const newStreak = Math.max(0, streak - gameConfig.streak.decrementOnWrong)
+        setCurrentStreak(newStreak)
+
+        // Deduct hearts
+        const heartPenalty = gameConfig.hearts.decrementOnWrong
+        setHearts(prev => Math.max(gameConfig.hearts.minimum, Math.round((prev - heartPenalty) * 2) / 2))
+
+        // Advance to next question or end session
+        const nextIndex = currentQuestionIndexRef.current + 1
+        if (nextIndex < questionsLengthRef.current) {
+          setCurrentQuestionIndex(nextIndex)
+        } else {
+          handleSessionEndRef.current?.()
+        }
+      },
+      skipQuestion: () => {
+        setQuestionsAnswered(prev => prev + 1)
+        // Advance to next question or end session
+        const nextIndex = currentQuestionIndexRef.current + 1
+        if (nextIndex < questionsLengthRef.current) {
+          setCurrentQuestionIndex(nextIndex)
+        } else {
+          handleSessionEndRef.current?.()
+        }
+      },
+      earnTimeBonus: () => {
+        if (streaksCompletedRef.current < gameConfig.timer.maxStreaks) {
+          const nextCompleted = streaksCompletedRef.current + 1
+          setStreaksCompleted(nextCompleted)
+          setCurrentStreak(0)
+          addBonusTimeRef.current(nextCompleted)
+        }
+      },
+    })
+
+    return () => {
+      registerDebugActions(null)
+    }
+  // Only register/unregister on mount/unmount – callbacks read current values via refs
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [registerDebugActions])
 
   const handleQuestionProgress = useCallback(() => {
     clearTimeoutRef(wrongAnswerTimeoutRef)
