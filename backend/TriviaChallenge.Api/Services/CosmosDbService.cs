@@ -93,8 +93,7 @@ public class CosmosDbService
 
             // Create database if it doesn't exist
             DatabaseResponse databaseResponse = await _cosmosClient.CreateDatabaseIfNotExistsAsync(
-                _database.Id,
-                throughput: 400); // Use 400 RU/s for development
+                _database.Id); // Use 400 RU/s for development
 
             _logger.LogInformation("Database {DatabaseId} ready. Status: {StatusCode}", 
                 databaseResponse.Database.Id, 
