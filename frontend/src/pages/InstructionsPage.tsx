@@ -50,8 +50,8 @@ export default function InstructionsPage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#040406]">
-      <div className="absolute inset-0">
+    <div className="relative min-h-screen bg-[#040406]">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#1f2937_0%,#040406_70%)]" aria-hidden="true" />
         <div className="absolute -top-48 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-amber-400/25 blur-3xl" aria-hidden="true" />
         <div className="absolute -bottom-32 -left-24 h-72 w-72 rounded-full bg-sky-400/15 blur-3xl" aria-hidden="true" />
@@ -62,8 +62,6 @@ export default function InstructionsPage() {
         <div className="w-full max-w-4xl">
           <div className="relative overflow-hidden rounded-[34px] border border-amber-200/20 bg-white/5 p-[1.5px] shadow-[0_32px_64px_rgba(0,0,0,0.65)] backdrop-blur-sm">
             <div className="relative rounded-4xl bg-neutral-950/80 px-10 pb-12 pt-14">
-              <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top,rgba(255,215,128,0.35)_0%,rgba(17,17,17,0)_70%)]" aria-hidden="true" />
-
               <div className="relative flex flex-col items-center text-center">
                 <img
                   src="/fabriclogo.png"
