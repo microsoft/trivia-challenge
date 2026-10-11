@@ -28,6 +28,7 @@ export function StationAvatar({ placement = 'fixed' }: { placement?: 'fixed' | '
         alt=""
         aria-hidden="true"
         draggable={false}
+        className="-scale-x-100"
       />
     )
   }

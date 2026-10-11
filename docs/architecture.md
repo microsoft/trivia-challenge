@@ -50,29 +50,33 @@ If a request rejects the operator session, a recovery dialog opens a fresh Fabri
 
 ### Attendee identity
 
-New adventurers select a country and three distinct runes in order from the versioned nine-item catalog in `rayfin/functions/src/playerIdentity.ts`. The app does not request names or contact details or infer location.
+New adventurers select a country. The server generates a name and a five-character secret code, then returns the code once in the creation response. The app tells the attendee to photograph or screenshot it. It does not request real names, contact details, passwords, or inferred location.
 
 The server generates a name from `rayfin/functions/src/player-name-words.txt`. The first use has no suffix; collisions append `2`, `3`, or the next number. A single SQL aggregate over the name/prefix finds that number inside the entry transaction.
 
-The private code contains one Crockford letter followed by three decimal digits. There are 22,000 possible codes and 504 ordered rune selections. Normalization preserves leading zeros. Five-character codes and runes outside the catalog are rejected.
+Returning adventurers enter only the secret code. `normalizePlayerCode` trims, uppercases, removes spaces and hyphens, maps `I` and `L` to `1`, and maps `O` to `0`. The app rejects anything that is not exactly five characters from the Crockford base32 alphabet after normalization.
 
-The server stores a salted scrypt verifier for the spell, not the selected rune IDs. `registerPlayer` accepts a strict `new`/`returning` request union and rejects contact fields.
+The server stores a deterministic scrypt verifier for the normalized code, not the code. The fixed salt is domain-separated for this app, so returning entry can look up the verifier without storing plaintext. `registerPlayer` accepts a strict `new`/`returning` request union and rejects contact fields, passwords, and the retired code and rune fields.
 
-New entry uses a stable UUID request ID as the player ID. A retry with the same country and spell returns the same identity. A different country or spell cannot overwrite it.
+New entry uses a stable UUID request ID as the player ID. A retry with the same request ID after creation returns `PLAYER_ALREADY_CREATED` because the code can be shown only once. A failed creation that may not have committed keeps the same request ID for explicit retry.
 
-`PlayerEntryState` serializes code/name allocation and enforces a shared limit of 60 entry attempts per minute. Each player also has a five-failure limit within a 15-minute window. Failed-attempt updates commit even when verification fails. Limits cover returning entry and creation replays without recording IP addresses or device identifiers. SQL unique constraints provide additional safeguards.
+`PlayerEntryState` serializes name and secret-code allocation and enforces a shared limit of 60 entry attempts per minute. Wrong codes do not identify a player, so there is no per-player lockout. Limits cover returning entry and creation replays without recording IP addresses or device identifiers. SQL unique constraints provide additional safeguards for names.
 
-This is lightweight verification for supervised kiosks, not strong account authentication or one-person-one-entry enforcement. Forgotten credentials produce a new identity. Keep version 1 rune IDs and meanings stable to avoid invalidating saved spells.
+This is lightweight verification for supervised kiosks, not strong account authentication or one-person-one-entry enforcement. Forgotten codes produce a new identity. Existing players without a secret-code verifier cannot return; they must start a new adventure.
 
 ### Entry interface
 
-The initial view is returning entry. A valid code or country enables the three-by-three rune keypad. The third rune starts one request from the input handler, not a render effect.
+The initial view is new entry, with the country picker and a link to returning entry. Returning entry shows an empty ticket with five secret-code slots and a link back to new entry. Before submitting, the page checks the country or code and focuses the first invalid field.
 
-Returning entry uses a password input, displays `*` for each filled cell, and has no reveal control. Changing the code or receiving a mismatch clears the spell. Network and operator-session failures retain it for explicit retry.
+The secret-code input is a plain text field layered under the slots. It has `autocomplete="off"` so a kiosk browser does not suggest an earlier attendee's code, and it is not a password field, so the browser never offers to save it. Each slot shows `*` for a typed character, and the field drops characters that normalization cannot turn into the code alphabet. A verification mismatch clears the code. Network and operator-session failures keep it for explicit retry.
 
-New entry waits for both registration and the spell animation, then replaces the keypad with the code. This is the only screen that displays it. Selected runes stay visible and read-only; **Begin trivia** continues. A failed creation retains its request ID, country, and spell for retry.
+After creation succeeds, the reveal screen shows the generated name and code on a ticket and asks the attendee to photograph it, then **Begin trivia** continues. A failed creation locks its request ID and country, and offers a retry of the same request. The privacy footer shows the Terms and Conditions QR asset at `public/terms-qr.png`.
 
-Rune buttons have accessible names and arrow-key navigation. Reduced-motion preferences skip the animation wait. Entry styles stay scoped to the page; other routes retain their own scrolling and station-avatar behavior.
+Station avatars face into the page: the entry avatar on the left is mirrored, and the bottom-right avatar on other routes keeps the image's original orientation. Entry styles stay scoped to the page; other routes retain their own scrolling and station-avatar behavior.
+
+### Results actions
+
+**Play Again** keeps the player, clears the game and selected pool, and returns to pool selection. **Reset** also clears the player and returns to the entry form. Both keep the operator session and station assignment.
 
 ### Generated names and countries
 
@@ -104,7 +108,7 @@ The SQL implementation provides native transactions and locking across several s
 
 | Entity | Stored information |
 | --- | --- |
-| `Player` | Generated name, selected country, private return code, salted rune verifier, and verification counters |
+| `Player` | Generated name, selected country, secret-code verifier, and creation time |
 | `PlayerEntryState` | Deployment-wide player-entry attempt window |
 | `QuestionPool` | Pool slug, display name, artwork, and availability |
 | `QuestionImport` | Import identity and content hash |
@@ -122,7 +126,7 @@ Entity definitions are registered in `rayfin/data/schema.ts`. The root package e
 
 | Operation | Purpose |
 | --- | --- |
-| `registerPlayer` | Create an idempotent generated identity or verify a returning code and spell |
+| `registerPlayer` | Create a generated identity with a one-time secret code or verify a returning secret code |
 | `listPools` | List active pools |
 | `getPool` | Resolve a pool by slug |
 | `createPool` | Create a display pool |

@@ -27,12 +27,11 @@ for (const [name, entity] of Object.entries(config.entities)) {
 const player = config.entities.Player
 assert.equal(player.source, 'Players')
 assert.deepEqual(Object.keys(player['x-schema'].fields).sort(), [
-  'id', 'playerCode', 'name', 'country', 'runeHash', 'runeVersion',
-  'failedAttempts', 'attemptWindowStartedAt', 'createdAt',
-].sort(), 'Player records must contain only the generated identity, country, and private verification state.')
+  'id', 'name', 'country', 'secretCodeHash', 'createdAt',
+].sort(), 'Player records must contain only the generated identity, country, and private code verifier.')
 assert.equal(player['x-schema'].fields.country.dbType, 'NVARCHAR(80)')
 assert.deepEqual(player['x-schema'].constraints.uniqueConstraints.map(constraint => constraint.columns).sort(),
-  [['name'], ['playerCode']], 'Generated names and return codes must both be unique.')
+  [['name']], 'Generated names remain unique, while secret-code uniqueness is enforced by the entry transaction.')
 assert.equal(config.entities.PlayerEntryState.source, 'PlayerEntryStates',
   'The generated entry-state table must match the transactional SQL implementation.')
 console.log(`Generated ${expected.length} application entities with private Data API policies.`)

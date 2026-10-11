@@ -31,21 +31,23 @@ export async function runApplicationAcceptance(invoke: AuthenticatedAppInvoker):
     if (!result.success) throw new Error(`${operation}: ${result.code}: ${result.errorMessage}`)
     return result.data
   }
-  const registration = {
-    mode: 'new', requestId: nonce, country: 'Canada', runeVersion: 1, runes: ['lakehouse', 'notebook', 'warehouse'],
-  } as const
-  const [player, duplicatePlayer] = await Promise.all([
-    call('registerPlayer', registration), call('registerPlayer', registration),
-  ])
-  check(JSON.stringify(player) === JSON.stringify(duplicatePlayer), 'concurrent registration must return one stored player')
+  const registration = { mode: 'new', requestId: nonce, country: 'Canada' } as const
+  const player = await call('registerPlayer', registration)
+  check(typeof player.secretCode === 'string', 'new registration must return a one-time secret code')
+  const secretCode = player.secretCode
+  const duplicatePlayer = await invoke('registerPlayer', registration)
+  check(!duplicatePlayer.success && duplicatePlayer.code === 'PLAYER_ALREADY_CREATED',
+    'registration replay must not reissue a secret code')
   const returningPlayer = await call('registerPlayer', {
-    mode: 'returning', playerCode: player.playerCode, runeVersion: 1, runes: registration.runes,
+    mode: 'returning', secretCode,
   })
-  check(JSON.stringify(returningPlayer) === JSON.stringify(player), 'returning spell changed the player')
-  const incorrectSpell = await invoke('registerPlayer', {
-    mode: 'returning', playerCode: player.playerCode, runeVersion: 1, runes: ['warehouse', 'notebook', 'lakehouse'],
+  const publicPlayer = { ...player }
+  delete publicPlayer.secretCode
+  check(JSON.stringify(returningPlayer) === JSON.stringify(publicPlayer), 'returning secret code changed the player')
+  const incorrectCode = await invoke('registerPlayer', {
+    mode: 'returning', secretCode: 'ZZZZZ',
   })
-  check(!incorrectSpell.success && incorrectSpell.code === 'PLAYER_VERIFICATION_FAILED', 'a reordered spell was accepted')
+  check(!incorrectCode.success && incorrectCode.code === 'PLAYER_VERIFICATION_FAILED', 'an incorrect secret code was accepted')
 
   const csvHeader = 'Category,Question,Answer1,Answer2,Answer3,Answer4,CorrectAnswerKey,Metadata,Pools'
   const csv = `${csvHeader}\n` + Array.from({ length: 101 }, (_, i) =>

@@ -1,20 +1,15 @@
-import type { RUNE_CATALOG_VERSION, RuneSpell } from './playerIdentity.js'
-
 export interface User {
   userId: string
   name: string
-  playerCode: string
   country: string
   createdAt: string
 }
 
-export type RegisterUserRequest = {
-  runeVersion: typeof RUNE_CATALOG_VERSION
-  runes: RuneSpell
-} & (
+export type RegisterUserRequest =
   | { mode: 'new'; requestId: string; country: string }
-  | { mode: 'returning'; playerCode: string }
-)
+  | { mode: 'returning'; secretCode: string }
+
+export type RegisteredPlayer = User & { secretCode?: string }
 
 export type SessionStatus = 'active' | 'completed' | 'abandoned'
 
@@ -184,7 +179,7 @@ export type FunctionResult<T> =
   }
 
 export interface OperationMap {
-  registerPlayer: { input: RegisterUserRequest; output: User }
+  registerPlayer: { input: RegisterUserRequest; output: RegisteredPlayer }
   listPools: { input: Record<string, never>; output: QuestionPool[] }
   getPool: { input: { slug: string }; output: QuestionPool }
   createPool: { input: CreatePoolInput; output: QuestionPool }

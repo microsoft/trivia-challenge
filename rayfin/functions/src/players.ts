@@ -1,14 +1,8 @@
-import { randomInt } from 'node:crypto'
 import type { RayfinContext } from '@microsoft/fabric-user-data-functions'
-import type { User } from './contracts.js'
+import type { RegisteredPlayer, User } from './contracts.js'
 import { DomainError } from './errors.js'
-import {
-  generatePlayerName,
-  hashRuneSpell,
-  UNKNOWN_PLAYER_HASH,
-  verifyRuneSpell,
-} from './playerCredentials.js'
-import { PLAYER_CODE_CAPACITY, PLAYER_CODE_LENGTH, playerCodeAt, RUNE_CATALOG_VERSION } from './playerIdentity.js'
+import { generatePlayerCode, generatePlayerName, hashPlayerCode } from './playerCredentials.js'
+import { PLAYER_NAME_MAX_LENGTH } from './playerIdentity.js'
 import { isCountry, normalizeCountry } from './countries.js'
 import {
   date,
@@ -27,13 +21,11 @@ import { registrationInput } from './validation.js'
 
 export const PLAYER_ENTRY_LIMITS = {
   attemptsPerMinute: 60,
-  failuresPerPlayer: 5,
-  playerWindowMs: 15 * 60 * 1000,
 } as const
 
 const ENTRY_STATE_ID = '00000000-0000-4000-8000-000000000001'
-const PLAYER_COLUMNS =
-  '[id], [playerCode], [name], [country], [runeHash], [runeVersion], [failedAttempts], [attemptWindowStartedAt], [createdAt]'
+const PLAYER_COLUMNS = '[id], [name], [country], [secretCodeHash], [createdAt]'
+const CODE_COLLISION_RETRIES = 5
 
 function playerDto(row: SqlRow): User {
   const country = normalizeCountry(rowText(row, 'country'))
@@ -41,7 +33,6 @@ function playerDto(row: SqlRow): User {
   return {
     userId: rowUuid(row, 'id'),
     name: rowText(row, 'name'),
-    playerCode: rowText(row, 'playerCode'),
     country,
     createdAt: rowDate(row, 'createdAt'),
   }
@@ -50,7 +41,7 @@ function playerDto(row: SqlRow): User {
 function verificationFailure(): DomainError {
   return new DomainError(
     'PLAYER_VERIFICATION_FAILED',
-    'That code and spell could not be verified. Check both, or wait 15 minutes before trying again.'
+    'That secret code didn\'t match an adventurer. Check your photo and try again, or start a new challenge.'
   )
 }
 
@@ -82,28 +73,6 @@ async function reserveEntryAttempt(sql: SqlSession, now: Date): Promise<boolean>
   return true
 }
 
-async function availableCode(sql: SqlSession): Promise<string | DomainError> {
-  for (let attempt = 0; attempt < 8; attempt++) {
-    const candidate = playerCodeAt(randomInt(PLAYER_CODE_CAPACITY))
-    const rows = await sql.query('SELECT [id] FROM [dbo].[Players] WHERE [playerCode] = @code;', {
-      code: str(candidate, PLAYER_CODE_LENGTH),
-    })
-    if (rows.length === 0) return candidate
-  }
-  // Near capacity, scan remaining codes rather than mistaking repeated random collisions for exhaustion.
-  const rows = await sql.query('SELECT [playerCode] FROM [dbo].[Players];')
-  const used = new Set(rows.map(row => rowText(row, 'playerCode')))
-  const start = randomInt(PLAYER_CODE_CAPACITY)
-  for (let offset = 0; offset < PLAYER_CODE_CAPACITY; offset++) {
-    const candidate = playerCodeAt((start + offset) % PLAYER_CODE_CAPACITY)
-    if (!used.has(candidate)) return candidate
-  }
-  return new DomainError(
-    'PLAYER_CODES_EXHAUSTED',
-    'All adventurer codes have been issued. Contact an operator.'
-  )
-}
-
 async function availableName(sql: SqlSession): Promise<string | DomainError> {
   const base = generatePlayerName()
   const prefix = base
@@ -117,7 +86,7 @@ async function availableName(sql: SqlSession): Promise<string | DomainError> {
       COALESCE(MAX(CASE WHEN [name] = @name THEN 1
         ELSE TRY_CONVERT(INT, SUBSTRING([name], LEN(@name) + 2, 96)) END), 0) AS [highestSuffix]
       FROM [dbo].[Players] WHERE [name] = @name OR [name] LIKE @prefix ESCAPE N'~';`,
-    { name: str(base, 96), prefix: str(`${prefix} %`, 200) }
+    { name: str(base, PLAYER_NAME_MAX_LENGTH), prefix: str(`${prefix} %`, 200) }
   )
   if (!row) throw new Error('Player name allocation did not return an aggregate.')
   if (rowNumber(row, 'hasBase') === 0) return base
@@ -132,7 +101,24 @@ async function availableName(sql: SqlSession): Promise<string | DomainError> {
   return `${base} ${Math.max(1, highest) + 1}`
 }
 
-export async function registerPlayer(ctx: RayfinContext, value: unknown): Promise<User> {
+async function allocateSecretCode(sql: SqlSession): Promise<{ secretCode: string; secretCodeHash: string } | DomainError> {
+  for (let attempt = 0; attempt < CODE_COLLISION_RETRIES; attempt += 1) {
+    const secretCode = generatePlayerCode()
+    const secretCodeHash = await hashPlayerCode(secretCode)
+    const [collision] = await sql.query(
+      'SELECT TOP 1 1 AS [exists] FROM [dbo].[Players] WHERE [secretCodeHash] = @hash;',
+      { hash: str(secretCodeHash, 64) }
+    )
+    if (!collision) return { secretCode, secretCodeHash }
+  }
+  return new DomainError(
+    'PLAYER_CODE_UNAVAILABLE',
+    'A secret code could not be reserved. Please retry.',
+    true
+  )
+}
+
+export async function registerPlayer(ctx: RayfinContext, value: unknown): Promise<RegisteredPlayer> {
   const input = registrationInput(value)
   const result = await withSql(ctx, sql =>
     sql.transaction(async transaction => {
@@ -143,81 +129,50 @@ export async function registerPlayer(ctx: RayfinContext, value: unknown): Promis
           'Too many player-entry attempts. Please wait one minute and try again.'
         )
       }
+      if (input.mode === 'returning') {
+        const secretCodeHash = await hashPlayerCode(input.secretCode)
+        const matches = await transaction.query(
+          `SELECT TOP 2 ${PLAYER_COLUMNS} FROM [dbo].[Players] WHERE [secretCodeHash] = @hash;`,
+          { hash: str(secretCodeHash, 64) }
+        )
+        return matches.length === 1 ? playerDto(matches[0]) : verificationFailure()
+      }
+
       const [existing] = await transaction.query(
-        `SELECT ${PLAYER_COLUMNS} FROM [dbo].[Players] WITH (UPDLOCK, HOLDLOCK) WHERE ` +
-          (input.mode === 'new' ? '[id] = @id;' : '[playerCode] = @code;'),
-        input.mode === 'new' ? { id: id(input.requestId) } : { code: str(input.playerCode, PLAYER_CODE_LENGTH) }
+        `SELECT ${PLAYER_COLUMNS} FROM [dbo].[Players] WITH (UPDLOCK, HOLDLOCK) WHERE [id] = @id;`,
+        { id: id(input.requestId) }
       )
       if (existing) {
-        const expired =
-          now.getTime() - Date.parse(rowDate(existing, 'attemptWindowStartedAt')) >=
-          PLAYER_ENTRY_LIMITS.playerWindowMs
-        const failures = expired ? 0 : rowNumber(existing, 'failedAttempts')
-        const matches = await verifyRuneSpell(input.runes, rowText(existing, 'runeHash'))
-        if (failures >= PLAYER_ENTRY_LIMITS.failuresPerPlayer) return verificationFailure()
-        if (!matches || rowNumber(existing, 'runeVersion') !== RUNE_CATALOG_VERSION) {
-          await transaction.query(
-            'UPDATE [dbo].[Players] SET [failedAttempts] = @failures, [attemptWindowStartedAt] = @started WHERE [id] = @id;',
-            {
-              id: id(rowUuid(existing, 'id')),
-              failures: int(failures + 1),
-              started: date(expired ? now : new Date(rowDate(existing, 'attemptWindowStartedAt'))),
-            }
-          )
-          return verificationFailure()
-        }
-        if (input.mode === 'new' && input.country !== normalizeCountry(rowText(existing, 'country'))) {
-          return new DomainError(
-            'PLAYER_REGISTRATION_CONFLICT',
-            'This registration used a different country. Retry the original registration or start a new adventure.'
-          )
-        }
-        await transaction.query(
-          'UPDATE [dbo].[Players] SET [failedAttempts] = @failures, [attemptWindowStartedAt] = @started WHERE [id] = @id;',
-          { id: id(rowUuid(existing, 'id')), failures: int(0), started: date(now) }
+        return new DomainError(
+          'PLAYER_ALREADY_CREATED',
+          'This adventurer was already created, and its secret code can only be shown once. Start a new challenge.'
         )
-        return playerDto(existing)
       }
-      if (input.mode === 'returning') {
-        await verifyRuneSpell(input.runes, UNKNOWN_PLAYER_HASH)
-        return verificationFailure()
-      }
-      const playerCode = await availableCode(transaction)
-      if (playerCode instanceof DomainError) return playerCode
       const name = await availableName(transaction)
       if (name instanceof DomainError) return name
-      const runeHash = await hashRuneSpell(input.runes)
+      const code = await allocateSecretCode(transaction)
+      if (code instanceof DomainError) return code
       await transaction.insert(
         'Players',
-        [
-          'id',
-          'playerCode',
-          'name',
-          'country',
-          'runeHash',
-          'runeVersion',
-          'failedAttempts',
-          'attemptWindowStartedAt',
-          'createdAt',
-        ],
-        [
-          [
-            id(input.requestId),
-            str(playerCode, PLAYER_CODE_LENGTH),
-            str(name, 96),
-            str(input.country, 80),
-            str(runeHash, 160),
-            int(RUNE_CATALOG_VERSION),
-            int(0),
-            date(now),
-            date(now),
-          ],
-        ]
+        ['id', 'name', 'country', 'secretCodeHash', 'createdAt'],
+        [[
+          id(input.requestId),
+          str(name, PLAYER_NAME_MAX_LENGTH),
+          str(input.country, 80),
+          str(code.secretCodeHash, 64),
+          date(now),
+        ]]
       )
-      return { userId: input.requestId, name, playerCode, country: input.country, createdAt: now.toISOString() }
+      return {
+        userId: input.requestId,
+        name,
+        country: input.country,
+        createdAt: now.toISOString(),
+        secretCode: code.secretCode,
+      }
     })
   )
-  // Failed-attempt counters must commit; throwing inside the transaction would undo them.
+  // Domain errors must commit; throwing inside the transaction would undo the shared entry limit.
   if (result instanceof DomainError) throw result
   return result
 }

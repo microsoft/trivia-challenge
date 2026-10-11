@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ArrowRight, Check, MapPin, Star } from 'lucide-react'
+import { ArrowRight, Camera, MapPin } from 'lucide-react'
 import EntryCountryPicker from '../components/EntryCountryPicker'
-import ItemRunePicker, { SelectedRuneSlots } from '../components/ItemRunePicker'
 import StationAvatar from '../components/StationAvatar'
 import { useGame } from '../context/GameContext'
 import { userService } from '../services/userService'
@@ -12,112 +11,28 @@ import { isCountry } from '../../rayfin/functions/src/countries'
 import { getStationLockdownMessage, isStationLockdownActive } from '../lib/stationLockdown'
 import {
   isPlayerCode,
-  isRuneSpell,
   normalizePlayerCode,
+  PLAYER_CODE_ALPHABET,
   PLAYER_CODE_LENGTH,
-  RUNE_CATALOG_VERSION,
-  RUNE_COUNT,
-  type RuneId,
-  type RuneSpell,
 } from '../../rayfin/functions/src/playerIdentity'
-import type { RegisterUserRequest, User } from '../types/api'
+import type { RegisteredPlayer, RegisterUserRequest, User } from '../types/api'
 import './SignInPage.css'
 
-// The longest seal animation lasts 1.6 seconds.
-const SPELL_REVEAL_DELAY_MS = 1700
+type InvalidField = 'code' | null
 
-function PlayerCodeInput({
-  value,
-  disabled,
-  invalid,
-  onChange,
-  onBlur,
-}: {
-  value: string
-  disabled: boolean
-  invalid: boolean
-  onChange: (value: string) => void
-  onBlur: () => void
-}) {
-  const [selection, setSelection] = useState({ start: 0, end: 0 })
-  return (
-    <label className="entry-field entry-code">
-      <span className="entry-control-label" data-current={!isPlayerCode(value)}>
-        <b>01</b> Enter your adventurer code
-      </span>
-      <span className="entry-code-lock">
-        <span className="entry-code-cells" aria-hidden="true">
-          {Array.from({ length: PLAYER_CODE_LENGTH }, (_, index) => (
-            <span
-              key={index}
-              data-filled={Boolean(value[index])}
-              data-cursor={index === Math.min(selection.start, PLAYER_CODE_LENGTH - 1)}
-              data-selected={index >= selection.start && index < selection.end}
-            >
-              {value[index] ? '*' : '-'}
-            </span>
-          ))}
-        </span>
-        <input
-          type="password"
-          name="playerCode"
-          aria-label="Adventurer code"
-          aria-invalid={invalid}
-          aria-describedby={invalid ? 'entry-feedback' : undefined}
-          value={value}
-          placeholder="****"
-          autoComplete="off"
-          autoCapitalize="characters"
-          spellCheck={false}
-          maxLength={PLAYER_CODE_LENGTH}
-          disabled={disabled}
-          onSelect={event =>
-            setSelection({
-              start: event.currentTarget.selectionStart ?? 0,
-              end: event.currentTarget.selectionEnd ?? 0,
-            })
-          }
-          onClick={event => {
-            const bounds = event.currentTarget.getBoundingClientRect()
-            const index = Math.min(
-              value.length,
-              Math.max(
-                0,
-                Math.floor(((event.clientX - bounds.left) / bounds.width) * PLAYER_CODE_LENGTH)
-              )
-            )
-            event.currentTarget.setSelectionRange(index, index)
-          }}
-          onChange={event => onChange(normalizePlayerCode(event.target.value))}
-          onPaste={event => {
-            event.preventDefault()
-            onChange(normalizePlayerCode(event.clipboardData.getData('text')))
-          }}
-          onBlur={onBlur}
-        />
-      </span>
-    </label>
-  )
-}
+const CODE_RULE = 'Enter your 5-character secret code.'
 
-function moveRuneFocus(event: KeyboardEvent<HTMLDivElement>) {
-  const offsets: Record<string, number> = {
-    ArrowLeft: -1,
-    ArrowRight: 1,
-    ArrowUp: -3,
-    ArrowDown: 3,
-  }
-  if (!(event.key in offsets)) return
-  event.preventDefault()
-  const buttons = [...event.currentTarget.querySelectorAll<HTMLButtonElement>('.arcade-rune')]
-  const index = buttons.findIndex(button => button === document.activeElement)
-  if (
-    index < 0 ||
-    (event.key === 'ArrowLeft' && index % 3 === 0) ||
-    (event.key === 'ArrowRight' && index % 3 === 2)
-  )
-    return
-  buttons[index + offsets[event.key]]?.focus()
+// Each slot shows one character, so drop anything a code can never contain.
+const toCodeCharacters = (value: string) =>
+  [...normalizePlayerCode(value)]
+    .filter(char => PLAYER_CODE_ALPHABET.includes(char))
+    .join('')
+    .slice(0, PLAYER_CODE_LENGTH)
+
+function withoutSecretCode(player: RegisteredPlayer): User {
+  const user = { ...player }
+  delete user.secretCode
+  return user
 }
 
 export default function SignInPage() {
@@ -126,24 +41,24 @@ export default function SignInPage() {
   const { setPlayer, generation, isCurrentGame } = useGame()
   const mountedRef = useRef(false)
   const submittingRef = useRef(false)
-  const codeHeading = useRef<HTMLHeadingElement>(null)
-  const [mode, setMode] = useState<'new' | 'returning'>('returning')
-  const [playerCode, setPlayerCode] = useState('')
+  const nameHeading = useRef<HTMLHeadingElement>(null)
+  const codeInput = useRef<HTMLInputElement>(null)
+  const [mode, setMode] = useState<'new' | 'returning'>('new')
   const [country, setCountry] = useState('')
-  const [runes, setRunes] = useState<RuneId[]>([])
+  const [secretCode, setSecretCode] = useState('')
   const [pendingCreation, setPendingCreation] = useState<RegisterUserRequest | null>(null)
   const [registered, setRegistered] = useState<User | null>(null)
+  const [issuedCode, setIssuedCode] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [codeInvalid, setCodeInvalid] = useState(false)
-  const [celebrating, setCelebrating] = useState(false)
+  const [invalidField, setInvalidField] = useState<InvalidField>(null)
   const isLockdownActive = isStationLockdownActive()
   const displayedError = isLockdownActive ? getStationLockdownMessage() : error
   const creationFrozen = pendingCreation !== null
-  const issued = registered !== null && !celebrating
-  const controlsDisabled = isSubmitting || creationFrozen || registered !== null || isLockdownActive
-  const detailsReady = mode === 'new' ? isCountry(country) : isPlayerCode(playerCode)
-  const canRetry = Boolean(error) && !registered && detailsReady && isRuneSpell(runes)
+  const issued = registered !== null
+  const controlsDisabled = isSubmitting || creationFrozen || issued || isLockdownActive
+  const detailsReady = mode === 'new' ? isCountry(country) : secretCode.length > 0
+  const canSubmit = !isSubmitting && !isLockdownActive && (creationFrozen || detailsReady)
 
   useEffect(() => {
     mountedRef.current = true
@@ -155,34 +70,25 @@ export default function SignInPage() {
     analytics.track('pageview.home', { path: location.pathname })
   }, [location.pathname])
   useEffect(() => {
-    if (!celebrating) return
-    const timer = window.setTimeout(
-      () => setCelebrating(false),
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : SPELL_REVEAL_DELAY_MS
-    )
-    return () => window.clearTimeout(timer)
-  }, [celebrating])
-  useEffect(() => {
-    if (issued) codeHeading.current?.focus({ preventScroll: true })
+    if (issued) nameHeading.current?.focus({ preventScroll: true })
   }, [issued])
+  useEffect(() => {
+    if (isSubmitting || invalidField !== 'code') return
+    codeInput.current?.focus({ preventScroll: true })
+  }, [invalidField, isSubmitting])
 
   const startEntry = (nextMode: 'new' | 'returning') => {
     if (submittingRef.current || registered) return
     setMode(nextMode)
-    setRunes([])
-    setPlayerCode('')
     setCountry('')
+    setSecretCode('')
     setPendingCreation(null)
     setError(null)
-    setCodeInvalid(false)
-    setCelebrating(false)
+    setInvalidField(null)
   }
-  const changeRunes = (next: RuneId[]) => {
-    if (controlsDisabled || submittingRef.current || !detailsReady) return
-    setCelebrating(next.length === RUNE_COUNT && runes.length !== RUNE_COUNT)
-    setRunes(next)
-    setError(null)
-    if (isRuneSpell(next)) void submitEntry(next)
+  const reject = (field: InvalidField, message: string) => {
+    setInvalidField(field)
+    setError(message)
   }
   const enterChallenge = (user: User) => {
     if (isStationLockdownActive()) {
@@ -198,77 +104,79 @@ export default function SignInPage() {
     setPlayer(user)
     navigate('/select-pool')
   }
-  const submitEntry = async (selectedRunes = runes) => {
+  const submitEntry = async () => {
     if (submittingRef.current || registered) return
     if (isStationLockdownActive()) {
       setError(getStationLockdownMessage())
       return
     }
-    if (!isRuneSpell(selectedRunes)) {
-      setError('Choose three different item runes in order.')
-      return
+    let request: RegisterUserRequest
+    if (mode === 'new') {
+      if (pendingCreation) request = pendingCreation
+      else {
+        if (!isCountry(country)) return reject(null, 'Choose a country or region from the list.')
+        request = { mode: 'new', requestId: crypto.randomUUID(), country }
+        setPendingCreation(request)
+      }
+    } else {
+      const normalizedCode = normalizePlayerCode(secretCode)
+      if (!isPlayerCode(normalizedCode)) return reject('code', CODE_RULE)
+      request = { mode: 'returning', secretCode: normalizedCode }
     }
-    if (mode === 'new' && !isCountry(country)) {
-      setError('Choose a country or region from the list.')
-      return
-    }
-    if (mode === 'returning' && !isPlayerCode(playerCode)) {
-      setCodeInvalid(true)
-      setError('Use one letter and three digits.')
-      setCelebrating(false)
-      return
-    }
-    const spell: RuneSpell = [selectedRunes[0], selectedRunes[1], selectedRunes[2]]
-    const request: RegisterUserRequest =
-      mode === 'new'
-        ? (pendingCreation ?? {
-            mode: 'new',
-            requestId: crypto.randomUUID(),
-            country,
-            runeVersion: RUNE_CATALOG_VERSION,
-            runes: spell,
-          })
-        : { mode: 'returning', playerCode, runeVersion: RUNE_CATALOG_VERSION, runes: spell }
-    if (mode === 'new') setPendingCreation(request)
     setError(null)
-    setCodeInvalid(false)
+    setInvalidField(null)
     setIsSubmitting(true)
     submittingRef.current = true
     try {
-      const user = await userService.register(request)
+      const player = await userService.register(request)
       if (!mountedRef.current || !isCurrentGame(generation)) return
+      const user = withoutSecretCode(player)
       if (mode === 'new') {
+        if (!player.secretCode) {
+          setPendingCreation(null)
+          setCountry('')
+          throw new Error('Secret code was not returned. Start a new challenge.')
+        }
         setRegistered(user)
+        setIssuedCode(player.secretCode)
         setPendingCreation(null)
-      } else enterChallenge(user)
+      } else {
+        setSecretCode('')
+        enterChallenge(user)
+      }
     } catch (failure) {
       if (!mountedRef.current || !isCurrentGame(generation)) return
-      const wrongSpell =
-        mode === 'returning' &&
-        failure instanceof OperationError &&
-        failure.code === 'PLAYER_VERIFICATION_FAILED'
+      const operationError = failure instanceof OperationError ? failure : null
+      const wrongCode =
+        mode === 'returning' && operationError?.code === 'PLAYER_VERIFICATION_FAILED'
+      if (mode === 'new' && operationError?.code === 'PLAYER_ALREADY_CREATED') {
+        setPendingCreation(null)
+        setCountry('')
+      }
       setError(
-        wrongSpell
-          ? 'Wrong code or spell. Try again, or wait 15 minutes.'
+        wrongCode
+          ? "That secret code didn't match an adventurer. Check your photo and try again, or start a new challenge."
           : failure instanceof Error
             ? failure.message
             : 'Player entry failed. Please try again.'
       )
-      setCelebrating(false)
-      if (wrongSpell) setRunes([])
+      if (wrongCode) {
+        setSecretCode('')
+        setInvalidField('code')
+      }
     } finally {
       submittingRef.current = false
       if (mountedRef.current && isCurrentGame(generation)) setIsSubmitting(false)
     }
   }
+  const describedBy = (field: InvalidField, ...ids: string[]) =>
+    [...ids, invalidField === field && displayedError ? 'entry-feedback' : '']
+      .filter(Boolean)
+      .join(' ') || undefined
 
   return (
     <div className="player-entry" data-telemetry-private>
-      <div
-        className="entry-board"
-        data-spell-ready={runes.length === RUNE_COUNT}
-        data-spell-celebrating={celebrating}
-      >
+      <div className="entry-board">
         <header className="entry-brand">
           <img src="/fabriclogo.png" alt="Microsoft Fabric" />
           <p>
@@ -280,10 +188,11 @@ export default function SignInPage() {
             className="entry-split"
             aria-label="Adventurer entry"
             autoComplete="off"
-            aria-busy={isSubmitting || celebrating}
+            aria-busy={isSubmitting}
+            noValidate
             onSubmit={event => {
               event.preventDefault()
-              if (canRetry) void submitEntry()
+              if (canSubmit) void submitEntry()
             }}
           >
             <div className="entry-welcome" data-issued={issued}>
@@ -296,47 +205,14 @@ export default function SignInPage() {
                     {issued
                       ? 'YOUR ADVENTURER'
                       : mode === 'returning'
-                        ? 'YOUR ADVENTURE'
+                        ? 'RETURNING ADVENTURER'
                         : 'NEW ADVENTURER'}
                   </span>
                   <h1>
-                    {issued ? "You're in" : mode === 'returning' ? 'Continue' : 'Begin'}
-                    <em>{issued ? 'adventurer' : 'your quest'}</em>
+                    {issued ? "You're in," : mode === 'returning' ? 'Welcome' : 'Start a new'}
+                    <em>{issued ? 'adventurer' : mode === 'returning' ? 'back' : 'challenge'}</em>
                   </h1>
                 </div>
-              </div>
-              <div className="entry-details">
-                {issued ? (
-                  <h2 className="entry-player-name">{registered.name}</h2>
-                ) : mode === 'returning' ? (
-                  <PlayerCodeInput
-                    value={playerCode}
-                    disabled={controlsDisabled}
-                    invalid={codeInvalid}
-                    onChange={code => {
-                      setPlayerCode(code)
-                      setRunes([])
-                      setError(null)
-                      setCodeInvalid(false)
-                      setCelebrating(false)
-                    }}
-                    onBlur={() => {
-                      if (playerCode && !isPlayerCode(playerCode)) {
-                        setCodeInvalid(true)
-                        setError('Use one letter and three digits.')
-                      }
-                    }}
-                  />
-                ) : (
-                  <EntryCountryPicker
-                    value={country}
-                    disabled={controlsDisabled}
-                    onChange={value => {
-                      setCountry(value)
-                      setError(null)
-                    }}
-                  />
-                )}
               </div>
               <div className="entry-player-footer">
                 {issued ? (
@@ -349,11 +225,11 @@ export default function SignInPage() {
                       type="button"
                       className="entry-mode-link"
                       disabled={controlsDisabled}
-                      onClick={() => startEntry(mode === 'returning' ? 'new' : 'returning')}
+                      onClick={() => startEntry(mode === 'new' ? 'returning' : 'new')}
                     >
-                      {mode === 'returning'
-                        ? "Start a new adventure if you're new or forgot your code or spell."
-                        : 'I already have a code'}
+                      {mode === 'new'
+                        ? 'Have your secret code? Enter it here'
+                        : 'Forgot your code? Start a new challenge'}
                       <ArrowRight size={17} aria-hidden="true" />
                     </button>
                     {creationFrozen && !isSubmitting && (
@@ -362,7 +238,7 @@ export default function SignInPage() {
                         className="entry-mode-link"
                         onClick={() => startEntry('new')}
                       >
-                        Start over with a new adventurer instead
+                        Start a new challenge
                       </button>
                     )}
                   </div>
@@ -370,79 +246,139 @@ export default function SignInPage() {
               </div>
             </div>
             <div
-              className="arcade-machine entry-lock"
-              data-spell-ready={runes.length === RUNE_COUNT}
-              data-spell-celebrating={celebrating}
+              className="entry-lock"
+              data-ticket={issued || mode === 'returning'}
               data-entry-error={displayedError || undefined}
             >
-              <div className="entry-spell-tray">
-                <div className="entry-spell-copy">
-                  <div className="entry-control-label" data-current={detailsReady && !issued}>
-                    <b>{issued ? <Check size={15} aria-label="Complete" /> : '02'}</b>
-                    <h2>
-                      {issued
-                        ? 'Keep this rune order to unlock your adventure when you return.'
-                        : mode === 'returning'
-                          ? 'Recast your 3 runes in the same order to rejoin the adventure.'
-                          : runes.length === RUNE_COUNT && !displayedError
-                            ? 'Forging your adventurer. Your code is coming next.'
-                            : 'Choose 3 runes in an order to remember. Your code appears next.'}
-                    </h2>
-                    <span className="entry-rune-count" aria-hidden="true">
-                      {runes.length} / 3
-                    </span>
-                  </div>
-                </div>
-                <SelectedRuneSlots
-                  value={runes}
-                  onChange={changeRunes}
-                  disabled={controlsDisabled}
-                />
-              </div>
               {issued ? (
-                <section className="entry-code-reveal" aria-label="Your adventurer is ready">
-                  <div className="entry-issued-code">
-                    <h2
-                      ref={codeHeading}
-                      tabIndex={-1}
-                      className="entry-control-label"
-                      aria-describedby="entry-issued-value entry-code-reminder"
-                    >
-                      Keep your adventurer code
-                    </h2>
-                    <output
-                      id="entry-issued-value"
-                      className="entry-code-cells"
-                      aria-label="Adventurer code"
-                    >
-                      {registered.playerCode.split('').map((character, index) => (
-                        <span key={index} data-filled="true">
-                          {character}
-                        </span>
-                      ))}
-                    </output>
-                    <p id="entry-code-reminder">
-                      Shown only here. Keep this code and your 3-rune spell private to return.
-                    </p>
-                  </div>
+                <section className="entry-ticket-stage" aria-label="Your adventurer is ready">
+                  <article className="entry-ticket">
+                    <header className="entry-ticket-stub">
+                      <h2
+                        ref={nameHeading}
+                        tabIndex={-1}
+                        className="entry-ticket-kicker"
+                        aria-describedby="entry-issued-value"
+                      >
+                        Adventurer
+                      </h2>
+                      <output
+                        id="entry-issued-value"
+                        className="entry-ticket-name"
+                        aria-label="Adventurer name"
+                      >
+                        {registered.name}
+                      </output>
+                    </header>
+                    <div className="entry-ticket-perf" aria-hidden="true" />
+                    <div className="entry-ticket-body">
+                      <span className="entry-ticket-kicker">Secret code</span>
+                      <output
+                        id="entry-issued-code"
+                        className="entry-code-tiles"
+                        aria-label="Secret code"
+                      >
+                        {issuedCode?.split('').map((char, index) => (
+                          <span key={index}>{char}</span>
+                        ))}
+                      </output>
+                      <span className="entry-ticket-foot" aria-hidden="true">
+                        Microsoft Fabric Trivia Challenge
+                      </span>
+                    </div>
+                  </article>
+                  <p className="entry-ticket-note" role="note">
+                    <Camera size={24} aria-hidden="true" />
+                    <span>
+                      <b>Take a photo of your ticket.</b> Your code won't be shown again, and it's
+                      all you need to come back.
+                    </span>
+                  </p>
                 </section>
-              ) : (
-                <div className="entry-keypad" onKeyDown={moveRuneFocus}>
-                  <ItemRunePicker
-                    value={runes}
-                    onChange={changeRunes}
-                    disabled={!detailsReady || controlsDisabled}
-                  />
+              ) : mode === 'returning' ? (
+                <div className="entry-ticket-stage">
+                  <article className="entry-ticket" data-invalid={invalidField === 'code'}>
+                    <div className="entry-ticket-stub" aria-hidden="true">
+                      <span className="entry-ticket-kicker">Adventurer</span>
+                      <span className="entry-ticket-blank" />
+                    </div>
+                    <div className="entry-ticket-perf" aria-hidden="true" />
+                    <div className="entry-ticket-body">
+                      <span className="entry-ticket-kicker" aria-hidden="true">
+                        Secret code
+                      </span>
+                      <div className="entry-code-slots" data-checking={isSubmitting}>
+                        {Array.from({ length: PLAYER_CODE_LENGTH }, (_, index) => (
+                          <span
+                            key={index}
+                            aria-hidden="true"
+                            data-filled={index < secretCode.length}
+                            data-next={index === secretCode.length}
+                          >
+                            {index < secretCode.length ? '*' : null}
+                          </span>
+                        ))}
+                        {/* A plain text field under the slots, so browsers never offer to save
+                            the code as a password. Shared kiosk: autocomplete stays off. */}
+                        <input
+                          ref={codeInput}
+                          className="entry-code-input"
+                          type="text"
+                          aria-label="Secret code"
+                          aria-invalid={invalidField === 'code'}
+                          aria-describedby={describedBy('code', 'entry-code-hint')}
+                          value={secretCode}
+                          autoComplete="off"
+                          autoCorrect="off"
+                          autoCapitalize="characters"
+                          spellCheck={false}
+                          maxLength={12}
+                          disabled={controlsDisabled}
+                          onChange={event => {
+                            setSecretCode(toCodeCharacters(event.target.value))
+                            setError(null)
+                            setInvalidField(null)
+                          }}
+                        />
+                      </div>
+                      <span className="entry-ticket-foot" aria-hidden="true">
+                        Microsoft Fabric Trivia Challenge
+                      </span>
+                    </div>
+                  </article>
+                  <p className="entry-ticket-note" id="entry-code-hint">
+                    <Camera size={24} aria-hidden="true" />
+                    <b>Type the code from your ticket photo.</b>
+                  </p>
                 </div>
+              ) : (
+                <>
+                  <h2 className="entry-secret-heading">
+                    Choose your country or region. We'll give you an adventurer name and a secret
+                    code.
+                  </h2>
+                  <div className="entry-secret">
+                    <EntryCountryPicker
+                      value={country}
+                      disabled={controlsDisabled}
+                      onChange={value => {
+                        setCountry(value)
+                        setError(null)
+                      }}
+                    />
+                  </div>
+                </>
               )}
               <div className="entry-final-action">
                 {displayedError ? (
                   <p className="entry-feedback" role="alert" id="entry-feedback">
                     {displayedError}
                   </p>
-                ) : !issued && (isSubmitting || celebrating) ? (
+                ) : !issued && isSubmitting ? (
                   <p className="entry-feedback" role="status">
-                    {mode === 'new' ? 'Forging your adventurer...' : 'Checking your spell...'}
+                    {mode === 'new'
+                      ? 'Creating your adventurer...'
+                      : 'Checking your secret code...'}
                   </p>
                 ) : null}
                 {issued ? (
@@ -454,53 +390,39 @@ export default function SignInPage() {
                   >
                     Begin trivia <ArrowRight size={18} />
                   </button>
-                ) : canRetry ? (
-                  <button
-                    type="submit"
-                    className="play-go entry-create"
-                    disabled={isSubmitting || isLockdownActive}
-                  >
-                    {mode === 'new' ? 'Retry summoning my adventurer' : 'Retry verification'}
+                ) : (
+                  <button type="submit" className="play-go entry-create" disabled={!canSubmit}>
+                    {mode === 'returning'
+                      ? 'Continue'
+                      : creationFrozen && error
+                        ? 'Retry'
+                        : 'Start a new challenge'}
                     <ArrowRight size={18} />
                   </button>
-                ) : null}
+                )}
               </div>
-              {!issued && celebrating && !displayedError && (
-                <div className="spell-finale" aria-hidden="true">
-                  <span className="spell-wave" />
-                  {Array.from({ length: 16 }, (_, index) => (
-                    <span
-                      className="spell-ray"
-                      key={index}
-                      style={{ transform: `rotate(${index * 22.5}deg)` }}
-                    >
-                      <Star
-                        size={18}
-                        fill="currentColor"
-                        style={{ animationDelay: `${(index % 4) * 0.045}s` }}
-                      />
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
           </form>
         </main>
       </div>
       <footer className="privacy-notice entry-privacy" aria-label="Privacy notice">
-        <p>
-          Your privacy matters to us. We save your selected country or region with your adventurer
-          profile. When you start the Challenge, your country, gameplay and telemetry data feed the
-          Microsoft Fabric Real-Time Intelligence demo so attendees can see live analytics. That
-          telemetry may inform post-event learnings or future Microsoft marketing.
-        </p>
-        <p>
-          Review the{' '}
-          <a href="http://aka.ms/igniteRTI-racingrules" target="_blank" rel="noopener noreferrer">
-            Terms and Conditions
-          </a>{' '}
-          before you begin your challenge run.
-        </p>
+        <div className="entry-privacy-copy">
+          <p>
+            Your privacy matters to us. We save your selected country or region with your adventurer
+            profile. When you start the Challenge, your country, gameplay and telemetry data feed
+            the Microsoft Fabric Real-Time Intelligence demo so attendees can see live analytics.
+            That telemetry may inform post-event learnings or future Microsoft marketing.
+          </p>
+          <p>
+            Scan the QR code to read the Terms and Conditions before you begin your challenge run.
+          </p>
+        </div>
+        <figure className="entry-terms-qr">
+          <span className="entry-terms-qr-tile">
+            <img src="/terms-qr.png" alt="QR code for the Terms and Conditions" />
+          </span>
+          <figcaption>Scan to read the Terms and Conditions</figcaption>
+        </figure>
       </footer>
     </div>
   )

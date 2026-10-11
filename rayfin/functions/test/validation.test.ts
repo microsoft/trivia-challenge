@@ -7,52 +7,52 @@ const questionId = '22222222-2222-4222-8222-222222222222'
 const answer = { sessionId, questionId, answerIndex: 0, timeElapsed: 0.123456789, isCorrect: false }
 
 describe('operation validation', () => {
-  it('normalizes returning codes without accepting contact details or changing rune order', () => {
+  it('normalizes secret codes without accepting contact details or legacy credentials', () => {
     expect(registrationInput({
-      mode: 'returning', playerCode: ' k-042 ', runeVersion: 1,
-      runes: ['notebook', 'lakehouse', 'warehouse'],
+      mode: 'returning', secretCode: ' o-il10 ',
     })).toEqual({
-      mode: 'returning', playerCode: 'K042', runeVersion: 1,
-      runes: ['notebook', 'lakehouse', 'warehouse'],
+      mode: 'returning', secretCode: '01110',
     })
     expect(registrationInput({
-      mode: 'new', requestId: sessionId.toUpperCase(), country: 'Canada', runeVersion: 1,
-      runes: ['notebook', 'lakehouse', 'warehouse'],
-    })).toMatchObject({ requestId: sessionId })
-    expect(() => registrationInput({ email: 'test@example.invalid', name: 'Person' })).toThrow(DomainError)
+      mode: 'new', requestId: sessionId.toUpperCase(), country: 'Canada',
+    })).toEqual({ mode: 'new', requestId: sessionId, country: 'Canada' })
+    expect(() => registrationInput({ email: 'test@example.invalid', name: 'Amber Query Crafter' })).toThrow(DomainError)
   })
 
   it.each([undefined, null, '', ' ', 'Unlisted country', 'Canada, Ontario', 'canada', 1, {}])(
     'rejects new-player countries outside the approved list: %j',
     country => {
       expect(() => registrationInput({
-        mode: 'new', requestId: sessionId, country, runeVersion: 1,
-        runes: ['notebook', 'lakehouse', 'warehouse'],
+        mode: 'new', requestId: sessionId, country,
       })).toThrow('Choose a country or region from the list.')
     }
   )
 
   it.each([
-    { runes: ['lakehouse', 'lakehouse', 'notebook'] },
-    { runes: ['lakehouse', 'notebook'] },
-    { runes: ['lakehouse', 'notebook', 'invented'] },
-    { runes: ['lakehouse', 'notebook', 'report'] },
-    { runes: ['lakehouse', 'notebook', 'semantic-model'] },
-    { runes: ['lakehouse', 'notebook', 'ml-model'] },
-    { runeVersion: 2 },
+    { secretCode: undefined },
+    { secretCode: 'ABCD' },
+    { secretCode: 'ABCDEF' },
+    { secretCode: 'ABCU1' },
+    { secretCode: 1234 },
     { mode: 'other' },
-    { playerCode: 'I123' },
-    { playerCode: 'K1234' },
-    { playerCode: 'K12345' },
-    { email: 'test@example.invalid' },
+    { name: undefined },
     { name: 'Person' },
+    { name: 'Amber Query Crafter 02' },
+    { playerCode: 'K001' },
+    { runes: ['lakehouse', 'notebook', 'warehouse'] },
+    { email: 'test@example.invalid' },
     { phoneNumber: '12345' },
     { country: 'Country' },
   ])('rejects unsupported or private player input %o', overrides => {
     expect(() => registrationInput({
-      mode: 'returning', playerCode: 'K001', runeVersion: 1,
-      runes: ['notebook', 'lakehouse', 'warehouse'], ...overrides,
+      mode: 'returning', secretCode: 'ABCDE', ...overrides,
     })).toThrow(DomainError)
+  })
+
+  it('rejects extra fields on new adventurers', () => {
+    expect(() => registrationInput({
+      mode: 'new', requestId: sessionId, country: 'Canada', password: 'abc',
+    })).toThrow('Names, passwords, player codes, and runes are not accepted.')
   })
 
   it('preserves pool defaults and the slug-shaped contract', () => {

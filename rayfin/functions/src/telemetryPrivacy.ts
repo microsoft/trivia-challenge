@@ -33,6 +33,8 @@ const PRIVATE_FIELDS = new Set([
   'spellhash',
   'password',
   'passwordhash',
+  'secretcode',
+  'secretcodehash',
   'secret',
   'clientsecret',
   'token',

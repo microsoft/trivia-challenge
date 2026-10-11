@@ -24,9 +24,9 @@
   },
   "dependencies": {
     "@fabric-msft/svg-icons": "^4.0.3",
-    "@microsoft/rayfin-auth-provider-fabric": "1.35.0",
-    "@microsoft/rayfin-client": "1.35.0",
-    "@microsoft/rayfin-core": "1.35.0",
+    "@microsoft/rayfin-auth-provider-fabric": "1.35.1",
+    "@microsoft/rayfin-client": "1.35.1",
+    "@microsoft/rayfin-core": "1.35.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.548.0",
@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
-    "@microsoft/rayfin-cli": "1.35.0",
+    "@microsoft/rayfin-cli": "1.35.1",
     "@tailwindcss/postcss": "^4.1.16",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",

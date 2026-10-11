@@ -89,9 +89,10 @@ describe('telemetry function validation and envelope', () => {
     { state: 'Ontario' },
     { city: 'Toronto' },
     { latitude: 43.6 },
-    { nested: { playerCode: 'K4827' } },
-    { runes: ['lakehouse', 'notebook', 'warehouse'] },
-    { rune_hash: 'private' },
+    { nested: { password: 'otter-42' } },
+    { password_hash: 'private' },
+    { secretCode: 'ABCDE' },
+    { nested: { secretCodeHash: 'private' } },
   ])('rejects attendee details and credentials at the publisher boundary: %o', properties => {
     expect(() => validateTelemetryBatch({
       events: [event({ event: 'user.register', type: 'user', properties })],
@@ -430,7 +431,7 @@ describe('browser telemetry delivery', () => {
 
   it('snapshots attendee, session, pool, station, payload and event ID before retries', async () => {
     const participant: User = {
-      userId: 'participant-one', playerCode: 'K4827', name: 'Amber Query Crafter',
+      userId: 'participant-one', name: 'Amber Query Crafter',
       country: 'Canada',
       createdAt: NOW.toISOString(),
     }
@@ -475,7 +476,7 @@ describe('browser telemetry delivery', () => {
 
   it('queues ASCII countries for saved legacy players without changing their profile', async () => {
     const participant: User = {
-      userId: 'participant-one', playerCode: 'K042', name: 'Amber Query Crafter',
+      userId: 'participant-one', name: 'Amber Query Crafter',
       country: 'Côte d’Ivoire', createdAt: NOW.toISOString(),
     }
     service.identify(participant)
@@ -490,28 +491,31 @@ describe('browser telemetry delivery', () => {
     expect(participant.country).toBe('Côte d’Ivoire')
   })
 
-  it('never queues contact details, player codes, spell choices, or arbitrary registration names', async () => {
+  it('never queues contact details, passwords, or arbitrary registration names', async () => {
     for (const properties of [
-      { email: 'person@example.invalid' }, { playerCode: 'K4827' },
-      { nested: { runes: ['lakehouse', 'warehouse', 'notebook'] } }, { name: 'Real Person' },
+      { email: 'person@example.invalid' }, { password: 'otter-42' },
+      { nested: { passwordHash: 'private' } }, { secretCode: 'ABCDE' },
+      { nested: { secretCodeHash: 'private' } }, { name: 'Real Person' },
       { country: 'Canada, Ontario' }, { nested: { city: 'Toronto' } },
     ]) service.track('user.register', properties)
     service.track('user.register', { name: 'Amber Query Crafter', country: 'Canada', entryMode: 'returning' })
     await service.flush()
-    expect(service.getDeliveryStatus()).toMatchObject({ droppedCount: 6, deliveredCount: 1 })
+    expect(service.getDeliveryStatus()).toMatchObject({ droppedCount: 8, deliveredCount: 1 })
     expect(sender.mock.calls[0][0][0].properties).toEqual({ name: 'Amber Query Crafter', country: 'Canada', entryMode: 'returning' })
-    expect(JSON.stringify(warn.mock.calls)).not.toMatch(/person@example|K4827|Real Person|lakehouse/)
+    expect(JSON.stringify(warn.mock.calls)).not.toMatch(/person@example|otter-42|Real Person/)
   })
 
-  it('does not capture clicks, touches, or keystrokes inside a private entry/code region, including SVG targets', async () => {
+  it('does not capture clicks, touches, or keystrokes inside a private entry region, including SVG targets', async () => {
     service.initialize()
-    document.body.innerHTML = '<section data-telemetry-private><button id="rune"><svg><path /></svg>Rune</button><input id="code" value="K4827" /></section>'
-    const button = document.getElementById('rune')
+    document.body.innerHTML = '<section data-telemetry-private><button id="entry"><svg><path /></svg>Enter</button><input id="secret-code" type="password" value="ABCDE" /></section>'
+    const button = document.getElementById('entry')
+    const input = document.getElementById('secret-code')
     const svg = document.querySelector('svg')
-    if (!button || !svg) throw new Error('Private fixture missing')
+    if (!button || !input || !svg) throw new Error('Private fixture missing')
     button.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }))
     svg.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }))
     button.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+    input.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'A', bubbles: true }))
     const touch = new dom.window.Event('touchstart', { bubbles: true })
     Object.defineProperty(touch, 'touches', { value: [{ clientX: 10, clientY: 10 }] })
     svg.dispatchEvent(touch)

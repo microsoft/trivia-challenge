@@ -1,5 +1,5 @@
 import type { OperationMap } from '../types/api'
-import { isGeneratedPlayerName, isPlayerCode } from '../../rayfin/functions/src/playerIdentity'
+import { isGeneratedPlayerName, isPlayerCode, normalizePlayerCode } from '../../rayfin/functions/src/playerIdentity'
 import { isCountry } from '../../rayfin/functions/src/countries'
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -31,8 +31,10 @@ function question(value: unknown): boolean {
 
 export const operationResponseValidators: Record<keyof OperationMap, (value: unknown) => boolean> = {
   registerPlayer: value => isRecord(value) && isString(value.userId) && isGeneratedPlayerName(value.name) &&
-    isPlayerCode(value.playerCode) && isCountry(value.country) && isString(value.createdAt) &&
-    Object.keys(value).every(key => ['userId', 'name', 'playerCode', 'country', 'createdAt'].includes(key)),
+    isCountry(value.country) && isString(value.createdAt) &&
+    (value.secretCode === undefined || isString(value.secretCode) &&
+      normalizePlayerCode(value.secretCode) === value.secretCode && isPlayerCode(value.secretCode)) &&
+    Object.keys(value).every(key => ['userId', 'name', 'country', 'createdAt', 'secretCode'].includes(key)),
   listPools: value => Array.isArray(value) && value.every(pool),
   getPool: pool,
   createPool: pool,

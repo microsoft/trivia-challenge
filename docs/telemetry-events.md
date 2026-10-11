@@ -34,13 +34,13 @@ The event snapshots these fields and its top-level attendee `userId` before queu
 
 ### Privacy boundaries
 
-All click, touch, and keyboard capture skips regions marked `data-telemetry-private`, including player entry, rune selection, and private-code displays. Keyboard events also skip inputs, selects, textareas, editable content, and textbox roles. Non-control text keys are generalized.
+All click, touch, and keyboard capture skips regions marked `data-telemetry-private`, including the player entry form and its secret-code field. Keyboard events also skip inputs, selects, textareas, editable content, and textbox roles. Non-control text keys are generalized.
 
 The browser does not collect language, user agent, viewport, or screen dimensions. Both the browser queue and backend publisher reject known contact, credential, detailed-location, and browser-fingerprint fields, including nested fields.
 
 Country fields accept the approved list and seven explicit legacy spellings. Both boundaries normalize the legacy names to ASCII before queueing or publishing. They reject arbitrary location strings and other accent variants. Historical Eventhouse data remains unchanged; reports must apply the [country-name mapping](operations.md#ascii-country-names) when combining it with new events. Other text is not transliterated.
 
-The app-generated `user.register` event omits player codes, selected runes, and rune verifiers. Its name must match the curated generated-name format. The creation request UUID becomes `userId`; it is not a secret.
+The app-generated `user.register` event omits secret codes, code verifiers, passwords, and password verifiers. Its name must match the curated generated-name format. The creation request UUID becomes `userId`; it is not a secret.
 
 The publisher rejects prohibited field names, but cannot detect a credential or personal information embedded in otherwise permitted text. These checks reduce accidental collection; they do not guarantee that arbitrary authenticated submissions contain no private information.
 

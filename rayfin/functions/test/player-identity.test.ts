@@ -1,17 +1,15 @@
 import { describe, expect, it } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import {
-  ITEM_RUNES,
-  PLAYER_CODE_CAPACITY,
   isGeneratedPlayerName,
   isPlayerCode,
-  isRuneSpell,
   normalizePlayerCode,
-  playerCodeAt,
+  PLAYER_CODE_ALPHABET,
+  PLAYER_CODE_LENGTH,
   PLAYER_NAME_PREFIXES,
   PLAYER_NAME_TITLES,
 } from '../src/playerIdentity.js'
-import { generatePlayerName, hashRuneSpell, verifyRuneSpell } from '../src/playerCredentials.js'
+import { generatePlayerCode, generatePlayerName, hashPlayerCode } from '../src/playerCredentials.js'
 
 describe('adventurer identity rules', () => {
   it('uses the editable TXT word banks in the compiled shared module', () => {
@@ -28,46 +26,28 @@ describe('adventurer identity rules', () => {
     expect(PLAYER_NAME_TITLES).toEqual(words.titles)
   })
 
-  it('provides nine distinct item choices and 504 ordered spells', () => {
-    expect(ITEM_RUNES).toHaveLength(9)
-    expect(new Set(ITEM_RUNES.map(rune => rune.id)).size).toBe(9)
-    expect(ITEM_RUNES.length * (ITEM_RUNES.length - 1) * (ITEM_RUNES.length - 2)).toBe(504)
-    expect(isRuneSpell(['lakehouse', 'notebook', 'warehouse'])).toBe(true)
-    expect(isRuneSpell(['warehouse', 'notebook', 'lakehouse'])).toBe(true)
-    expect(isRuneSpell(['lakehouse', 'lakehouse', 'warehouse'])).toBe(false)
-    expect(isRuneSpell(['lakehouse', 'notebook', 'unknown'])).toBe(false)
-    expect(isRuneSpell(['lakehouse', 'notebook', 'report', 'warehouse'])).toBe(false)
-    for (const removed of ['report', 'semantic-model', 'ml-model'])
-      expect(isRuneSpell(['lakehouse', 'notebook', removed])).toBe(false)
-    const sparseSpell = ['lakehouse', 'notebook']
-    sparseSpell.length = 3
-    expect(isRuneSpell(sparseSpell)).toBe(false)
+  it('normalizes secret codes typed from photos', () => {
+    expect(normalizePlayerCode(' ab-cd1 ')).toBe('ABCD1')
+    expect(normalizePlayerCode('o0 il-l')).toBe('00111')
+    expect(normalizePlayerCode('a b-c d e')).toBe('ABCDE')
   })
 
-  it('has exactly 22,000 unique letter-and-three-digit codes, preserving leading zeros', () => {
-    const codes = new Set(
-      Array.from({ length: PLAYER_CODE_CAPACITY }, (_, index) => playerCodeAt(index))
-    )
-    expect(codes.size).toBe(22_000)
-    expect([...codes].every(isPlayerCode)).toBe(true)
-    expect(playerCodeAt(0)).toBe('A000')
-    expect(playerCodeAt(PLAYER_CODE_CAPACITY - 1)).toBe('Z999')
-    expect(normalizePlayerCode(' k-042 ')).toBe('K042')
-    for (const invalid of [
-      'A000\n',
-      'A00',
-      'A0000',
-      'A00000',
-      'I000',
-      'L000',
-      'O000',
-      'U000',
-      '0000',
-    ]) {
+  it('accepts exactly five Crockford base32 characters after normalization', () => {
+    for (const valid of ['01234', 'abcde', 'a-b c-d-e', 'O0IL1', 'vwxyz']) {
+      expect(isPlayerCode(valid)).toBe(true)
+    }
+    for (const invalid of [undefined, null, 1234, '', 'ABCD', 'ABCDEF', 'ABCU1', 'AB@12']) {
       expect(isPlayerCode(invalid)).toBe(false)
     }
-    for (const invalid of [-1, PLAYER_CODE_CAPACITY, 0.5, Infinity]) {
-      expect(() => playerCodeAt(invalid)).toThrow()
+  })
+
+  it('generates five-character secret codes using the approved alphabet', () => {
+    const alphabet = new Set(PLAYER_CODE_ALPHABET)
+    for (let i = 0; i < 100; i++) {
+      const code = generatePlayerCode()
+      expect(code).toHaveLength(PLAYER_CODE_LENGTH)
+      expect([...code].every(char => alphabet.has(char))).toBe(true)
+      expect(code).not.toMatch(/[ILOU]/)
     }
   })
 
@@ -90,17 +70,12 @@ describe('adventurer identity rules', () => {
     expect(isGeneratedPlayerName('person@example.invalid')).toBe(false)
   })
 
-  it('salts every spell and verifies exact order without retaining the selected IDs', async () => {
-    const spell = ['lakehouse', 'notebook', 'warehouse'] as const
-    const first = await hashRuneSpell(spell)
-    const second = await hashRuneSpell(spell)
-    expect(first).not.toBe(second)
-    expect(first).toMatch(/^scrypt-v1:[a-f0-9]{32}:[a-f0-9]{64}$/)
-    for (const rune of spell) expect(first).not.toContain(rune)
-    expect(await verifyRuneSpell(spell, first)).toBe(true)
-    expect(await verifyRuneSpell(['warehouse', 'notebook', 'lakehouse'], first)).toBe(false)
-    await expect(verifyRuneSpell(spell, 'bad-stored-hash')).rejects.toThrow(
-      'Stored spell verifier is invalid'
-    )
+  it('hashes normalized secret codes deterministically without storing the plain text', async () => {
+    const hash = await hashPlayerCode('a-bc d1')
+    expect(hash).toMatch(/^[a-f0-9]{64}$/)
+    expect(hash).toBe(await hashPlayerCode('ABCDI'))
+    expect(hash).not.toContain('ABCD1')
+    expect(await hashPlayerCode('ABCDE')).not.toBe(hash)
+    await expect(hashPlayerCode('bad!')).rejects.toThrow('Player secret code is invalid')
   })
 })

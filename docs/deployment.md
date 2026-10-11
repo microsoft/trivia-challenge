@@ -255,9 +255,9 @@ If Fabric displayed a builder-only SSO warning, verify that it disappears for a 
 
 ### Review the contact-free player schema
 
-The player-entry implementation replaces the old `Player` contact columns with `playerCode`, a generated `name`, a required selected `country`, a salted `runeHash`, its catalog version, and verification counters. It also introduces the private `PlayerEntryState` entity. The application will not work correctly against the old email-based schema.
+The player-entry implementation replaces the old `Player` contact columns with a generated `name`, a required selected `country`, and an optional `secretCodeHash`. It also introduces the private `PlayerEntryState` entity. The application will not work correctly against the old email-based schema.
 
-Review the generated schema changes and existing data before deployment. Existing player rows do not have codes or rune verifiers; there is no automatic conversion or account-recovery migration in this repository. Do not invent placeholder email addresses, fabricate credentials for existing rows, or use `--force` to bypass this decision.
+Review the generated schema changes and existing data before deployment. Existing player rows do not have secret-code verifiers; there is no automatic conversion or account-recovery migration in this repository. Do not invent placeholder email addresses, fabricate codes for existing rows, or use `--force` to bypass this decision. The credential-schema change below is a separate, reviewed column removal.
 
 Review `rayfin/functions/src/country-names.txt` before deployment. New players must select an approved country; it is saved and included in analytics. Rows without a country need a separately reviewed data transition, not an invented default. Builds generate the picker and backend allowlist from the same TXT file. Deploy frontend and Functions together, and preserve names used by existing players unless their records are migrated.
 
@@ -265,7 +265,20 @@ Country labels now use printable ASCII. The [seven renamed countries](operations
 
 Any destructive migration, removal of historical contact fields, or cleanup of old SQL/Eventhouse/exported data requires a separate authorized plan. Updating application code alone does not erase previously collected information. Run `npm run schema:check` locally to check entity discovery and private policies; this does not apply the schema to Fabric.
 
-The entry format uses nine runes and four-character codes. Deploy the frontend, Functions, and four-character `playerCode` column together. Five-character codes and removed rune choices are not supported. No credential conversion or historical-name rewrite runs automatically.
+### Replace return codes, rune spells, and passwords with secret codes
+
+From `main`, this version removes the `Player` columns `playerCode`, `runeHash`, `runeVersion`, `failedAttempts`, and `attemptWindowStartedAt`, and adds optional `secretCodeHash`. If an earlier password build was deployed, the plan also drops `passwordHash`. Returning players enter only a generated secret code. Deploy the frontend, Functions, schema, and the Terms QR asset at `public/terms-qr.png` together.
+
+Dropping the columns deletes every stored return-code, rune, password, and attempt-window verifier. Rayfin blocks that change unless you confirm it. `--force` accepts every destructive operation in the plan, so first confirm that the plan drops only the expected credential columns and adds `secretCodeHash`. Then add `--force` to the deployment command from step 3:
+
+```bash
+RAYFIN_FEATURE_FLAGS=functions npx rayfin up \
+  --tenant "$TENANT_ID" \
+  --workspace-uri "$WORKSPACE_URI" \
+  --force
+```
+
+Existing player rows keep their name, country, and game history but have no secret code, so they cannot return. Those attendees must start a new challenge. No credential conversion runs automatically. Finish active games and reload idle kiosks after deployment.
 
 ### Deploy reviewed changes
 
