@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@azure/event-hubs": "5.12.2",
-    "@azure/identity": "4.13.2",
+    "@azure/identity": "4.14.1",
     "@microsoft/fabric-user-data-functions": "1.36.0-alpha.1620",
     "csv-parse": "7.0.2",
     "tedious": "19.2.2"
